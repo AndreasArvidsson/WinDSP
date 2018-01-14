@@ -1,2 +1,252 @@
 # WinDSP
-Windows based DSP
+Windows based DSP(Digital Signal Processor
+
+## Features
+* Route any input to any output. An input can be routed to zero or many outputs
+* Add any filter to route or output
+* Filters like crossovers, PEQ, shelf, custom biquad, delay, gain and more
+* Uses double-precision floating-points to calculate filters
+* Uses WASAPI(Windows Audio Session API) to capture and manipulate audio streams
+* JSON based configuration file to easy set up your DSP
+* User friendly error and warning messages. Warns you about digital clipping. Using missing channels and more.
+
+## Devices
+Windows (as far as I know) doesn't allow manipulation of the audio stream during playback. You can however capture a playing audio stream from one device and play it back to another device.
+This requires two devices: one capture device and one render/playback device
+
+**Capture device**
+* Receives audio from applications. Make it the default playback device
+* Have NO audio equipment/speakers attached
+
+**Render device**
+* Receives audio ONLY from WinDSP
+* Have audio equipment/speakers attached
+
+**Virtual Cable**    
+If you don't have a spare soundcard in your computer to use for the capture device I can recommendend [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable/index.htm) which gives you a virtual audio device to use as the capture device.
+
+## Prerequisites
+* Capture and render audio devices
+* Windows 8.1 or newer. May work on older OS. Feel free to try it out.
+* [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
+
+## Install
+1. Download and install [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
+1. Download and install [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable/index.htm)
+1. Set Virtual Cable as your default audio playback device
+1. Configure Virtual Cabel to use the same sample rate as your render device (/properties/advanced)
+1. Configure Virtual Cable to use 7.1 surround (/configure)
+1. Configure WinDSP.json configuration file
+1. Start WinDSP.exe
+
+**Start WinDSP with Windows**
+1. Create shortcut to WinDSP.exe (right click/create shortcut)
+1. Press win+R
+1. Type "shell:startup" and press enter
+1. Startup folder opens
+1. Paste shortcut to WinDSP.exe in the folder
+
+## JSON config file
+The config file uses this default layout
+```json
+{
+    "devices": {
+        "capture": "{0.0.0.00000000}.{3f6a035b-f23e-40f8-84dd-01018df49110}",
+        "render": "{0.0.0.00000000}.{9aa1b7e8-b45d-4431-a43f-e6ca06dfe79e}"
+    },
+    "inputs": {
+        "L": {
+            "routes": [{
+                "out": "L",
+                "gain": -3.8,
+                "delay": 2,
+                "invert": true,
+                "filters": [ ]
+            }]
+        }
+    },
+    "outputs": {
+        "L": {
+            "gain": -3.2,
+            "delay": 4.5,
+            "invert": true,
+            "mute": true,
+            "filters": [ ]
+        }
+    }
+}
+```
+**Devices**
+* Devices contains the capture and render device IDs
+* If devices are not set the user will be queried from a list of available devices. Do NOT write these IDs yourself
+
+**Inputs**
+* Inputs contains the routes. i.e. the mapping between inputs and outputs
+* By default all inputs are routed directly to the matching output. L to L, R to R and so on
+* To not use an input at all just add empty brackets: ```"L": {}```
+* One input can have multiple outputs. Including the same output twice if needed
+* A route can have multiple filters like gain, delay, crossovers, peq and more.
+
+**Outputs**
+* Outputs contains each output channel. This is the sum of all the input routes to this channel
+* By default the output channels have no filters
+* An output can have multiple filters like gain, delay, crossovers, peq just like the input routes.
+* An output can be muted
+
+**Filters**    
+* The program handles all audio manipulation as filters. A filter can be a something complex as a crossover or something simple like gain
+* Some filters can only exist once in a route or output. eg. gain, delay, invert, mute
+* Other filters(in the filters array) can occur multiple times. eg. crossovers, shelf, PEQ, LT, custom biquad
+* All filters in the filters array require a "type" parameter
+* Delay filters can be either single number in milliseconds  or an object where unit meter can be used 
+
+**References**    
+A common user case is that multiple channels or routes share filter configurations. Instead of having to copy and paste these you can reference one JSON node from another.
+```json
+ "outputs": {
+    "R": { 
+        "#ref": "outputs/L" 
+    }
+ }
+```
+You can declare a list of your favorite filters and reuse them
+```json
+ {
+    "filters": {
+        "myPEQ": {
+          "type": "PEQ",
+          "freq": 320,
+          "gain": -10,
+          "q": 5
+        }
+    },
+    "outputs": {
+    "SL": {
+        "filters": [
+            { 
+                "#ref": "filters/myPEQ" 
+            }
+        ]
+    }
+}
+```
+
+**Channels**
+The channels are:
+* L: Front left
+* R: Front right
+* C: Center
+* SW: Subwoofer/LFE
+* SL: Surround left
+* SR: Surround right
+* SBL: Surround back left
+* SBR: Surround back right
+
+## Filter parameters
+
+**Delay**    
+* Requires: value
+* Optional unitMeter parameter to use meters instead of milliseconds
+```json
+"delay": 5.2
+```
+or
+```json
+"delay": {
+    "value": 4.5,
+    "unitMeter": true
+}
+```
+
+**PEQ(Parametric equalizer)**    
+* Requires: type, freq, gain, q
+```json
+{
+    "type": "PEQ",
+    "freq": 29.0,
+    "gain": -13.0,
+    "q": 4.5
+}
+```
+
+[Linkwitz Transform](https://www.minidsp.com/applications/advanced-tools/linkwitz-transform)    
+* Requires: type, f0, q0, fp, qp
+```json
+{
+    "type": "LINKWITZ_TRANSFORM",
+    "f0": 30.0,
+    "q0": 1.2,
+    "fp": 10.0,
+    "qp": 0.5
+}
+```
+
+**Shelf**    
+* Type: LOW_SHELF or HIGH_SHELF    
+* Requires: type, freq, gain    
+* Slope defaults to 1.0
+```json
+{
+    "type": "LOW_SHELF",
+    "freq": 100.0,
+    "gain": -10.0,
+    "slope": 0.5
+}
+```
+
+**Crossover**    
+* Type: LOW_PASS or HIGH_PASS    
+* Requires: type, subType, order, freq
+* Subtypes are: BUTTERWORTH, LINKWITZ_RILEY and CUSTOM
+* Butterworth is available in orders: 1 through 8
+* Linkwitz-Riley is available in orders: 2, 4 and 8
+* Subtype custom requires Q values array. One Q-value per 2nd order filter. Give Q as -1 to get a 1st order filter
+```json
+{
+    "type": "LOW_PASS",
+    "subType": "BUTTERWORTH",
+    "order": 4,
+    "freq": 80.0
+}
+```
+```json
+{
+    "type": "LOW_PASS",
+    "subType": "CUSTOM",
+    "order": 5,
+    "freq": 80.0,
+    "q": [
+        -1.0
+        0.707,
+        0.5
+    ]
+}
+```
+
+**Custom biquad**    
+* Create a custom biquad be giving the biquad coefficients    
+* All coefficients not given defaults to 0.0    
+* b0-b1 are the feedforward values in the numerator and a0-a1 are the feedback values in the denominator  
+* Multiple sets of coefficients can be given to create a cascading filter
+```json
+{
+    "type": "BIQUAD",
+    "values": [{
+        "b0": 0.2513790015131591,
+        "b1": 0.5027580030263182,
+        "b2": 0.2513790015131591,
+        "a1": -0.17124071441396285,
+        "a2": 0.1767567204665992
+    }]
+}
+```
+
+## Errors and Warnings
+* En error is a problem serious enough that the program can't run. eg. missing devices, faulty config
+* An error will output a text message describing the problem and then restart the program. If the problem is corrected the program will start normally
+* A warning is a potential problem, but the program can still continue running. eg. Configured a route for a channel the audio device is lacking, the sum of all routes can go above 0dBFS on the output
+* All configured input and outputs the device is lacking will just be ignored
+* If you sum multiple inputs together and they play peak signals at the same time digital clipping will occur which creates distortion. To be on the safe side lower the output gain if a digital clipping warning is shown.
+
+## Disclaimer
+I test all my software to the best of my ability and this is a software I personally use in my audio setup, but bugs can still occur and due to the nature of this software being audio playback related loud uncomfortable high or low frquency distortions may be a possibility. I haven't had any problems like that myself and if I find them I will patch them out, but just be aware that you use this software on your own accord. With that said please feel free to enjoy it! :)

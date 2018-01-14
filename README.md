@@ -2,7 +2,7 @@
 Windows based DSP(Digital Signal Processor
 
 ## Features
-* Route any input to any output. An input can be routed to zero or many outputs
+* Route any input to any output. Any input can be routed to zero or many outputs
 * Add any filter to route or output
 * Filters like crossovers, PEQ, shelf, custom biquad, delay, gain and more
 * Uses double-precision floating-points to calculate filters

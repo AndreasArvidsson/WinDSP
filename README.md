@@ -47,7 +47,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 1. Paste shortcut to WinDSP.exe in the folder
 
 ## JSON config file
-The config file uses this default layout
+The config file uses this layout
 ```json
 {
     "devices": {
@@ -97,8 +97,6 @@ The config file uses this default layout
 * The program handles all audio manipulation as filters. A filter can be a something complex as a crossover or something simple like gain
 * Some filters can only exist once in a route or output. eg. gain, delay, invert, mute
 * Other filters(in the filters array) can occur multiple times. eg. crossovers, shelf, PEQ, LT, custom biquad
-* All filters in the filters array require a "type" parameter
-* Delay filters can be either single number in milliseconds  or an object where unit meter can be used 
 
 **References**    
 A common user case is that multiple channels or routes share filter configurations. Instead of having to copy and paste these you can reference one JSON node from another.
@@ -131,7 +129,7 @@ You can declare a list of your favorite filters and reuse them
 }
 ```
 
-**Channels**
+**Channels**    
 The channels are:
 * L: Front left
 * R: Front right

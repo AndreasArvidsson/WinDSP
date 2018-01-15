@@ -208,7 +208,7 @@ or
 **Crossover**    
 * Type: LOW_PASS or HIGH_PASS    
 * Requires: type, subType, order, freq
-* Subtypes are: BUTTERWORTH, LINKWITZ_RILEY BESSEL and CUSTOM
+* Subtypes are: BUTTERWORTH, LINKWITZ_RILEY, BESSEL and CUSTOM
 * Butterworth is available in orders: 1 through 8
 * Linkwitz-Riley is available in orders: 2, 4 and 8
 * Bessel is available in orders: 2 through 8

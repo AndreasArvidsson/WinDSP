@@ -47,6 +47,8 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 1. Paste shortcut to WinDSP.exe in the folder
 
 ## JSON config file
+* Saving the config file will automatically restart WinDSP. No need to manually close and open the program.
+
 The config file uses this layout
 ```json
 {
@@ -76,6 +78,7 @@ The config file uses this layout
     }
 }
 ```
+
 **Devices**
 * Devices contains the capture and render device IDs
 * If devices are not set the user will be queried from a list of available devices. Do NOT write these IDs yourself
@@ -167,18 +170,6 @@ or
 }
 ```
 
-[Linkwitz Transform](https://www.minidsp.com/applications/advanced-tools/linkwitz-transform)    
-* Requires: type, f0, q0, fp, qp
-```json
-{
-    "type": "LINKWITZ_TRANSFORM",
-    "f0": 30.0,
-    "q0": 1.2,
-    "fp": 10.0,
-    "qp": 0.5
-}
-```
-
 **Shelf**    
 * Type: LOW_SHELF or HIGH_SHELF    
 * Requires: type, freq, gain    
@@ -192,12 +183,35 @@ or
 }
 ```
 
+**Band pass**    
+* Requires: type, freq, bandwidth    
+* Gain defaults to 1.0
+```json
+{
+    "type": "BAND_PASS",
+    "freq": 100.0,
+    "bandwidth": 3.5,
+    "gain": 1.5
+}
+```
+
+**Notch**    
+* Requires: type, freq, bandwidth    
+```json
+{
+    "type": "NOTCH",
+    "freq": 100.0,
+    "bandwidth": 3.5
+}
+```
+
 **Crossover**    
 * Type: LOW_PASS or HIGH_PASS    
 * Requires: type, subType, order, freq
-* Subtypes are: BUTTERWORTH, LINKWITZ_RILEY and CUSTOM
+* Subtypes are: BUTTERWORTH, LINKWITZ_RILEY BESSEL and CUSTOM
 * Butterworth is available in orders: 1 through 8
 * Linkwitz-Riley is available in orders: 2, 4 and 8
+* Bessel is available in orders: 2 through 8
 * Subtype custom requires Q values array. One Q-value per 2nd order filter. Give Q as -1 to get a 1st order filter
 ```json
 {
@@ -218,6 +232,18 @@ or
         0.707,
         0.5
     ]
+}
+```
+
+[Linkwitz Transform](https://www.minidsp.com/applications/advanced-tools/linkwitz-transform)    
+* Requires: type, f0, q0, fp, qp
+```json
+{
+    "type": "LINKWITZ_TRANSFORM",
+    "f0": 30.0,
+    "q0": 1.2,
+    "fp": 10.0,
+    "qp": 0.5
 }
 ```
 

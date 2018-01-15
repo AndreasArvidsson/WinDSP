@@ -1,5 +1,5 @@
 # WinDSP
-Windows based DSP(Digital Signal Processor
+Windows based DSP(Digital Signal Processor)
 
 ## Features
 * Route any input to any output. Any input can be routed to zero or many outputs

@@ -247,7 +247,7 @@ or
 }
 ```
 
-**Biquad**    
+[Biquad](https://www.minidsp.com/applications/advanced-tools/advanced-biquad-programming)    
 * Create a custom biquad by giving the biquad coefficients    
 * Biquad filters are also known as IIR(Infinite Impulse Response)
 * All coefficients not given defaults to 0.0    

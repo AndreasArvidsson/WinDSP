@@ -47,7 +47,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 1. Paste shortcut to WinDSP.exe in the folder
 
 ## JSON config file
-* Saving the config file will automatically restart WinDSP. No need to manually close and open the program.
+* Saving the config file will automatically restart WinDSP. No need to manually close and open the program
 
 The config file uses this layout
 ```json

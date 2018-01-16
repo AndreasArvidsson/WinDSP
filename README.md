@@ -247,8 +247,9 @@ or
 }
 ```
 
-**Custom biquad**    
-* Create a custom biquad be giving the biquad coefficients    
+**Biquad**    
+* Create a custom biquad by giving the biquad coefficients    
+* Biquad filters are also known as IIR(Infinite Impulse Response)
 * All coefficients not given defaults to 0.0    
 * b0-b1 are the feedforward values in the numerator and a0-a1 are the feedback values in the denominator  
 * Multiple sets of coefficients can be given to create a cascading filter
@@ -263,6 +264,29 @@ or
         "a2": 0.1767567204665992
     }]
 }
+```
+
+[FIR(Finite Impulse Response)](https://www.minidsp.com/applications/advanced-tools/rephase-fir-tool)    
+* WinDSP loads a text file with the FIR parameters
+* Use a tool like [rePhase](https://sourceforge.net/projects/rephase) to calculate the FIR parameters
+* Use "32 / 64 bits floats mono (.txt)" option in reShape to generate parameters file
+```json
+{
+	"type": "FIR",
+	"file": "fir.txt"
+}
+```
+
+* FIR parameter file format is one FIR tap per line as a floating point number
+```
+0
+0
+0.0000000000000000025148658985616801
+-0.000000000000000010019981273260004
+0.000000000000000022669569961523929
+-0.000000000000000040502459260231708
+0.000000000000000063400956715765757
+-0.000000000000000091367289519079492
 ```
 
 ## Errors and Warnings

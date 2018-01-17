@@ -48,7 +48,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 
 ## JSON config file
 * Saving the config file will automatically restart WinDSP. No need to manually close and open the program
-* If you are not used to JSON use an editor to get the format correct [Json Parser Online](http://json.parser.online.fr)
+* If you are not used to JSON use an editor like [Json Parser Online](http://json.parser.online.fr) to get the format correct
 
 The config file uses this layout
 ```json

@@ -4,7 +4,7 @@ Windows based DSP(Digital Signal Processor)
 ## Features
 * Route any input to any output. Any input can be routed to zero or many outputs
 * Add any filter to route or output
-* Filters like crossovers, PEQ, shelf, custom biquad, delay, gain and more
+* Filters like crossovers, PEQ, shelf, custom biquad(IIR), FIR, delay, gain and more
 * Uses double-precision floating-points to calculate filters
 * Uses WASAPI(Windows Audio Session API) to capture and manipulate audio streams
 * JSON based configuration file to easy set up your DSP
@@ -48,6 +48,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 
 ## JSON config file
 * Saving the config file will automatically restart WinDSP. No need to manually close and open the program
+* If you are not used to JSON use an editor to get the format correct [Json Parser Online](http://json.parser.online.fr)
 
 The config file uses this layout
 ```json
@@ -99,7 +100,7 @@ The config file uses this layout
 **Filters**    
 * The program handles all audio manipulation as filters. A filter can be a something complex as a crossover or something simple like gain
 * Some filters can only exist once in a route or output. eg. gain, delay, invert, mute
-* Other filters(in the filters array) can occur multiple times. eg. crossovers, shelf, PEQ, LT, custom biquad
+* Other filters(in the filters array) can occur multiple times. eg. crossovers, shelf, PEQ, LT, custom biquad, FIR
 
 **References**    
 A common user case is that multiple channels or routes share filter configurations. Instead of having to copy and paste these you can reference one JSON node from another.
@@ -249,10 +250,10 @@ or
 
 [Biquad](https://www.minidsp.com/applications/advanced-tools/advanced-biquad-programming)    
 * Create a custom biquad by giving the biquad coefficients    
-* Biquad filters are also known as IIR(Infinite Impulse Response)
-* All coefficients not given defaults to 0.0    
+* Biquad filters are also known as IIR(Infinite Impulse Response)  
 * b0-b1 are the feedforward values in the numerator and a0-a1 are the feedback values in the denominator  
 * Multiple sets of coefficients can be given to create a cascading filter
+* Requires: type, values[b0, b1, b2, a1, a2]
 ```json
 {
     "type": "BIQUAD",
@@ -270,6 +271,7 @@ or
 * WinDSP loads a text file with the FIR parameters
 * Use a tool like [rePhase](https://sourceforge.net/projects/rephase) to calculate the FIR parameters
 * Use "32 / 64 bits floats mono (.txt)" option in reShape to generate parameters file
+* Warning: FIR filters require much more CPU capacity then the other filters. WinDSP doesn't limit the number of taps you can input so use with care.
 ```json
 {
 	"type": "FIR",

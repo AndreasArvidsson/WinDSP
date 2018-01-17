@@ -49,16 +49,20 @@
                     "a1": -0.17124071441396285,
                     "a2": 0.1767567204665992
                 }
-            ],
-            {
-                "type": "FIR",
-                "file": "fir.txt"
-            }
+            ]
         },
         "fir": {
             "type": "FIR",
             "file": "fir_example.txt"
         },
+        "list": [
+            {
+                "type": "PEQ",
+                "freq": 93,
+                "gain": -12,
+                "q": 5
+            }
+        ],
         "gain": -5
     },
     "inputs": {
@@ -75,16 +79,9 @@
                             "freq": 93,
                             "gain": -12,
                             "q": 5
-                        }
-                    ]
-                }
-            ]
-        },
-        "R": {
-            "routes": [
-                {
-                    "out": "R",
-                    "filters": [
+                        },
+                        { "#ref": "filters/hp" },
+                        { "#ref": "filters/list" }
                     ]
                 }
             ]

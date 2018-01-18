@@ -53,6 +53,8 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 The config file uses this layout
 ```json
 {
+    "minimize":  false,
+    "channels": [ "L", "R", "C", "SW", "SL", "SR","SBL", "SBR" ],
     "devices": {
         "capture": "{0.0.0.00000000}.{3f6a035b-f23e-40f8-84dd-01018df49110}",
         "render": "{0.0.0.00000000}.{9aa1b7e8-b45d-4431-a43f-e6ca06dfe79e}"
@@ -80,9 +82,12 @@ The config file uses this layout
 }
 ```
 
+**Minimize**    
+* Set minimize to true to hide window on startup. Errors will show the window again.
+
 **Devices**
 * Devices contains the capture and render device IDs
-* If devices are not set the user will be queried from a list of available devices. Do NOT write these IDs yourself
+* If devices are not set the user will be queried from a list of available devices. Do **NOT** write these IDs yourself
 
 **Inputs**
 * Inputs contains the routes. i.e. the mapping between inputs and outputs
@@ -133,16 +138,19 @@ You can declare a list of your favorite filters and reuse them
 }
 ```
 
-**Channels**    
-The channels are:
-* L: Front left
-* R: Front right
-* C: Center
-* SW: Subwoofer/LFE
-* SL: Surround left
-* SR: Surround right
-* SBL: Surround back left
-* SBR: Surround back right
+**Channels**   
+* Different devices may have different order on their channels. You can specify this order. 
+* You can also use this feature to rename the channels
+* Default value is: ```["L", "R", "C", "SW", "SL", "SR","SBL", "SBR" ]```
+* Explanation of default channel short names
+	* L: Front left
+	* R: Front right
+	* C: Center
+	* SW: Subwoofer/LFE
+	* SL: Surround left
+	* SR: Surround right
+	* SBL: Surround back left
+	* SBR: Surround back right
 
 ## Filter parameters
 

@@ -1,0 +1,36 @@
+{
+    "minimize": false,
+    "devices": {
+    },
+    "filters": {
+    },
+    "inputs": {
+        "L": {
+            "routes": [
+                {
+                    "out": "L",
+                    "filters": [
+                    ]
+                }
+            ]
+        },
+        "R": {
+            "routes": [
+                {
+                    "out": "R",
+                    "filters": [
+                    ]
+                }
+            ]
+        }
+    },
+    "outputs": {
+        "L": {
+            "filters": [
+            ]
+        },
+        "R": {
+            "#ref": "outputs/L"
+        }
+    }
+}

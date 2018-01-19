@@ -1,8 +1,77 @@
 {
     "minimize": false,
+    "channels": [ "L", "R" ],
     "devices": {
+        "capture": "{0.0.0.00000000}.{1bfbb3d0-7f0b-4043-a77f-e3ca9d887b3f}",
+        "render": "{0.0.0.00000000}.{b993a888-81a4-41ab-a577-1a276319a227}"
+    },
+    "gain": {
     },
     "filters": {
+        "hp": {
+            "type": "HIGH_PASS",
+            "subType": "LINKWITZ_RILEY",
+            "order": 4,
+            "freq": 90
+        },
+        "lp": {
+            "type": "LOW_PASS",
+            "subType": "LINKWITZ_RILEY",
+            "order": 8,
+            "freq": 900
+        },
+        "cLP": {
+            "type": "LOW_PASS",
+            "subType": "CUSTOM",
+            "order": 4,
+            "freq": 89,
+            "q": [
+                0.54118411083,
+                1.31578947368
+            ]
+        },
+        "cHP": {
+            "type": "HIGH_PASS",
+            "subType": "CUSTOM",
+            "order": 3,
+            "freq": 107,
+            "q": [
+                -1,
+                1.06
+            ]
+        },
+        "peq": {
+            "type": "PEQ",
+            "freq": 330,
+            "gain": -10,
+            "q": 5
+        },
+        "shelf": {
+            "type": "LOW_SHELF",
+            "freq": 500,
+            "gain": -20,
+            "slope": 0.55
+        },
+        "notch": {
+            "type": "NOTCH",
+            "freq": 100.0,
+            "bandwidth": 3.5,
+            "gain": 11.5
+        },
+        "fir": {
+            "type": "FIR",
+            "file": "testFiles/fir_text.txt"
+        },
+        "fail": {
+        },
+        "arr": [
+            {
+                "type": "PEQ",
+                "freq": 330,
+                "gain": -10,
+                "q": 5
+            }
+        ]
     },
     "inputs": {
         "L": {
@@ -19,6 +88,7 @@
                 {
                     "out": "R",
                     "filters": [
+                        { "#ref": "filters/fir" }
                     ]
                 }
             ]

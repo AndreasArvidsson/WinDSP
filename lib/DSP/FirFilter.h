@@ -1,0 +1,34 @@
+#pragma once
+#include "Filter.h"
+#include "vector"
+
+class FirFilter : public Filter {
+public:
+
+	FirFilter(const std::vector<double> &taps) {
+		_taps = taps;
+		_size = taps.size();
+		_pDelay = new double[_size];
+		memset(_pDelay, 0, _size * sizeof(double));
+	}
+
+	~FirFilter() {
+		delete[] _pDelay;
+	}
+
+	inline const double process(double value) override {
+		double result = value * _taps[0];
+		for (size_t i = _size - 1; i > 0; --i) {
+			_pDelay[i] = _pDelay[i - 1];
+			result += _pDelay[i] * _taps[i];
+		}
+		_pDelay[0] = value;
+		return result;
+	}
+
+private:
+	std::vector<double> _taps;
+	double *_pDelay;
+	size_t _size;
+
+};

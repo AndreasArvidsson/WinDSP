@@ -1,0 +1,86 @@
+#pragma once
+#include <vector>
+#include "DSP.h"
+#include "Input.h"
+#include "Output.h"
+#include "AudioDevice.h"
+#include "File.h"
+#include "JsonNode.h"
+
+enum FilterType;
+
+class Config {
+public:
+
+	Config();
+	~Config();
+	void init(const std::string path);
+	void init(const uint32_t sampleRate, const uint32_t numChannelsIn, const uint32_t numChannelsOut);
+
+	const std::vector<AudioDevice*>& getDevices() const;
+	const std::vector<Input*>& getInputs() const;
+	const std::vector<Output*>& getOutputs() const;
+	const bool hasChanged() const;
+	const bool minimize() const;
+
+private:
+	File _configFile;
+	JsonNode *_pJsonNode;
+	uint32_t _sampleRate, _numChannelsIn, _numChannelsOut;
+	std::vector<Input*> _inputs;
+	std::vector<Output*> _outputs;
+	std::vector<AudioDevice*> _devices;
+	std::vector<std::string> _channelNames;
+	time_t _lastModified;
+	bool _minimize;
+
+
+	void load();
+	void save();
+
+	void parseDevices();
+	void parseMisc();
+	void parseInputs();
+	void parseInput(const JsonNode *pInputs, const std::string &channelName, std::string path);
+	void parseRoute(std::vector<Route*> &routes, const JsonNode *pRoutes, const size_t index, std::string path);
+	void parseOutputs();
+	void parseOutput(const JsonNode *pOutputs, const std::string &channelName, std::string path);
+	void validateLevels(const std::string &path) const;
+	const double getFilterGainSum(const std::vector<Filter*> &filters, double startLevel = 1.0) const;
+
+	void setDevices();
+	const size_t getSelection(const size_t size, const size_t blacklist = -1) const;
+	const size_t getChannelIndex(const std::string &channelName, const std::string &path) const;
+	const std::string getChannelName(const size_t channelIndex, const std::string &path) const;
+
+	void parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string path) const;
+	void parseFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
+	void parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
+	void parseShelf(const bool isLowShelf, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
+	void parsePEQ(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
+	void parseBandPass(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
+	void parseNotch(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
+	void parseLinkwitzTransform(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
+	void parseBiquad(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
+	void parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
+	void parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
+	void parseInvertPolarity(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
+	void parseFir(std::vector<Filter*> &filters, const JsonNode *pFilterNode, std::string path) const;
+	void parseFirTxt(std::vector<Filter*> &filters, const File &file, std::string path) const;
+	void parseFirWav(std::vector<Filter*> &filters, const File &file, std::string path) const;
+
+	const JsonNode* getNode(const JsonNode *pNode, const std::string &field, std::string &path) const;
+	const JsonNode* getNode(const JsonNode *pNode, const size_t index, std::string &path) const;
+	const JsonNode* getReference(const JsonNode *pRefNode, std::string &path) const;
+	const JsonNode* getField(const JsonNode *pNode, const std::string &field, const std::string &path) const;
+
+	const double doubleValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
+	const double doubleValue(const JsonNode *pNode, const std::string &path) const;
+	const int intValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
+	const int intValue(const JsonNode *pNode, const std::string &path) const;
+	const std::string textValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
+	const std::string textValue(const JsonNode *pNode, const std::string &path) const;
+	const bool boolValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
+	const bool boolValue(const JsonNode *pNode, const std::string &path) const;
+
+};

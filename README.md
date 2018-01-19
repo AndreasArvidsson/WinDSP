@@ -25,10 +25,13 @@ This requires two devices: one capture device and one render/playback device
 **Virtual Cable**    
 If you don't have a spare soundcard in your computer to use for the capture device I can recommendend [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable/index.htm) which gives you a virtual audio device to use as the capture device.
 
-## Prerequisites
+## Prerequisites(To run application)
 * Capture and render audio devices
 * Windows 8.1 or newer. May work on older OS. Feel free to try it out.
 * [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
+
+## Prerequisites(To compila source code)
+* [CoreLib](https://github.com/AndreasArvidsson/CoreLib)
 
 ## Install
 1. Download and install [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
@@ -278,18 +281,23 @@ or
 [FIR(Finite Impulse Response)](https://www.minidsp.com/applications/advanced-tools/rephase-fir-tool)    
 * WinDSP loads a text file with the FIR parameters
 * Use a tool like [rePhase](https://sourceforge.net/projects/rephase) to calculate the FIR parameters
-* Use "32 / 64 bits floats mono (.txt)" option in reShape to generate parameters file
+* FIR file is either a text(.txt) file or a wave(.wav). 
+* Wave file can be either LPCM(16/32bit) or float(32/64bit)
 * Warning: FIR filters require much more CPU capacity then the other filters. WinDSP doesn't limit the number of taps you can input so use with care.
 ```json
 {
 	"type": "FIR",
 	"file": "fir.txt"
+},
+{
+	"type": "FIR",
+	"file": "fir.wav"
 }
 ```
 
-* FIR parameter file format is one FIR tap per line as a floating point number
+* FIR text file format is one FIR tap per line as a floating point number
+* Use "32 / 64 bits floats mono (.txt)" option in reShape to generate parameters file
 ```
-0
 0
 0.0000000000000000025148658985616801
 -0.000000000000000010019981273260004

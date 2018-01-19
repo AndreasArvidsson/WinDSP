@@ -71,8 +71,10 @@ void loop(const AudioDevice *pRenderDevice, IAudioRenderClient *pRenderClient, I
 		hr = pCaptureClient->GetNextPacketSize(&packetLength);
 		assertHrResult(hr);
 
+#ifdef DEBUG
 		fill(inputLevels);
 		fill(outputLevels);
+#endif
 
 		while (packetLength != 0) {
 			//Get capture buffer pointer and number of available frames.
@@ -124,7 +126,7 @@ void loop(const AudioDevice *pRenderDevice, IAudioRenderClient *pRenderClient, I
 			assertHrResult(hr);
 		}
 
-
+#ifdef DEBUG
 		if (loopCounter % 100 == 0) {
 			printf("\r");
 			for (size_t i = 0; i < inputLevels.size(); ++i) {
@@ -132,6 +134,7 @@ void loop(const AudioDevice *pRenderDevice, IAudioRenderClient *pRenderClient, I
 				//\033[A
 			}
 		}
+#endif
 
 		//Check if config file has changed
 		checkConfig();

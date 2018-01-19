@@ -30,7 +30,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 * Windows 8.1 or newer. May work on older OS. Feel free to try it out.
 * [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
 
-## Prerequisites(To compila source code)
+## Prerequisites(To compile source code)
 * [CoreLib](https://github.com/AndreasArvidsson/CoreLib)
 
 ## Install

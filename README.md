@@ -170,7 +170,7 @@ You can declare a list of your favorite filters and reuse them
         }
     ]
 }
-```json
+```
 
 ## Filter parameters
 

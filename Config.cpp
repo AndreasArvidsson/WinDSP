@@ -78,7 +78,7 @@ void Config::parseMisc() {
 		}
 	}
 	else {
-		_channelNames = { "L", "R", "C", "SW", "SL", "SR","SBL", "SBR" };
+		_channelNames = { "L", "R", "C", "SW", "SBL", "SBR" ,"SL", "SR" };
 	}
 }
 
@@ -150,6 +150,18 @@ void Config::parseRoute(std::vector<Route*> &routes, const JsonNode *pRoutes, co
 		Route *pRoute = new Route(channelOut);
 		routes.push_back(pRoute);
 		parseFilters(pRoute->filters, pRouteNode, path);
+		parseConditions(pRoute, pRouteNode, path);
+	}
+}
+
+void Config::parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::string path) {
+	if (pRouteNode->has("if")) {
+		const JsonNode *pIfNode = getNode(pRouteNode, "if", path);
+		if (pIfNode->has("silent")) {
+			std::string channelName = textValue(pIfNode, "silent", path);
+			size_t channel = getChannelIndex(channelName, path + "/silent");
+			pRoute->conditions.push_back(Condition(ConditionType::SILENT, (int)channel));
+		}
 	}
 }
 
@@ -207,7 +219,7 @@ void Config::validateLevels(const std::string &path) const {
 				printf("WARNING: Config(%s) - Sum of routed channel levels is above 0dBFS on output channel. CLIPPING CAN OCCUR!\n", path.c_str());
 				first = false;
 			}
-			printf("\t%s: +%.2f dBFS\n", getChannelName(i, path).c_str(), 20 * log10(levels[i]));
+			printf("\t%s: +%.2f dBFS\n", getChannelName(i, path).c_str(), Convert::levelToDb(levels[i]));
 		}
 	}
 }
@@ -660,6 +672,13 @@ const size_t Config::getChannelIndex(const std::string &channelName, const std::
 const std::string Config::getChannelName(const size_t channelIndex, const std::string &path) const {
 	if (channelIndex >= _channelNames.size()) {
 		throw Error("Config(%s) - Unknown channel index: %d", path.c_str(), channelIndex);
+	}
+	return _channelNames[channelIndex];
+}
+
+const std::string Config::getChannelName(const size_t channelIndex) const {
+	if (channelIndex >= _channelNames.size()) {
+		throw Error("Unknown channel index: %d", channelIndex);
 	}
 	return _channelNames[channelIndex];
 }

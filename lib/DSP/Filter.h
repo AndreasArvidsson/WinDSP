@@ -4,6 +4,6 @@ class Filter {
 public:
 	virtual ~Filter() {}
 
-	virtual const double process(double value) = 0;
+	virtual inline const double process(double value) = 0;
 
 };

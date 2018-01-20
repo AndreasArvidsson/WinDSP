@@ -22,6 +22,7 @@ public:
 	const std::vector<Output*>& getOutputs() const;
 	const bool hasChanged() const;
 	const bool minimize() const;
+	const std::string getChannelName(const size_t channelIndex) const;
 
 private:
 	File _configFile;
@@ -43,6 +44,7 @@ private:
 	void parseInputs();
 	void parseInput(const JsonNode *pInputs, const std::string &channelName, std::string path);
 	void parseRoute(std::vector<Route*> &routes, const JsonNode *pRoutes, const size_t index, std::string path);
+	void parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::string path);
 	void parseOutputs();
 	void parseOutput(const JsonNode *pOutputs, const std::string &channelName, std::string path);
 	void validateLevels(const std::string &path) const;

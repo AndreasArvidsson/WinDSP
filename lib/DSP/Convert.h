@@ -7,6 +7,10 @@
 class Convert {
 public:
 
+	static inline const double levelToDb(const double level) {
+		return 20 * log10(level);
+	}
+
 	static const std::vector<double> pcm16ToDouble(const char *pData, const size_t numSamples) {
 		std::vector<double> result(numSamples);
 		int16_t *p = (int16_t*)pData;

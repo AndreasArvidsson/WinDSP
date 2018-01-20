@@ -7,7 +7,9 @@ public:
 	std::vector<Filter*> filters;
 	bool mute;
 
-	Output(const bool mute = false) : mute(mute) { }
+	Output(const bool mute = false) {
+		this->mute = mute;
+	}
 
 	~Output() {
 		for (Filter *p : filters) {
@@ -15,7 +17,7 @@ public:
 		}
 	}
 
-	const double process(double data) const {
+	inline const double process(double data) const {
 		if (mute) {
 			return 0.0;
 		}

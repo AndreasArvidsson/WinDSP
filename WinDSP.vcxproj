@@ -122,15 +122,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AudioDevice.cpp" />
+    <ClCompile Include="CaptureLoop.cpp" />
+    <ClCompile Include="Condition.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioDevice.h" />
+    <ClInclude Include="Condition.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="ConfigChangedException.h" />
     <ClInclude Include="FilterType.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="CaptureLoop.h" />
     <ClInclude Include="OS.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />

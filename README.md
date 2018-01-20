@@ -57,7 +57,7 @@ The config file uses this layout
 ```json
 {
     "minimize":  false,
-    "channels": [ "L", "R", "C", "SW", "SL", "SR","SBL", "SBR" ],
+    "channels": [ "L", "R", "C", "SW", "SBL", "SBR", "SL", "SR" ],
     "devices": {
         "capture": "{0.0.0.00000000}.{3f6a035b-f23e-40f8-84dd-01018df49110}",
         "render": "{0.0.0.00000000}.{9aa1b7e8-b45d-4431-a43f-e6ca06dfe79e}"
@@ -87,6 +87,20 @@ The config file uses this layout
 
 **Minimize**    
 * Set minimize to true to hide window on startup. Errors will show the window again.
+
+**Channels**   
+* Different devices may have different order on their channels. You can specify this order. 
+* You can also use this feature to rename the channels
+* Default value is: ```["L", "R", "C", "SW","SBL", "SBR", "SL", "SL" ]```
+* Explanation of default channel short names
+	* L: Front left
+	* R: Front right
+	* C: Center
+	* SW: Subwoofer/LFE
+	* SL: Surround left
+	* SR: Surround right
+	* SBL: Surround back left
+	* SBR: Surround back right
 
 **Devices**
 * Devices contains the capture and render device IDs
@@ -141,19 +155,22 @@ You can declare a list of your favorite filters and reuse them
 }
 ```
 
-**Channels**   
-* Different devices may have different order on their channels. You can specify this order. 
-* You can also use this feature to rename the channels
-* Default value is: ```["L", "R", "C", "SW", "SL", "SR","SBL", "SBR" ]```
-* Explanation of default channel short names
-	* L: Front left
-	* R: Front right
-	* C: Center
-	* SW: Subwoofer/LFE
-	* SL: Surround left
-	* SR: Surround right
-	* SBL: Surround back left
-	* SBR: Surround back right
+**Conditional routing**
+* You can add conditions to a route. If the conditions is not met the route will not be active
+* For now the only condition available is to detect if an input channel is silent or not
+* The code below will route audio from surround(input) to surround back(output) if surround back(input) is silent
+```json
+"SL": {
+    "routes": [
+        {
+            "out": "SBL",
+            "if": {
+                "silent": "SBL"
+            }
+        }
+    ]
+}
+```json
 
 ## Filter parameters
 
@@ -312,7 +329,7 @@ or
 * An error will output a text message describing the problem and then restart the program. If the problem is corrected the program will start normally
 * A warning is a potential problem, but the program can still continue running. eg. Configured a route for a channel the audio device is lacking, the sum of all routes can go above 0dBFS on the output
 * All configured input and outputs the device is lacking will just be ignored
-* If you sum multiple inputs together and they play peak signals at the same time digital clipping will occur which creates distortion. To be on the safe side lower the output gain if a digital clipping warning is shown.
+* If you sum multiple inputs together and they play peak signals at the same time digital clipping will occur which creates distortion. Lower the output gain if a digital clipping warning is shown.
 
 ## Disclaimer
 I test all my software to the best of my ability and this is a software I personally use in my audio setup, but bugs can still occur and due to the nature of this software being audio playback related, loud uncomfortable high or low frquency distortions may be a possibility. I haven't had any problems like that myself and if I find them I will patch them out, but just be aware that you use this software on your own accord. With that said please feel free to enjoy it! :)

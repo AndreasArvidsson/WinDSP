@@ -17,9 +17,15 @@ public:
 		}
 	}
 
-	inline void process(const double data, float *pRenderBuffer) const {
+	inline void route(const double data, float *pRenderBuffer) const {
 		for (const Route *p : routes) {
 			p->process(data, pRenderBuffer);
+		}
+	}
+
+	inline void evalConditions() const {
+		for (Route *pRoute : routes) {
+			pRoute->evalConditions();
 		}
 	}
 

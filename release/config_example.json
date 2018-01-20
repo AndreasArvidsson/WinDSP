@@ -87,6 +87,16 @@
                     ]
                 }
             ]
+        },
+        "SL": {
+            "routes": [
+                {
+                    "out": "SBL",
+                    "if": {
+                        "silent": "SBL"
+                    }
+                }
+            ]
         }
     },
     "outputs": {

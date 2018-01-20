@@ -1,7 +1,9 @@
 .vs
 x64
-*.txt
 *.iobj
 *.ipdb
 *.ipdb
 *.pdb
+*.vcxproj.filters
+*.zip
+\[stuff\]/

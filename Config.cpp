@@ -260,7 +260,11 @@ void Config::parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, 
 void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const {
 	pNode = getNode(pNode, "gain", path);
 	if (!pNode->isMissingNode()) {
-		filters.push_back(new GainFilter(doubleValue(pNode, path)));
+		const double value = doubleValue(pNode, path);
+		//No use in adding zero gain.
+		if (value != 0) {
+			filters.push_back(new GainFilter(value));
+		}
 	}
 }
 
@@ -283,12 +287,15 @@ void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, st
 	else {
 		throw Error("Config(%s) - Invalid delay format", path.c_str());
 	}
-	int sampleDelay = DelayFilter::getSampleDelay(_sampleRate, value, useUnitMeter);
-	if (sampleDelay > 0) {
-		filters.push_back(new DelayFilter(_sampleRate, value, useUnitMeter));
-	}
-	else {
-		printf("WARNING: Config(%s) - Discarding delay filter with to low value. Can't delay less then one sample\n", path.c_str());
+	//No use in adding zero delay.
+	if (value != 0) {
+		int sampleDelay = DelayFilter::getSampleDelay(_sampleRate, value, useUnitMeter);
+		if (sampleDelay > 0) {
+			filters.push_back(new DelayFilter(_sampleRate, value, useUnitMeter));
+		}
+		else {
+			printf("WARNING: Config(%s) - Discarding delay filter with to low value. Can't delay less then one sample\n", path.c_str());
+		}
 	}
 }
 

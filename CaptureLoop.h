@@ -1,3 +1,14 @@
+/*
+	This class represents the continuous capture loop.
+	As long as the application is running this class will:
+		1) Capture audio samples from the capture device
+		2) Route audio samples to the desired output channels on the render device
+		3) Apply filters on routes and/or outputs
+
+	Author: Andreas Arvidsson
+	Source: https://github.com/AndreasArvidsson/WinDSP
+*/
+
 #pragma once
 #include "Config.h"
 #include "ConfigChangedException.h"
@@ -7,16 +18,14 @@
 class CaptureLoop {
 public:
 
-	CaptureLoop(Config *pConfig, const AudioDevice *pRenderDevice, IAudioRenderClient *pRenderClient, IAudioCaptureClient *pCaptureClient, const std::vector<Input*> &inputs, const std::vector<Output*> &outputs);
+	CaptureLoop(Config *pConfig, const AudioDevice *pCaptureDevice, const AudioDevice *pRenderDevice, const std::vector<Input*> &inputs, const std::vector<Output*> &outputs);
 	~CaptureLoop();
-	
+
 	void capture();
 
 private:
 	Config *_pConfig;
-	const AudioDevice *_pRenderDevice;
-	IAudioRenderClient *_pRenderClient;
-	IAudioCaptureClient *_pCaptureClient;
+	const AudioDevice *_pCaptureDevice, *_pRenderDevice;
 	std::vector<Input*> _inputs;
 	std::vector<Output*> _outputs;
 	size_t _nChannelsIn, _nChannelsOut;

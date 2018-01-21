@@ -1,3 +1,11 @@
+/*
+	This class represents a single routing condition
+	Used to evaluate conditions set on input routes
+
+	Author: Andreas Arvidsson
+	Source: https://github.com/AndreasArvidsson/WinDSP
+*/
+
 #pragma once
 #include "Error.h"
 

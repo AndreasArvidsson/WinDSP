@@ -4,6 +4,7 @@ x64
 *.ipdb
 *.ipdb
 *.pdb
+*.vspx
 *.vcxproj.filters
 *.zip
 \[stuff\]/

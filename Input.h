@@ -1,3 +1,11 @@
+/*
+	This class represents a single input on the capture device.
+	Contains all routes specified in the configuration.
+
+	Author: Andreas Arvidsson
+	Source: https://github.com/AndreasArvidsson/WinDSP
+*/
+
 #pragma once
 #include "Route.h"
 

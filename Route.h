@@ -1,3 +1,11 @@
+/*
+	This class represents a single route on an inut.
+	Contains all filters and conditions specified in the configuration.
+
+	Author: Andreas Arvidsson
+	Source: https://github.com/AndreasArvidsson/WinDSP
+*/
+
 #pragma once
 #include <vector>
 #include "Filter.h"

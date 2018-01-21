@@ -1,3 +1,11 @@
+/*
+	This class represents the config file
+	Used to load, parse and evaluate the JSON config
+
+	Author: Andreas Arvidsson
+	Source: https://github.com/AndreasArvidsson/WinDSP
+*/
+
 #pragma once
 #include <vector>
 #include "DSP.h"

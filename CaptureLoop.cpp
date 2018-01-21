@@ -1,10 +1,9 @@
 #include "CaptureLoop.h"
 
-CaptureLoop::CaptureLoop(Config *pConfig, const AudioDevice *pRenderDevice, IAudioRenderClient *pRenderClient, IAudioCaptureClient *pCaptureClient, const std::vector<Input*> &inputs, const std::vector<Output*> &outputs) {
+CaptureLoop::CaptureLoop(Config *pConfig, const AudioDevice *pCaptureDevice, const AudioDevice *pRenderDevice, const std::vector<Input*> &inputs, const std::vector<Output*> &outputs) {
 	_pConfig = pConfig;
+	_pCaptureDevice = pCaptureDevice;
 	_pRenderDevice = pRenderDevice;
-	_pRenderClient = pRenderClient;
-	_pCaptureClient = pCaptureClient;
 	_inputs = inputs;
 	_outputs = outputs;
 	_nChannelsIn = inputs.size();
@@ -28,31 +27,29 @@ CaptureLoop::~CaptureLoop() {
 void CaptureLoop::capture() {
 	UINT32 numFramesAvailable, i, j;
 	HRESULT hr;
-	DWORD flags;
 	time_t now;
 	float *pCaptureBuffer, *pRenderBuffer;
 	size_t loopCounter = 0;
+	//The size of all sample frames for all channels with the same sample index/timestamp
 	size_t renderBlockSize = sizeof(float) * _nChannelsOut;
 
 	//Run infinite capture loop
 	while (true) {
 		//Check for samples in capture buffer
-		hr = _pCaptureClient->GetNextPacketSize(&numFramesAvailable);
-		assertHrResult(hr);
+		hr = _pCaptureDevice->getNextPacketSize(&numFramesAvailable);
+		assertHresult(hr);
 
 		while (numFramesAvailable != 0) {
 			//Get capture buffer pointer and number of available frames.
-			hr = _pCaptureClient->GetBuffer((BYTE**)&pCaptureBuffer, &numFramesAvailable, &flags, NULL, NULL);
-			assertHrResult(hr);
+			hr = _pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &numFramesAvailable);
+			assertHresult(hr);
 
 			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
-			while (numFramesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
-				//Date::sleepMillis(1);
-			}
+			while (numFramesAvailable > _pRenderDevice->getBufferFrameCountAvailable());
 
 			//Get render buffer
-			hr = _pRenderClient->GetBuffer(numFramesAvailable, (BYTE**)&pRenderBuffer);
-			assertHrResult(hr);
+			hr = _pRenderDevice->getRenderBuffer(&pRenderBuffer, numFramesAvailable);
+			assertHresult(hr);
 
 			//Set default value to 0 so we can add/mix values to it later
 			memset(pRenderBuffer, 0, numFramesAvailable * renderBlockSize);
@@ -71,11 +68,11 @@ void CaptureLoop::capture() {
 					//Route sample to outputs
 					_inputs[j]->route(pCaptureBuffer[j], pRenderBuffer);
 				}
-				
+
 				for (j = 0; j < _nChannelsOut; ++j) {
 					//Apply output filters
 					pRenderBuffer[j] = (float)_outputs[j]->process(pRenderBuffer[j]);
-					
+
 					//Check for digital clipping
 					if (abs(pRenderBuffer[j]) > 1.0) {
 						_pClippingChannels[j] = max(_pClippingChannels[j], abs(pRenderBuffer[j]));
@@ -88,14 +85,14 @@ void CaptureLoop::capture() {
 			}
 
 			//Release / flush buffers
-			hr = _pCaptureClient->ReleaseBuffer(numFramesAvailable);
-			assertHrResult(hr);
-			hr = _pRenderClient->ReleaseBuffer(numFramesAvailable, 0);
-			assertHrResult(hr);
+			hr = _pCaptureDevice->releaseCaptureBuffer(numFramesAvailable);
+			assertHresult(hr);
+			hr = _pRenderDevice->releaseRenderBuffer(numFramesAvailable);
+			assertHresult(hr);
 
 			//Check for more samples in capture buffer
-			hr = _pCaptureClient->GetNextPacketSize(&numFramesAvailable);
-			assertHrResult(hr);
+			hr = _pCaptureDevice->getNextPacketSize(&numFramesAvailable);
+			assertHresult(hr);
 		}
 
 		if (loopCounter == 1000) {

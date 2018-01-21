@@ -1,3 +1,11 @@
+/*
+	This class represents a single output on the render device.
+	Contains all filters specified in the configuration.
+
+	Author: Andreas Arvidsson
+	Source: https://github.com/AndreasArvidsson/WinDSP
+*/
+
 #pragma once
 #include <vector>
 #include "Filter.h"

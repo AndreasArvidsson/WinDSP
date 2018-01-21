@@ -1,8 +1,16 @@
-﻿#include "OS.h"
+﻿/*
+	This file contains the start of the application.
+	From here all resources are initalized and the service starts.
+
+	Author: Andreas Arvidsson
+	Source: https://github.com/AndreasArvidsson/WinDSP
+*/
+
+#include "OS.h"
 #include "CaptureLoop.h"
 #include "MemoryManager.h"
 
-#define VERSION "0.7.0b"
+#define VERSION "0.8.0b"
 
 #ifdef DEBUG
 #define PROFILE " - DEBUG mode"
@@ -30,11 +38,22 @@ void clearData() {
 	AudioDevice::destroyStatic();
 	JsonNode::destroyStatic();
 #ifdef DEBUG_MEMORY
-	MemoryManager::getInstance()->assertNoLeak();
+	//Check for memory leaks
+	if (MemoryManager::getInstance()->hasLeak()) {
+		OS::show();
+		MemoryManager::getInstance()->assertNoLeak();
+	}
 #endif
 }
 
 void run() {
+	//Load config file
+	pConfig = new Config();
+	pConfig->init("WinDSP.json");
+
+	//Show or hide window
+	setVisibility();
+
 	/*
 	* Get capture and render devices
 	*/
@@ -52,13 +71,18 @@ void run() {
 	const WAVEFORMATEX *pCaptureFormat = pCaptureDevice->getFormat();
 	const WAVEFORMATEX *pRenderFormat = pRenderDevice->getFormat();
 
-	//Validate device settings
+	/*
+	* Validate device settings
+	*/
+
+	//The application have no resampler. Sample rate and bit depth must be a match
 	if (pCaptureFormat->nSamplesPerSec != pRenderFormat->nSamplesPerSec) {
 		throw Error("Sample rate missmatch: Capture(%d), Render(%d))", pCaptureFormat->nSamplesPerSec, pRenderFormat->nSamplesPerSec);
 	}
 	if (pCaptureFormat->wBitsPerSample != pRenderFormat->wBitsPerSample) {
 		throw Error("Bit depth missmatch: Capture(%d), Render(%d)", pCaptureFormat->wBitsPerSample, pRenderFormat->wBitsPerSample);
 	}
+	//Sample buffers must contains a 32bit float. All code depends on it
 	if (pCaptureFormat->wBitsPerSample != 32) {
 		throw Error("Bit depth doesnt match float(32), Found(%d)", pCaptureFormat->wBitsPerSample);
 	}
@@ -66,13 +90,11 @@ void run() {
 		throw Error("Format tag missmatch: Capture(%d), Render(%d)", pCaptureFormat->wFormatTag, pRenderFormat->wFormatTag);
 	}
 
-	IAudioRenderClient *pRenderClient = pRenderDevice->getRenderClient();
-	IAudioCaptureClient *pCaptureClient = pCaptureDevice->getCaptureClient();
-
 	/*
 	* Init I/O and filters
 	*/
 
+	//Read config and get I/O instances with filters 
 	pConfig->init(pCaptureFormat->nSamplesPerSec, pCaptureFormat->nChannels, pRenderFormat->nChannels);
 	std::vector<Input*> inputs = pConfig->getInputs();
 	std::vector<Output*> outputs = pConfig->getOutputs();
@@ -81,38 +103,26 @@ void run() {
 	* Start capturing data
 	*/
 
-	//Get and release render buffer first time. Needed to not get audio glitches
-	BYTE *pRenderBuffer;
-	HRESULT hr = pRenderClient->GetBuffer(pRenderDevice->getBufferFrameCount(), &pRenderBuffer);
-	assertHrResult(hr);
-	hr = pRenderClient->ReleaseBuffer(pRenderDevice->getBufferFrameCount(), AUDCLNT_BUFFERFLAGS_SILENT);
-	assertHrResult(hr);
-
-	//Show or hide window
-	setVisibility();
-
-	pCaptureDevice->start();
-	pRenderDevice->start();
+	//Initialize audio devices and start services
+	pCaptureDevice->startCaptureService();
+	pRenderDevice->startRenderService();
 
 	//Start capture loop.
-	pLoop = new CaptureLoop(pConfig, pRenderDevice, pRenderClient, pCaptureClient, inputs, outputs);
+	pLoop = new CaptureLoop(pConfig, pCaptureDevice, pRenderDevice, inputs, outputs);
 	pLoop->capture();
-
-	pCaptureDevice->stop();
-	pRenderDevice->stop();
 }
 
 int main(int argc, char **argv) {
 	printf("----------------------------------------------\n");
 	printf("\tWinDSP %s%s\n", VERSION, PROFILE);
 	printf("----------------------------------------------\n\n");
-	
+
+	//Set high priority on process
 	OS::setPriorityHigh();
 
 	while (true) {
 		try {
-			pConfig = new Config();
-			pConfig->init("WinDSP.json");
+			//Run application
 			run();
 		}
 		catch (const ConfigChangedException) {

@@ -129,13 +129,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioDevice.h" />
+    <ClInclude Include="CaptureLoop.h" />
     <ClInclude Include="Condition.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="ConfigChangedException.h" />
+    <ClInclude Include="ErrorMessages.h" />
     <ClInclude Include="FilterType.h" />
     <ClInclude Include="Input.h" />
-    <ClInclude Include="CaptureLoop.h" />
-    <ClInclude Include="OS.h" />
+    <ClInclude Include="Output.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />
   </ItemGroup>

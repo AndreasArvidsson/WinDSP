@@ -492,6 +492,9 @@ void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, std::s
 			case 16:
 				taps = Convert::pcm16ToDouble(pData, numSamples);
 				break;
+			case 24:
+				taps = Convert::pcm24ToDouble(pData, numSamples);
+				break;
 			case 32:
 				taps = Convert::pcm32ToDouble(pData, numSamples);
 				break;

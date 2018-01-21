@@ -299,7 +299,7 @@ or
 * WinDSP loads a text file with the FIR parameters
 * Use a tool like [rePhase](https://sourceforge.net/projects/rephase) to calculate the FIR parameters
 * FIR file is either a text(.txt) file or a wave(.wav). 
-* Wave file can be either LPCM(16/32bit) or float(32/64bit)
+* Wave file can be either LPCM(16/24/32bit) or float(32/64bit)
 * Warning: FIR filters require much more CPU capacity then the other filters. WinDSP doesn't limit the number of taps you can input so use with care.
 ```json
 {

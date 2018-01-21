@@ -45,7 +45,10 @@ void CaptureLoop::capture() {
 			assertHresult(hr);
 
 			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
-			while (numFramesAvailable > _pRenderDevice->getBufferFrameCountAvailable());
+			while (numFramesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
+				//Short sleep just to not busy wait all resources.
+				Date::sleepMillis(1);
+			}
 
 			//Get render buffer
 			hr = _pRenderDevice->getRenderBuffer(&pRenderBuffer, numFramesAvailable);

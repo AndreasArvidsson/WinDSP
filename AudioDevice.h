@@ -39,8 +39,12 @@ public:
 		return  _pCaptureClient->GetNextPacketSize(pNumFramesInNextPacket);
 	}
 
+	inline const HRESULT getCaptureBuffer(float **pCaptureBuffer, UINT32 *pNumFramesToRead, DWORD *pFlags) const {
+		return  _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, pFlags, NULL, NULL);
+	}
+
 	inline const HRESULT getCaptureBuffer(float **pCaptureBuffer, UINT32 *pNumFramesToRead) const {
-		DWORD flags;
+		static DWORD flags;
 		return  _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, &flags, NULL, NULL);
 	}
 

@@ -10,7 +10,7 @@
 #include "CaptureLoop.h"
 #include "MemoryManager.h"
 
-#define VERSION "0.8.1b"
+#define VERSION "0.9.0b"
 
 #ifdef DEBUG
 #define PROFILE " - DEBUG mode"
@@ -117,6 +117,8 @@ int main(int argc, char **argv) {
 	printf("\tWinDSP %s%s\n", VERSION, PROFILE);
 	printf("----------------------------------------------\n\n");
 
+	//Flush denormalized zeroes
+	OS::flushDenormalizedZero(); 
 	//Set high priority on process
 	OS::setPriorityHigh();
 

@@ -35,8 +35,8 @@ public:
 	void addLinkwitzTransform(const double F0, const double Q0, const double Fp, const double Qp);
 
 	inline const double process(double data) override {
-		for (size_t i = 0; i < _biquads.size(); ++i) {
-			data = _biquads[i].process(data);
+		for (Biquad &biquad : _biquads) {
+			data = biquad.process(data);
 		}
 		return data;
 	}

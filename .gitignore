@@ -6,5 +6,6 @@ x64
 *.pdb
 *.vspx
 *.vcxproj.filters
+*.vcxproj.user
 *.zip
 \[stuff\]/

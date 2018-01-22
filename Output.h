@@ -29,8 +29,8 @@ public:
 		if (mute) {
 			return 0.0;
 		}
-		for (size_t i = 0; i < filters.size(); ++i) {
-			data = filters[i]->process(data);
+		for (Filter *pFilter : filters) {
+			data = pFilter->process(data);
 		}
 		return data;
 	}

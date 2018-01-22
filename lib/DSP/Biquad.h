@@ -29,7 +29,7 @@ public:
 
 	inline const double Biquad::process(const double data) {
 		const double out = data * b0 + z1;
-		z1 = data * b1 - out * a1  + z2;
+		z1 = data * b1 - out * a1 + z2;
 		z2 = data * b2 - out * a2;
 		return out;
 	}

@@ -70,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -136,6 +136,7 @@
     <ClInclude Include="ErrorMessages.h" />
     <ClInclude Include="FilterType.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />
@@ -149,6 +150,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="WinDSP-1.json" />
     <None Include="WinDSP.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

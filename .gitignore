@@ -1,9 +1,5 @@
 .vs
 x64
-*.iobj
-*.ipdb
-*.ipdb
-*.pdb
 *.vspx
 *.vcxproj.filters
 *.vcxproj.user

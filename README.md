@@ -53,7 +53,12 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 * Saving the config file will automatically restart WinDSP. No need to manually close and open the program
 * If you are not used to JSON use an editor like [Json Parser Online](http://json.parser.online.fr) to get the format correct
 
-The config file uses this layout
+**Config switching**    
+* If you have multiple config files you can switch between them using the 0-9 buttons
+* Button '1' selects congfig file 'WinDSP-1.json', button '2' selects 'WinDSP-2.json' and so on
+* Button '0' select the default config file 'WinDSP.json'
+
+**Config layout**    
 ```json
 {
     "minimize":  false,

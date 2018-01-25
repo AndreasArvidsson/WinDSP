@@ -1,6 +1,6 @@
 /*
 	This class represents a single output on the render device.
-	Contains all filters specified in the configuration.
+	Contains all forks specified in the configuration.
 
 	Author: Andreas Arvidsson
 	Source: https://github.com/AndreasArvidsson/WinDSP
@@ -8,31 +8,37 @@
 
 #pragma once
 #include <vector>
-#include "Filter.h"
+#include "OutputFork.h"
 
 class Output {
 public:
-	std::vector<Filter*> filters;
+	std::vector<OutputFork*> forks;
 	bool mute;
 
-	Output(const bool mute = false) {
+	Output() {
+		mute = false;
+		forks.push_back(new OutputFork());
+	}
+
+	Output(const bool mute) {
 		this->mute = mute;
 	}
 
 	~Output() {
-		for (Filter *p : filters) {
-			delete p;
+		for (OutputFork *pFork : forks) {
+			delete pFork;
 		}
 	}
 
-	inline const double process(double data) const {
+	inline const double process(const double data) const {
 		if (mute) {
-			return 0.0;
+			return 0;
 		}
-		for (Filter *pFilter : filters) {
-			data = pFilter->process(data);
+		double out = 0;
+		for (const OutputFork *pFork : forks) {
+			out += pFork->process(data);
 		}
-		return data;
+		return out;
 	}
 
 };

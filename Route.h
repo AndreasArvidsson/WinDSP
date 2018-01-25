@@ -39,8 +39,8 @@ public:
 
 	inline void evalConditions() {
 		_valid = true;
-		for (size_t i = 0; i < conditions.size(); ++i) {
-			if (!conditions[i].eval()) {
+		for (const Condition &cond : conditions) {
+			if (!cond.eval()) {
 				_valid = false;
 				return;
 			}

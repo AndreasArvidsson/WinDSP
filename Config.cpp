@@ -190,8 +190,30 @@ void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelNam
 	}
 	const JsonNode *pChannelNode = getNode(pOutputs, channelName, path);
 	bool mute = pChannelNode->path("mute")->boolValue();
-	_outputs[channel] = new Output(mute);
-	parseFilters(_outputs[channel]->filters, pChannelNode, path);
+	Output *pOutput = new Output(mute);
+	_outputs[channel] = pOutput;
+	//Array parse each fork.
+	if (pChannelNode->isArray()) {
+		for (size_t i = 0; i < pChannelNode->size(); ++i) {
+			std::string tmpPath = path;
+			const JsonNode *pForkNode = getNode(pChannelNode, i, tmpPath);
+			parseOutputFork(pOutput, pForkNode, tmpPath);
+		}
+		//Empty array. Add default empty fork
+		if (pChannelNode->size() == 0) {
+			pOutput->forks.push_back(new OutputFork());
+		}
+	}
+	//Object. Parse single fork
+	else {
+		parseOutputFork(pOutput, pChannelNode, path);
+	}
+}
+
+void Config::parseOutputFork(Output *pOutput, const JsonNode *pForkNode, std::string path) {
+	OutputFork *pFork = new OutputFork();
+	pOutput->forks.push_back(pFork);
+	parseFilters(pFork->filters, pForkNode, path);
 }
 
 void Config::validateLevels(const std::string &path) const {
@@ -208,7 +230,11 @@ void Config::validateLevels(const std::string &path) const {
 	}
 	//Apply output gain
 	for (size_t i = 0; i < _outputs.size(); ++i) {
-		levels[i] = getFilterGainSum(_outputs[i]->filters, levels[i]);
+		double level = 0;
+		for (const OutputFork *pFork : _outputs[i]->forks) {
+			level += getFilterGainSum(pFork->filters, levels[i]);
+		}
+		levels[i] = level;
 	}
 	//Eval output channel levels
 	bool first = true;

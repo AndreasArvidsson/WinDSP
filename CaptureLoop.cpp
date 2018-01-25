@@ -73,7 +73,7 @@ void CaptureLoop::capture() {
 				}
 
 				for (j = 0; j < _nChannelsOut; ++j) {
-					//Apply output filters
+					//Apply output forks and filters
 					pRenderBuffer[j] = (float)_outputs[j]->process(pRenderBuffer[j]);
 
 					//Check for digital clipping

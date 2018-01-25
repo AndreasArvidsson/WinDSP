@@ -55,6 +55,8 @@ private:
 	void parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::string path);
 	void parseOutputs();
 	void parseOutput(const JsonNode *pOutputs, const std::string &channelName, std::string path);
+	void parseOutputFork(Output *pOutput, const JsonNode *pForkNode, std::string path);
+
 	void validateLevels(const std::string &path) const;
 	const double getFilterGainSum(const std::vector<Filter*> &filters, double startLevel = 1.0) const;
 

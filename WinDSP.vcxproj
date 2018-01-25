@@ -138,6 +138,7 @@
     <ClInclude Include="Input.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Output.h" />
+    <ClInclude Include="OutputFork.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />
   </ItemGroup>

@@ -98,14 +98,14 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 * You can also use this feature to rename the channels
 * Default value is: ```["L", "R", "C", "SW","SBL", "SBR", "SL", "SL" ]```
 * Explanation of default channel short names
-	* L: Front left
-	* R: Front right
-	* C: Center
-	* SW: Subwoofer/LFE
-	* SL: Surround left
-	* SR: Surround right
-	* SBL: Surround back left
-	* SBR: Surround back right
+   * L: Front left
+   * R: Front right
+   * C: Center
+   * SW: Subwoofer/LFE
+   * SL: Surround left
+   * SR: Surround right
+   * SBL: Surround back left
+   * SBR: Surround back right
 
 **Devices**
 * Devices contains the capture and render device IDs
@@ -151,14 +151,14 @@ You can declare a list of your favorite filters and reuse them
         }
     },
     "outputs": {
-		"SL": {
-			"filters": [
-				{ 
-					"#ref": "filters/myPEQ" 
-				}
-			]
-		}
-	}
+       "SL": {
+         "filters": [
+            { 
+               "#ref": "filters/myPEQ" 
+            }
+         ]
+      }
+   }
 }
 ```
 
@@ -168,16 +168,16 @@ You can declare a list of your favorite filters and reuse them
 * The code below will route audio from surround(input) to surround back(output) if surround back(input) is silent
 ```json
 "inputs": {
-	"SL": {
-		"routes": [
-			{
-				"out": "SBL",
-				"if": {
-					"silent": "SBL"
-				}
-			}
-		]
-	}
+   "SL": {
+      "routes": [
+         {
+            "out": "SBL",
+            "if": {
+               "silent": "SBL"
+            }
+         }
+      ]
+   }
 }
 ```
 
@@ -187,16 +187,16 @@ You can declare a list of your favorite filters and reuse them
 * The result of all forks are summarized together. That means that two forks increases that channels output gain by 6.02dB
 ```json
 "outputs": {
-	"L" : [
-		{
-			"gain": -6.02,
-		},
-		{
-			"gain": -6.02,
-			"invert": true,
-			"delay": 5
-		}
-	]
+   "L" : [
+      {
+         "gain": -6.02,
+      },
+      {
+         "gain": -6.02,
+         "invert": true,
+         "delay": 5
+      }
+   ]
 }
 ```
 
@@ -331,12 +331,12 @@ or
 * Warning: FIR filters require much more CPU capacity then the other filters. WinDSP doesn't limit the number of taps you can input so use with care.
 ```json
 {
-	"type": "FIR",
-	"file": "fir.txt"
+   "type": "FIR",
+   "file": "fir.txt"
 },
 {
-	"type": "FIR",
-	"file": "fir.wav"
+   "type": "FIR",
+   "file": "fir.wav"
 }
 ```
 

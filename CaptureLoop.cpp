@@ -30,8 +30,10 @@ void CaptureLoop::capture() {
 	time_t now;
 	float *pCaptureBuffer, *pRenderBuffer;
 	size_t loopCounter = 0;
+	//Used to temporarily store sample(for all out channels) while its being processd.
+	double buffer[8];
 	//The size of all sample frames for all channels with the same sample index/timestamp
-	size_t renderBlockSize = sizeof(float) * _nChannelsOut;
+	const size_t renderBlockSize = sizeof(double) * _nChannelsOut;
 
 	//Run infinite capture loop
 	while (true) {
@@ -53,15 +55,15 @@ void CaptureLoop::capture() {
 			//Get render buffer
 			hr = _pRenderDevice->getRenderBuffer(&pRenderBuffer, numFramesAvailable);
 			assertHresult(hr);
-
-			//Set default value to 0 so we can add/mix values to it later
-			memset(pRenderBuffer, 0, numFramesAvailable * renderBlockSize);
-
+		
 			//Get current timestamp to mark playing channels with
 			now = Date::getCurrentTimeMillis();
 
 			//Iterate all capture frames
 			for (i = 0; i < numFramesAvailable; ++i) {
+				//Set default value to 0 so we can add/mix values to it later
+				memset(buffer, 0, renderBlockSize);
+
 				for (j = 0; j < _nChannelsIn; ++j) {
 					//Identify which channels are playing.
 					if (pCaptureBuffer[j] != 0) {
@@ -69,12 +71,12 @@ void CaptureLoop::capture() {
 					}
 
 					//Route sample to outputs
-					_inputs[j]->route(pCaptureBuffer[j], pRenderBuffer);
+					_inputs[j]->route(pCaptureBuffer[j], buffer);
 				}
 
 				for (j = 0; j < _nChannelsOut; ++j) {
 					//Apply output forks and filters
-					pRenderBuffer[j] = (float)_outputs[j]->process(pRenderBuffer[j]);
+					pRenderBuffer[j] = (float)_outputs[j]->process(buffer[j]);
 
 					//Check for digital clipping
 					if (abs(pRenderBuffer[j]) > 1.0) {

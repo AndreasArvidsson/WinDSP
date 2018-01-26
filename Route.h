@@ -28,12 +28,12 @@ public:
 		}
 	}
 
-	inline void process(double data, float *pRenderBuffer) const {
+	inline void process(double data, double *pRenderBuffer) const {
 		if (_valid) {
 			for (Filter *p : filters) {
 				data = p->process(data);
 			}
-			pRenderBuffer[out] += (float)data;
+			pRenderBuffer[out] += data;
 		}
 	}
 

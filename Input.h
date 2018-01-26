@@ -25,7 +25,7 @@ public:
 		}
 	}
 
-	inline void route(const double data, float *pRenderBuffer) const {
+	inline void route(const double data, double *pRenderBuffer) const {
 		for (const Route *p : routes) {
 			p->process(data, pRenderBuffer);
 		}

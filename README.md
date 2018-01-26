@@ -353,7 +353,7 @@ or
 ```
 
 ## Errors and Warnings
-* En error is a problem serious enough that the program can't run. eg. missing devices, faulty config
+* An error is a problem serious enough that the program can't run. eg. missing devices, faulty config
 * An error will output a text message describing the problem and then restart the program. If the problem is corrected the program will start normally
 * A warning is a potential problem, but the program can still continue running. eg. Configured a route for a channel the audio device is lacking, the sum of all routes can go above 0dBFS on the output
 * All configured input and outputs the device is lacking will just be ignored

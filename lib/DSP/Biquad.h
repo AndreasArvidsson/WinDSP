@@ -23,10 +23,6 @@ public:
 	void initLinkwitzTransform(const uint32_t sampleRate, const double F0, const double Q0, const double Fp, const double Qp);
 	void resetState();
 
-	const bool stable();
-	std::vector<std::complex<double>> poles();
-	std::vector<std::complex<double>> zeros();
-
 	inline const double Biquad::process(const double data) {
 		const double out = data * b0 + z1;
 		z1 = data * b1 - out * a1 + z2;

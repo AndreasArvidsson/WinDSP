@@ -164,52 +164,6 @@ void Biquad::resetState() {
 	z1 = z2 = 0;
 }
 
-const bool Biquad::stable() {
-
-	//b0 = 0.7744;
-	//b1 = 0;
-	//b2 = 0;
-	//a0 = 1;
-	//a1 = -0.24;
-	//a2 = 0.0144;
-
-
-	//std::complex<double> aaaA(0.7071, 0.7071);
-
-	//std::vector<std::complex<double>> p = poles();
-	//std::vector<std::complex<double>> z = zeros();
-	//std::complex<double> p1 = p[0];
-	//std::complex<double> p2 = p[1];
-	//std::complex<double> z1 = z[0];
-	//std::complex<double> z2 = z[1];
-	//int a = 2;
-
-	bool stable = true;
-	std::vector<std::complex<double>> ps = poles();
-	for (size_t i = 0; i < ps.size(); i++) {
-		stable = stable & (std::abs(ps[i]) < 1);
-	}
-	return stable;
-}
-
-std::vector<std::complex<double>> Biquad::poles() {
-	std::vector< std::complex<double> > poles;
-	std::complex<double> b2(a0 * a0, 0);
-	std::complex<double> ds = std::sqrt(b2 - 4 * a1);
-	poles.push_back(0.5*(-a0 + ds));
-	poles.push_back(0.5*(-a0 - ds));
-	return poles;
-}
-
-std::vector<std::complex<double>> Biquad::zeros() {
-	std::vector< std::complex<double> > zeros;
-	std::complex<double> b2(b1 * b1, 0);
-	std::complex<double> ds = std::sqrt(b2 - 4 * b0 * b2);
-	zeros.push_back(0.5*(-b1 + ds) / b0);
-	zeros.push_back(0.5*(-b1 - ds) / b0);
-	return zeros;
-}
-
 double Biquad::getOmega(const uint32_t sampleRate, const double frequency) const {
 	return  2 * M_PI * frequency / sampleRate;
 }

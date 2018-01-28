@@ -62,7 +62,7 @@ void clearData() {
 #ifdef DEBUG_MEMORY
 	//Check for memory leaks
 	if (MemoryManager::getInstance()->hasLeak()) {
-		OS::show();
+		OS::showWindow();
 		MemoryManager::getInstance()->assertNoLeak();
 }
 #endif

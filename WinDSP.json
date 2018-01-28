@@ -1,7 +1,7 @@
 {
-    "hide": false,
-    "minimize": false,
-    "channels": [
+    "hide" : false,
+    "minimize" : false,
+    "channels" : [
         "L",
         "R",
         "C",
@@ -11,83 +11,84 @@
         "SL",
         "SR"
     ],
-    "devices": {
-        "capture": "{0.0.0.00000000}.{1bfbb3d0-7f0b-4043-a77f-e3ca9d887b3f}",
-        "render": "{0.0.0.00000000}.{5a1a4745-0448-4daf-b4c6-48b4e8684deb}"
+    "devices" : {
+        "capture" : "{0.0.0.00000000}.{1bfbb3d0-7f0b-4043-a77f-e3ca9d887b3f}",
+        "render" : "{0.0.0.00000000}.{b8b8792b-1fe0-4584-9874-467b6af87d6f}"
     },
-    "filters": {
-        "hp": {
-            "type": "HIGH_PASS",
-            "subType": "BUTTERWORTH",
-            "order": 3,
-            "freq": 80.0
+    "filters" : {
+        "hp" : {
+            "type" : "HIGH_PASS",
+            "subType" : "BUTTERWORTH",
+            "order" : 3,
+            "freq" : 80.0
         },
-        "hpCustom": {
-            "type": "HIGH_PASS",
-            "subType": "CUSTOM",
-            "order": 3,
-            "freq": 80.0,
-            "q": [
+        "hpCustom" : {
+            "type" : "HIGH_PASS",
+            "subType" : "CUSTOM",
+            "order" : 3,
+            "freq" : 80.0,
+            "q" : [
                 -1,
                 0.707
             ]
         },
-        "shelf": {
-            "type": "LOW_SHELF",
-            "freq": 100,
-            "gain": 5,
-            "slope": 0.55
+        "shelf" : {
+            "type" : "LOW_SHELF",
+            "freq" : 100,
+            "gain" : 5,
+            "slope" : 0.55
         },
-        "peq": {
-            "type": "PEQ",
-            "freq": 93,
-            "gain": -12,
-            "q": 5
+        "peq" : {
+            "type" : "PEQ",
+            "freq" : 93,
+            "gain" : -12,
+            "q" : 5
         },
-        "lt": {
-            "type": "LINKWITZ_TRANSFORM",
-            "f0": 45.0,
-            "q0": 0.5,
-            "fp": 30.0,
-            "qp": 0.43
+        "lt" : {
+            "type" : "LINKWITZ_TRANSFORM",
+            "f0" : 45.0,
+            "q0" : 0.5,
+            "fp" : 30.0,
+            "qp" : 0.43
         },
-        "biquad": {
-            "type": "BIQUAD",
-            "values": [
+        "biquad" : {
+            "type" : "BIQUAD",
+            "values" : [
                 {
-                    "b0": 0.251379001513159,
-                    "b1": 0.502758003026318,
-                    "b2": 0.251379001513159,
-                    "a1": -0.171240714413963,
-                    "a2": 0.176756720466599
+                    "b0" : 0.251379001513159,
+                    "b1" : 0.502758003026318,
+                    "b2" : 0.251379001513159,
+                    "a1" : -0.171240714413963,
+                    "a2" : 0.176756720466599
                 }
             ]
         },
-        "fir": {
-            "type": "FIR",
-            "file": "fir_example.txt"
+        "fir" : {
+            "type" : "FIR",
+            "file" : "fir_example.txt"
         },
-        "list": [
+        "list" : [
             {
-                "type": "PEQ",
-                "freq": 93,
-                "gain": -12,
-                "q": 5
+                "type" : "PEQ",
+                "freq" : 93,
+                "gain" : -12,
+                "q" : 5
             }
         ],
-        "gain": -5
+        "gain" : -5
     },
-    "inputs": {
-        "L": {
-            "routes": [
+    "inputs" : {
+        "L" : {
+            "routes" : [
                 {
-                    "out": "L"
+                    "out" : "L"
                 }
             ]
         }
     },
-    "outputs": {
+    "outputs" : {
         "L": {
+            "mute": true,
             "delay": {
                 "value": 0,
                 "unitMeter": true
@@ -95,7 +96,11 @@
             "filters": [
             ]
         },
-        "R": {
-        }
+        "R": [
+            {
+                "mute": true
+
+            }
+        ]
     }
 }

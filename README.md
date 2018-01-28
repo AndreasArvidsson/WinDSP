@@ -61,6 +61,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 **Config layout**    
 ```json
 {
+	"hide":  false,
     "minimize":  false,
     "channels": [ "L", "R", "C", "SW", "SBL", "SBR", "SL", "SR" ],
     "devices": {
@@ -90,8 +91,12 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 }
 ```
 
-**Minimize**    
-* Set minimize to true to hide window on startup. Errors will show the window again.
+**Hide and minimize**    
+* Set hide to true to hide window on startup.
+* Set minimize to true to minimize window on startup
+* Hide supersedes minimize
+* Errors will show the window again, but not warning
+* To manually show the window again: just update the config file
 
 **Channels**   
 * Different devices may have different order on their channels. You can specify this order. 

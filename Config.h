@@ -29,6 +29,7 @@ public:
 	const std::vector<Input*>& getInputs() const;
 	const std::vector<Output*>& getOutputs() const;
 	const bool hasChanged() const;
+	const bool hide() const;
 	const bool minimize() const;
 	const std::string getChannelName(const size_t channelIndex) const;
 
@@ -41,7 +42,7 @@ private:
 	std::vector<AudioDevice*> _devices;
 	std::vector<std::string> _channelNames;
 	time_t _lastModified;
-	bool _minimize;
+	bool _hide, _minimize;
 
 
 	void load();

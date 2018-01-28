@@ -5,6 +5,7 @@
 #include "SubType.h"
 #include "JsonParser.h"
 #include "Convert.h"
+#include "OS.h"
 
 Config::Config() {}
 
@@ -52,17 +53,29 @@ const bool Config::hasChanged() const {
 	return _lastModified != _configFile.getLastModifiedTime();
 }
 
+const bool Config::hide() const {
+	return _hide;
+}
+
 const bool Config::minimize() const {
 	return _minimize;
 }
 
 void Config::parseMisc() {
+	//Parse visibility options
+	if (_pJsonNode->has("hide")) {
+		_hide = boolValue(_pJsonNode, "hide", "");
+	}
+	else {
+		_hide = false;
+	}
 	if (_pJsonNode->has("minimize")) {
 		_minimize = boolValue(_pJsonNode, "minimize", "");
 	}
 	else {
 		_minimize = false;
 	}
+
 	std::string path = "channels";
 	JsonNode *pChannels = _pJsonNode->path(path);
 	if (!pChannels->isMissingNode()) {
@@ -647,6 +660,7 @@ const bool Config::boolValue(const JsonNode *pNode, const std::string &path) con
 }
 
 void Config::setDevices() {
+	OS::showWindow();
 	std::vector<AudioDevice*> allDevices = AudioDevice::getDevices();
 	size_t captureIndex, renderIndex;
 	bool isOk;

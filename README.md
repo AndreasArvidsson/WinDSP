@@ -61,7 +61,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 **Config layout**    
 ```json
 {
-	"hide":  false,
+    "hide":  false,
     "minimize":  false,
     "channels": [ "L", "R", "C", "SW", "SBL", "SBR", "SL", "SR" ],
     "devices": {

@@ -5,6 +5,7 @@
 #include "SubType.h"
 #include "JsonParser.h"
 #include "Convert.h"
+#include "OS.h"
 
 Config::Config() {}
 
@@ -52,17 +53,29 @@ const bool Config::hasChanged() const {
 	return _lastModified != _configFile.getLastModifiedTime();
 }
 
+const bool Config::hide() const {
+	return _hide;
+}
+
 const bool Config::minimize() const {
 	return _minimize;
 }
 
 void Config::parseMisc() {
+	//Parse visibility options
+	if (_pJsonNode->has("hide")) {
+		_hide = boolValue(_pJsonNode, "hide", "");
+	}
+	else {
+		_hide = false;
+	}
 	if (_pJsonNode->has("minimize")) {
 		_minimize = boolValue(_pJsonNode, "minimize", "");
 	}
 	else {
 		_minimize = false;
 	}
+
 	std::string path = "channels";
 	JsonNode *pChannels = _pJsonNode->path(path);
 	if (!pChannels->isMissingNode()) {
@@ -177,6 +190,7 @@ void Config::parseOutputs() {
 	for (size_t i = 0; i < _outputs.size(); ++i) {
 		if (!_outputs[i]) {
 			_outputs[i] = new Output();
+			_outputs[i]->forks.push_back(new OutputFork());
 		}
 	}
 	validateLevels(path);
@@ -189,8 +203,7 @@ void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelNam
 		return;
 	}
 	const JsonNode *pChannelNode = getNode(pOutputs, channelName, path);
-	bool mute = pChannelNode->path("mute")->boolValue();
-	Output *pOutput = new Output(mute);
+	Output *pOutput = new Output;
 	_outputs[channel] = pOutput;
 	//Array parse each fork.
 	if (pChannelNode->isArray()) {
@@ -211,9 +224,13 @@ void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelNam
 }
 
 void Config::parseOutputFork(Output *pOutput, const JsonNode *pForkNode, std::string path) {
-	OutputFork *pFork = new OutputFork();
-	pOutput->forks.push_back(pFork);
-	parseFilters(pFork->filters, pForkNode, path);
+	bool mute = pForkNode->path("mute")->boolValue();
+	//Muted output is the same as no fork at all
+	if (!mute) {
+		OutputFork *pFork = new OutputFork();
+		pOutput->forks.push_back(pFork);
+		parseFilters(pFork->filters, pForkNode, path);
+	}
 }
 
 void Config::validateLevels(const std::string &path) const {
@@ -647,6 +664,7 @@ const bool Config::boolValue(const JsonNode *pNode, const std::string &path) con
 }
 
 void Config::setDevices() {
+	OS::showWindow();
 	std::vector<AudioDevice*> allDevices = AudioDevice::getDevices();
 	size_t captureIndex, renderIndex;
 	bool isOk;

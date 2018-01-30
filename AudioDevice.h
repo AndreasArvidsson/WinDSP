@@ -36,16 +36,16 @@ public:
 	ISimpleAudioVolume* getVolumeControl();
 
 	inline const HRESULT getNextPacketSize(UINT32 *pNumFramesInNextPacket) const {
-		return  _pCaptureClient->GetNextPacketSize(pNumFramesInNextPacket);
+		return _pCaptureClient->GetNextPacketSize(pNumFramesInNextPacket);
 	}
 
 	inline const HRESULT getCaptureBuffer(float **pCaptureBuffer, UINT32 *pNumFramesToRead, DWORD *pFlags) const {
-		return  _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, pFlags, NULL, NULL);
+		return _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, pFlags, NULL, NULL);
 	}
 
 	inline const HRESULT getCaptureBuffer(float **pCaptureBuffer, UINT32 *pNumFramesToRead) const {
 		static DWORD flags;
-		return  _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, &flags, NULL, NULL);
+		return _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, &flags, NULL, NULL);
 	}
 
 	inline const HRESULT getRenderBuffer(float **pRenderBuffer, const UINT32 numFramesRequested) const {

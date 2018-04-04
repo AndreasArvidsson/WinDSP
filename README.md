@@ -365,4 +365,4 @@ or
 * If you sum multiple inputs together and they play peak signals at the same time digital clipping will occur which creates distortion. Lower the output gain if a digital clipping warning is shown.
 
 ## Disclaimer
-I test all my software to the best of my ability and this is a software I personally use in my audio setup, but bugs can still occur and due to the nature of this software being audio playback related, loud uncomfortable high or low frquency distortions may be a possibility. I haven't had any problems like that myself and if I find them I will patch them out, but just be aware that you use this software on your own accord. With that said please feel free to enjoy it! :)
+I test all my software to the best of my ability and this is a software I personally use in my own audio setup, but bugs can still occur and due to the nature of this software being audio playback related, loud uncomfortable high or low frequency distortions may be a possibility. I haven't had any problems like that myself and if I find any I will patch them out, but just be aware that you use this software on your own accord. With that said please feel free to enjoy it! :)

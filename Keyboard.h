@@ -9,7 +9,10 @@ public:
             char c;
             //Get last char
             while (_kbhit()) {
-                c = _getch();
+				const char tmp = _getch();
+				if (tmp) {
+					c = tmp;
+				}
             }
             //Char must be a digit
             if (c >= '0' && c <= '9') {

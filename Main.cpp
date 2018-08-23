@@ -10,7 +10,7 @@
 #include "CaptureLoop.h"
 #include "MemoryManager.h"
 
-#define VERSION "0.12.0b"
+#define VERSION "0.12.1b"
 
 #ifdef DEBUG
 #define PROFILE " - DEBUG mode"

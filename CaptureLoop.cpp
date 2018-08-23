@@ -55,7 +55,7 @@ void CaptureLoop::capture() {
 			//Get render buffer
 			hr = _pRenderDevice->getRenderBuffer(&pRenderBuffer, numFramesAvailable);
 			assertHresult(hr);
-		
+
 			//Get current timestamp to mark playing channels with
 			now = Date::getCurrentTimeMillis();
 
@@ -115,5 +115,40 @@ void CaptureLoop::capture() {
 
 		//Short sleep just to not busy wait all resources.
 		Date::sleepMillis(1);
+	}
+}
+
+void CaptureLoop::checkConfig() {
+	//Check if new config file has been selected
+	const char input = Keyboard::getDigit();
+	if (input) {
+		throw ConfigChangedException(input);
+	}
+	//Check if config file on disk has changed
+	if (_pConfig->hasChanged()) {
+		throw ConfigChangedException();
+	}
+}
+
+void CaptureLoop::checkUsedChannels() {
+	const time_t now = Date::getCurrentTimeMillis();
+	//Compare now against last used timestamp and determine active channels
+	for (size_t i = 0; i < _nChannelsIn; ++i) {
+		if (now - _pUsedChannels[i] > 1000) {
+			_pUsedChannels[i] = 0;
+		}
+	}
+	//Update conditional routing
+	for (const Input *pInut : _inputs) {
+		pInut->evalConditions();
+	}
+}
+
+void CaptureLoop::checkClippingChannels() {
+	for (size_t i = 0; i < _nChannelsOut; ++i) {
+		if (_pClippingChannels[i] != 0) {
+			printf("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", _pConfig->getChannelName(i).c_str(), Convert::levelToDb(_pClippingChannels[i]));
+			_pClippingChannels[i] = 0;
+		}
 	}
 }

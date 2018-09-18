@@ -242,7 +242,10 @@ void Config::validateLevels(const std::string &path) const {
 	//Apply input/route levels
 	for (const Input *pInput : _inputs) {
 		for (const Route *pRoute : pInput->routes) {
-			levels[pRoute->out] += getFilterGainSum(pRoute->filters);
+			//Conditional routing is not always applied at the same time as other route. Eg if silent.
+			if (pRoute->conditions.size() == 0) {
+				levels[pRoute->out] += getFilterGainSum(pRoute->filters);
+			}
 		}
 	}
 	//Apply output gain

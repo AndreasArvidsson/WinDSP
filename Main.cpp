@@ -85,7 +85,7 @@ void run(const std::string &configName) {
 	AudioDevice *pRenderDevice = devices[1];
 
 	printf("----------------------------------------------\n");
-	printf("Starting capture service\n");
+	printf("Starting capture service @ %s\n", Date::getLocalDateTimeString().c_str());
 	printf("Capture: %s\n", pCaptureDevice->getName().c_str());
 	printf("Render: %s\n", pRenderDevice->getName().c_str());
 	printf("----------------------------------------------\n\n");

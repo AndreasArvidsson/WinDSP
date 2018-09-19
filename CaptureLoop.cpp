@@ -27,13 +27,14 @@ CaptureLoop::~CaptureLoop() {
 void CaptureLoop::capture() {
 	UINT32 i, j;
 	UINT32 numFramesAvailable = 0;
-	time_t now;
-	time_t lastConfig = Date::getCurrentTimeMillis();
+	time_t now, lastCritical, lastNotCritical;
 	float *pCaptureBuffer, *pRenderBuffer;
 	//Used to temporarily store sample(for all out channels) while they are being processed.
 	double tmpBuffer[8];
 	//The size of all sample frames for all channels with the same sample index/timestamp
 	const size_t renderBlockSize = sizeof(double) * _nChannelsOut;
+	bool clippingDetected = false;
+	lastCritical = lastNotCritical = 0;
 
 	//Run infinite capture loop
 	while (true) {
@@ -41,7 +42,7 @@ void CaptureLoop::capture() {
 		//Check for samples in capture buffer
 		assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
 
-		if (numFramesAvailable != 0) {
+		while (numFramesAvailable != 0) {
 			//Get capture buffer pointer and number of available frames.
 			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &numFramesAvailable));
 
@@ -62,7 +63,7 @@ void CaptureLoop::capture() {
 				//Set default value to 0 so we can add/mix values to it later
 				memset(tmpBuffer, 0, renderBlockSize);
 
-				//Iterate inpputs
+				//Iterate inputs
 				for (j = 0; j < _nChannelsIn; ++j) {
 					//Identify which channels are playing.
 					if (pCaptureBuffer[j] != 0) {
@@ -78,9 +79,10 @@ void CaptureLoop::capture() {
 					//Apply output forks and filters
 					pRenderBuffer[j] = (float)_outputs[j]->process(tmpBuffer[j]);
 
-					//Check for digital clipping
+					//Check for clipping
 					if (abs(pRenderBuffer[j]) > 1.0) {
 						_pClippingChannels[j] = max(_pClippingChannels[j], abs(pRenderBuffer[j]));
+						clippingDetected = true;
 					}
 				}
 
@@ -92,19 +94,35 @@ void CaptureLoop::capture() {
 			//Release / flush buffers
 			assert(_pCaptureDevice->releaseCaptureBuffer(numFramesAvailable));
 			assert(_pRenderDevice->releaseRenderBuffer(numFramesAvailable));
+
+			//Run always. Check time critical changes.
+			if (now - lastCritical > 1000) {
+				lastCritical = now;
+				//Check if config file has changed
+				checkConfig();
+			}
+
+			//Check for samples in capture buffer
+			assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
 		}
 
-		if (Date::getCurrentTimeMillis() - lastConfig > 1000) {
-			//Check if config file has changed
+		//No input data. Take this time to check NOT time critical changes.
+		now = Date::getCurrentTimeMillis();
+		if (now - lastNotCritical > 1000) {
+			lastNotCritical = lastCritical = now;
+			//Check if config file has changed. Needed here so that config can change when audio is not playing.
 			checkConfig();
-			//Check for unused channels
-			checkUsedChannels();
-			//Check for clipping out channels
-			checkClippingChannels();
-			//Store timestamp
-			lastConfig = Date::getCurrentTimeMillis();
+			//Update conditional routing if used.
+			if (_pConfig->useConditionalRouting()) {
+				updateConditionalRouting(now);
+			}
+			//Check for clipping output channels
+			if (clippingDetected) {
+				checkClippingChannels();
+				clippingDetected = false;
+			}
 		}
-		else if (numFramesAvailable == 0) {
+		else {
 			//Short sleep just to not busy wait all resources.
 			Date::sleepMillis(1);
 		}
@@ -124,8 +142,7 @@ void CaptureLoop::checkConfig() {
 	}
 }
 
-void CaptureLoop::checkUsedChannels() {
-	const time_t now = Date::getCurrentTimeMillis();
+void CaptureLoop::updateConditionalRouting(const time_t now) {
 	//Compare now against last used timestamp and determine active channels
 	for (size_t i = 0; i < _nChannelsIn; ++i) {
 		if (now - _pUsedChannels[i] > 1000) {

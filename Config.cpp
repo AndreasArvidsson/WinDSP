@@ -38,6 +38,7 @@ void Config::init(const uint32_t sampleRate, const uint32_t numChannelsIn, const
 	_sampleRate = sampleRate;
 	_numChannelsIn = numChannelsIn;
 	_numChannelsOut = numChannelsOut;
+	_useConditionalRouting = false;
 	parseInputs();
 	parseOutputs();
 }
@@ -52,10 +53,6 @@ const std::vector<Input*>& Config::getInputs() const {
 
 const std::vector<Output*>& Config::getOutputs() const {
 	return _outputs;
-}
-
-const bool Config::hasChanged() const {
-	return _lastModified != _configFile.getLastModifiedTime();
 }
 
 const bool Config::hide() const {
@@ -182,8 +179,10 @@ void Config::parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::str
 			pRoute->conditions.push_back(Condition(ConditionType::SILENT, (int)channel));
 		}
 		else {
-			printf("WARNING: Config(%s) - Unknown if codition", path.c_str());
+			printf("WARNING: Config(%s) - Unknown if condition", path.c_str());
+			return;
 		}
+		_useConditionalRouting = true;
 	}
 }
 
@@ -276,6 +275,9 @@ void Config::validateLevels(const std::string &path) const {
 			}
 			printf("\t%s: +%.2f dBFS\n", getChannelName(i, path).c_str(), Convert::levelToDb(levels[i]));
 		}
+	}
+	if (!first) {
+		printf("\n");
 	}
 }
 

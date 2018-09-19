@@ -34,7 +34,7 @@ private:
     float *_pClippingChannels;
 
 	void checkConfig();
-	void checkUsedChannels();
+	void updateConditionalRouting(const time_t now);
 	void checkClippingChannels();
 
 };

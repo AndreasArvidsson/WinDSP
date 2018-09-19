@@ -28,10 +28,17 @@ public:
 	const std::vector<AudioDevice*>& getDevices() const;
 	const std::vector<Input*>& getInputs() const;
 	const std::vector<Output*>& getOutputs() const;
-	const bool hasChanged() const;
 	const bool hide() const;
 	const bool minimize() const;
 	const std::string getChannelName(const size_t channelIndex) const;
+	
+	inline const bool Config::hasChanged() const {
+		return _lastModified != _configFile.getLastModifiedTime();
+	}
+
+	inline const bool useConditionalRouting() const {
+		return _useConditionalRouting;
+	}
 
 private:
 	File _configFile;
@@ -43,8 +50,7 @@ private:
 	std::vector<AudioDevice*> _devices;
 	std::vector<std::string> _channelNames;
 	time_t _lastModified;
-	bool _hide, _minimize;
-
+	bool _hide, _minimize, _useConditionalRouting;
 
 	void load();
 	void save();

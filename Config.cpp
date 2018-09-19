@@ -91,6 +91,7 @@ void Config::parseMisc() {
 		}
 	}
 	else {
+		//Default channel order.
 		_channelNames = { "L", "R", "C", "SW", "SBL", "SBR" ,"SL", "SR" };
 	}
 }
@@ -174,6 +175,9 @@ void Config::parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::str
 			std::string channelName = textValue(pIfNode, "silent", path);
 			size_t channel = getChannelIndex(channelName, path + "/silent");
 			pRoute->conditions.push_back(Condition(ConditionType::SILENT, (int)channel));
+		}
+		else {
+			printf("WARNING: Config(%s) - Unknown if codition", path.c_str());
 		}
 	}
 }

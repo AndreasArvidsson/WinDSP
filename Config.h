@@ -36,6 +36,7 @@ public:
 private:
 	File _configFile;
 	JsonNode *_pJsonNode;
+	std::vector<JsonNode*> _tmpJsonNodes;
 	uint32_t _sampleRate, _numChannelsIn, _numChannelsOut;
 	std::vector<Input*> _inputs;
 	std::vector<Output*> _outputs;
@@ -66,7 +67,7 @@ private:
 	const size_t getChannelIndex(const std::string &channelName, const std::string &path) const;
 	const std::string getChannelName(const size_t channelIndex, const std::string &path) const;
 
-	void parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string path) const;
+	void parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string path);
 	void parseFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
 	void parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
 	void parseShelf(const bool isLowShelf, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
@@ -75,17 +76,18 @@ private:
 	void parseNotch(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
 	void parseLinkwitzTransform(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
 	void parseBiquad(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
-	void parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
-	void parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
+	void parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path);
+	void parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path);
 	void parseInvertPolarity(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
 	void parseFir(std::vector<Filter*> &filters, const JsonNode *pFilterNode, std::string path) const;
 	void parseFirTxt(std::vector<Filter*> &filters, const File &file, std::string path) const;
 	void parseFirWav(std::vector<Filter*> &filters, const File &file, std::string path) const;
 
-	const JsonNode* getNode(const JsonNode *pNode, const std::string &field, std::string &path) const;
-	const JsonNode* getNode(const JsonNode *pNode, const size_t index, std::string &path) const;
+	const JsonNode* getNode(const JsonNode *pNode, const std::string &field, std::string &path);
+	const JsonNode* getNode(const JsonNode *pNode, const size_t index, std::string &path);
 	const JsonNode* getReference(const JsonNode *pRefNode, std::string &path) const;
 	const JsonNode* getField(const JsonNode *pNode, const std::string &field, const std::string &path) const;
+	const JsonNode* getEnrichedReference(const JsonNode *pRefNode, const JsonNode *pOrgNode);
 
 	const double doubleValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
 	const double doubleValue(const JsonNode *pNode, const std::string &path) const;

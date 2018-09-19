@@ -8,15 +8,16 @@
 
 #include "OS.h"
 #include "CaptureLoop.h"
-#include "MemoryManager.h"
 
-#define VERSION "0.13.0b-SNAPSHOT"
 
 #ifdef DEBUG
+#include "MemoryManager.h"
 #define PROFILE " - DEBUG mode"
 #else
 #define PROFILE ""
 #endif
+
+#define VERSION "0.13.0b-SNAPSHOT"
 
 char configFileNumber = '0';
 Config *pConfig = nullptr;
@@ -64,7 +65,7 @@ void clearData() {
 	if (MemoryManager::getInstance()->hasLeak()) {
 		OS::showWindow();
 		MemoryManager::getInstance()->assertNoLeak();
-}
+	}
 #endif
 }
 

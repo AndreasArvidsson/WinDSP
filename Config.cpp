@@ -19,6 +19,11 @@ Config::~Config() {
 	for (Output *p : _outputs) {
 		delete p;
 	}
+	for (JsonNode *p : _tmpJsonNodes) {
+		//tmp list contains shallow copies. Need to remove children first othervise they will be deleted twice and cause errors.
+		p->clear();
+		delete p;
+	}
 	delete _pJsonNode;
 }
 
@@ -284,7 +289,7 @@ const double Config::getFilterGainSum(const std::vector<Filter*> &filters, doubl
 	return startLevel;
 }
 
-void Config::parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const {
+void Config::parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) {
 	//Parse single instance simple filters
 	parseGain(filters, pNode, path);
 	parseDelay(filters, pNode, path);
@@ -307,7 +312,7 @@ void Config::parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, 
 	}
 }
 
-void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const {
+void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) {
 	pNode = getNode(pNode, "gain", path);
 	if (!pNode->isMissingNode()) {
 		const double value = doubleValue(pNode, path);
@@ -318,7 +323,7 @@ void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std
 	}
 }
 
-void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const {
+void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) {
 	pNode = getNode(pNode, "delay", path);
 	if (pNode->isMissingNode()) {
 		return;
@@ -584,17 +589,19 @@ const JsonNode* Config::getField(const JsonNode *pNode, const std::string &field
 	return pResult;
 }
 
-const JsonNode* Config::getNode(const JsonNode *pNode, const std::string &field, std::string &path) const {
+const JsonNode* Config::getNode(const JsonNode *pNode, const std::string &field, std::string &path) {
 	const JsonNode *pResult = pNode->path(field);
 	path = path + "/" + field;
-	JsonNode *pRefNode = pResult->path("#ref");
+	const JsonNode *pRefNode = pResult->path("#ref");
 	if (!pRefNode->isMissingNode()) {
-		pResult = getReference(pRefNode, path);
+		//pResult = getReference(pRefNode, path);
+		pRefNode = getReference(pRefNode, path);
+		pResult = getEnrichedReference(pRefNode, pResult);
 	}
 	return pResult;
 }
 
-const JsonNode* Config::getNode(const JsonNode *pNode, const size_t index, std::string &path) const {
+const JsonNode* Config::getNode(const JsonNode *pNode, const size_t index, std::string &path) {
 	const JsonNode *pResult = pNode->path(index);
 	path = path + "/" + std::to_string(index);
 	JsonNode *pRefNode = pResult->path("#ref");
@@ -602,6 +609,27 @@ const JsonNode* Config::getNode(const JsonNode *pNode, const size_t index, std::
 		pResult = getReference(pRefNode, path);
 	}
 	return pResult;
+}
+
+const JsonNode* Config::getEnrichedReference(const JsonNode *pRefNode, const JsonNode *pOrgNode) {
+	//The "#ref" field is the only one present. No need to create enriched copy.
+	if (pOrgNode->size() == 1) {
+		return pRefNode;
+	}
+	JsonNode *pCopy = new JsonNode(JsonNodeType::OBJECT);
+	//Store in tmp list so destructor can take care of them.
+	_tmpJsonNodes.push_back(pCopy);
+	//First copy ref fields.
+	for (auto &pair : pRefNode->getFields()) {
+		pCopy->put(pair.first, pair.second);
+	}
+	//Then copy org fields. IE org fields have presedence in a conflict.
+	for (auto &pair : pOrgNode->getFields()) {
+		if (pair.first.compare("#ref") != 0) {
+			pCopy->put(pair.first, pair.second);
+		}
+	}
+	return pCopy;
 }
 
 const JsonNode* Config::getReference(const JsonNode *pRefNode, std::string &path) const {

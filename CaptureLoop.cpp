@@ -26,10 +26,9 @@ CaptureLoop::~CaptureLoop() {
 
 void CaptureLoop::capture() {
 	UINT32 numFramesAvailable, i, j;
-	HRESULT hr;
 	time_t now;
+	time_t lastConfig = Date::getCurrentTimeMillis();
 	float *pCaptureBuffer, *pRenderBuffer;
-	size_t loopCounter = 0;
 	//Used to temporarily store sample(for all out channels) while they are being processed.
 	double tmpBuffer[8];
 	//The size of all sample frames for all channels with the same sample index/timestamp
@@ -38,13 +37,11 @@ void CaptureLoop::capture() {
 	//Run infinite capture loop
 	while (true) {
 		//Check for samples in capture buffer
-		hr = _pCaptureDevice->getNextPacketSize(&numFramesAvailable);
-		assertHresult(hr);
+		assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
 
-		while (numFramesAvailable != 0) {
+		if (numFramesAvailable != 0) {
 			//Get capture buffer pointer and number of available frames.
-			hr = _pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &numFramesAvailable);
-			assertHresult(hr);
+			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &numFramesAvailable));
 
 			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
 			while (numFramesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
@@ -53,8 +50,7 @@ void CaptureLoop::capture() {
 			}
 
 			//Get render buffer
-			hr = _pRenderDevice->getRenderBuffer(&pRenderBuffer, numFramesAvailable);
-			assertHresult(hr);
+			assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, numFramesAvailable));
 
 			//Get current timestamp to mark playing channels with
 			now = Date::getCurrentTimeMillis();
@@ -92,29 +88,27 @@ void CaptureLoop::capture() {
 			}
 
 			//Release / flush buffers
-			hr = _pCaptureDevice->releaseCaptureBuffer(numFramesAvailable);
-			assertHresult(hr);
-			hr = _pRenderDevice->releaseRenderBuffer(numFramesAvailable);
-			assertHresult(hr);
+			assert(_pCaptureDevice->releaseCaptureBuffer(numFramesAvailable));
+			assert(_pRenderDevice->releaseRenderBuffer(numFramesAvailable));
 
 			//Check for more samples in capture buffer
-			hr = _pCaptureDevice->getNextPacketSize(&numFramesAvailable);
-			assertHresult(hr);
+			assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
 		}
 
-		if (loopCounter == 1000) {
-			loopCounter = 0;
+		if (Date::getCurrentTimeMillis() - lastConfig > 1000) {
 			//Check if config file has changed
 			checkConfig();
 			//Check for unused channels
 			checkUsedChannels();
 			//Check for clipping out channels
 			checkClippingChannels();
+			//Store timestamp
+			lastConfig = Date::getCurrentTimeMillis();
 		}
-		++loopCounter;
-
-		//Short sleep just to not busy wait all resources.
-		Date::sleepMillis(1);
+		else {
+			//Short sleep just to not busy wait all resources.
+			Date::sleepMillis(1);
+		}
 	}
 }
 

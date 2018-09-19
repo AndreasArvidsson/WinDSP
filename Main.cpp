@@ -10,7 +10,7 @@
 #include "CaptureLoop.h"
 #include "MemoryManager.h"
 
-#define VERSION "0.12.1b"
+#define VERSION "0.13.0b-SNAPSHOT"
 
 #ifdef DEBUG
 #define PROFILE " - DEBUG mode"
@@ -85,7 +85,7 @@ void run(const std::string &configName) {
 	AudioDevice *pRenderDevice = devices[1];
 
 	printf("----------------------------------------------\n");
-	printf("Starting capture service @ %s\n", Date::getLocalDateTimeString().c_str());
+	printf("Starting DSP service @ %s\n", Date::getLocalDateTimeString().c_str());
 	printf("Capture: %s\n", pCaptureDevice->getName().c_str());
 	printf("Render: %s\n", pRenderDevice->getName().c_str());
 	printf("----------------------------------------------\n\n");

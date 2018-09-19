@@ -12,28 +12,39 @@
 
 class Output {
 public:
-	std::vector<OutputFork*> forks;
+
 
 	Output() {}
 
 	~Output() {
-		for (OutputFork *pFork : forks) {
+		for (OutputFork *pFork : _forks) {
 			delete pFork;
 		}
 	}
 
+	void add(OutputFork* pFork) {
+		_forks.push_back(pFork);
+	}
+
+	const std::vector<OutputFork*>& getForks() const {
+		return _forks;
+	}
+
 	inline const double process(const double data) const {
 		double out = 0;
-		for (const OutputFork *pFork : forks) {
+		for (const OutputFork *pFork : _forks) {
 			out += pFork->process(data);
 		}
 		return out;
 	}
 
 	inline void reset() {
-		for (const OutputFork *pFork : forks) {
+		for (const OutputFork *pFork : _forks) {
 			pFork->reset();
 		}
 	}
+
+private:
+	std::vector<OutputFork*> _forks;
 
 };

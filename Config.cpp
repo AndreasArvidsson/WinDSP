@@ -190,7 +190,7 @@ void Config::parseOutputs() {
 	for (size_t i = 0; i < _outputs.size(); ++i) {
 		if (!_outputs[i]) {
 			_outputs[i] = new Output();
-			_outputs[i]->forks.push_back(new OutputFork());
+			_outputs[i]->add(new OutputFork());
 		}
 	}
 	validateLevels(path);
@@ -214,7 +214,7 @@ void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelNam
 		}
 		//Empty array. Add default empty fork
 		if (pChannelNode->size() == 0) {
-			pOutput->forks.push_back(new OutputFork());
+			pOutput->add(new OutputFork());
 		}
 	}
 	//Object. Parse single fork
@@ -228,7 +228,7 @@ void Config::parseOutputFork(Output *pOutput, const JsonNode *pForkNode, std::st
 	//Muted output is the same as no fork at all
 	if (!mute) {
 		OutputFork *pFork = new OutputFork();
-		pOutput->forks.push_back(pFork);
+		pOutput->add(pFork);
 		parseFilters(pFork->filters, pForkNode, path);
 	}
 }
@@ -251,7 +251,7 @@ void Config::validateLevels(const std::string &path) const {
 	//Apply output gain
 	for (size_t i = 0; i < _outputs.size(); ++i) {
 		double level = 0;
-		for (const OutputFork *pFork : _outputs[i]->forks) {
+		for (const OutputFork *pFork : _outputs[i]->getForks()) {
 			level += getFilterGainSum(pFork->filters, levels[i]);
 		}
 		levels[i] = level;

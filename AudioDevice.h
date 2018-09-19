@@ -32,8 +32,13 @@ public:
 	const std::string getName();
 	const WAVEFORMATEX* getFormat() const;
 	UINT32 getBufferFrameCount() const;
-	UINT32 getBufferFrameCountAvailable() const;
 	ISimpleAudioVolume* getVolumeControl();
+
+	inline const UINT32 AudioDevice::getBufferFrameCountAvailable() const {
+		UINT32 numFramesPadding;
+		assert(_pAudioClient->GetCurrentPadding(&numFramesPadding));
+		return _bufferFrameCount - numFramesPadding;
+	}
 
 	inline const HRESULT getNextPacketSize(UINT32 *pNumFramesInNextPacket) const {
 		return _pCaptureClient->GetNextPacketSize(pNumFramesInNextPacket);

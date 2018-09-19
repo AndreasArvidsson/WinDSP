@@ -157,12 +157,6 @@ UINT32 AudioDevice::getBufferFrameCount() const {
 	return _bufferFrameCount;
 }
 
-UINT32 AudioDevice::getBufferFrameCountAvailable() const {
-	UINT32 numFramesPadding;
-	assert(_pAudioClient->GetCurrentPadding(&numFramesPadding));
-	return _bufferFrameCount - numFramesPadding;
-}
-
 ISimpleAudioVolume* AudioDevice::getVolumeControl() {
 	if (!_pSimpleVolume) {
 		assert(_pAudioClient->GetService(__uuidof(ISimpleAudioVolume), (void**)&_pSimpleVolume));

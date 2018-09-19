@@ -104,7 +104,7 @@ void CaptureLoop::capture() {
 			//Store timestamp
 			lastConfig = Date::getCurrentTimeMillis();
 		}
-		else  {
+		else if (numFramesAvailable == 0) {
 			//Short sleep just to not busy wait all resources.
 			Date::sleepMillis(1);
 		}

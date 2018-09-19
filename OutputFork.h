@@ -27,4 +27,10 @@ public:
 		return data;
 	}
 
+	inline void reset() const {
+		for (Filter *pFilter : filters) {
+			pFilter->reset();
+		}
+	}
+
 };

@@ -11,7 +11,6 @@ public:
 
 	const size_t size() const;
 	const bool isEmpty() const;
-	void resetState();
 
 	void add(const double b0, const double b1, const double b2, const double a1, const double a2);
 	void add(const double b0, const double b1, const double b2, const double a0, const double a1, const double a2);
@@ -39,6 +38,12 @@ public:
 			data = biquad.process(data);
 		}
 		return data;
+	}
+
+	inline void reset() override {
+		for (Biquad &biquad : _biquads) {
+			biquad.reset();
+		}
 	}
 
 private:

@@ -30,4 +30,10 @@ public:
 		return out;
 	}
 
+	inline void reset() {
+		for (const OutputFork *pFork : forks) {
+			pFork->reset();
+		}
+	}
+
 };

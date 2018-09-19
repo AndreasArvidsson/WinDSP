@@ -13,12 +13,6 @@ const bool BiquadFilter::isEmpty() const {
 	return _biquads.size() == 0;
 }
 
-void BiquadFilter::resetState() {
-	for (Biquad &b : _biquads) {
-		b.resetState();
-	}
-}
-
 void BiquadFilter::add(const double b0, const double b1, const double b2, const double a1, const double a2) {
 	Biquad biquad;
 	biquad.init(b0, b1, b2, a1, a2);

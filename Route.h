@@ -47,6 +47,12 @@ public:
 		}
 	}
 
+	inline void reset() const {
+		for (Filter *p : filters) {
+			 p->reset();
+		}
+	}
+
 private:
 	bool _valid;
 

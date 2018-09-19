@@ -9,7 +9,7 @@ public:
 		_taps = taps;
 		_size = taps.size();
 		_pDelay = new double[_size];
-		memset(_pDelay, 0, _size * sizeof(double));
+		reset();
 	}
 
 	~FirFilter() {
@@ -24,6 +24,10 @@ public:
 		}
 		_pDelay[0] = value;
 		return result;
+	}
+
+	inline void reset() override {
+		memset(_pDelay, 0, _size * sizeof(double));
 	}
 
 private:

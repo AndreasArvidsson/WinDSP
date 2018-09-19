@@ -12,7 +12,7 @@ void Biquad::init(const double b0, const double b1, const double b2, const doubl
 	this->a0 = a0;
 	this->a1 = a1;
 	this->a2 = a2;
-	resetState();
+	reset();
 }
 
 void Biquad::init(const double b0, const double b1, const double b2, const double a1, const double a2) {
@@ -22,7 +22,7 @@ void Biquad::init(const double b0, const double b1, const double b2, const doubl
 	this->a0 = 1.0;
 	this->a1 = a1;
 	this->a2 = a2;
-	resetState();
+	reset();
 }
 
 void Biquad::initLowPass(const uint32_t sampleRate, const double frequency, const double q) {
@@ -157,11 +157,7 @@ void Biquad::initLinkwitzTransform(const uint32_t sampleRate, const double F0, c
 	a0 = 1;
 	a1 = 2 * (c0i - std::pow(gn, 2)) / cci;
 	a2 = (c0i - gn * c1i + std::pow(gn, 2)) / cci;
-	resetState();
-}
-
-void Biquad::resetState() {
-	z1 = z2 = 0;
+	reset();
 }
 
 double Biquad::getOmega(const uint32_t sampleRate, const double frequency) const {
@@ -179,6 +175,6 @@ void Biquad::normalize() {
 	a1 /= a0;
 	a2 /= a0;
 	a0 = 1;
-	resetState();
+	reset();
 }
 

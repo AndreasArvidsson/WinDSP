@@ -37,4 +37,10 @@ public:
 		}
 	}
 
+	inline void reset() {
+		for (const Route *pRoute : routes) {
+			pRoute->reset();
+		}
+	}
+
 };

@@ -33,6 +33,10 @@ public:
 		return out;
 	}
 
+	inline void reset() override {
+		memset(_pBuffer, 0, _size * sizeof(double));
+	}
+
 private:
 	uint32_t _size, _index;
 	double *_pBuffer;
@@ -41,7 +45,7 @@ private:
 		_size = sampleDelay;
 		_index = 0;
 		_pBuffer = new double[_size];
-		memset(_pBuffer, 0, _size * sizeof(double));
+		reset();
 	}
 
 };

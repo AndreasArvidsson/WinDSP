@@ -21,13 +21,16 @@ public:
 	void initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain = 1);
 	void initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth);
 	void initLinkwitzTransform(const uint32_t sampleRate, const double F0, const double Q0, const double Fp, const double Qp);
-	void resetState();
 
 	inline const double Biquad::process(const double data) {
 		const double out = data * b0 + z1;
 		z1 = data * b1 - out * a1 + z2;
 		z2 = data * b2 - out * a2;
 		return out;
+	}
+
+	inline void reset() {
+		z1 = z2 = 0;
 	}
 
 private:

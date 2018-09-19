@@ -90,9 +90,6 @@ void CaptureLoop::capture() {
 			//Release / flush buffers
 			assert(_pCaptureDevice->releaseCaptureBuffer(numFramesAvailable));
 			assert(_pRenderDevice->releaseRenderBuffer(numFramesAvailable));
-
-			//Check for more samples in capture buffer
-			assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
 		}
 
 		if (Date::getCurrentTimeMillis() - lastConfig > 1000) {
@@ -106,8 +103,12 @@ void CaptureLoop::capture() {
 			lastConfig = Date::getCurrentTimeMillis();
 		}
 		else {
+			//Check for samples in capture buffer
+			assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
 			//Short sleep just to not busy wait all resources.
-			Date::sleepMillis(1);
+			if (numFramesAvailable == 0) {
+				Date::sleepMillis(1);
+			}
 		}
 	}
 }

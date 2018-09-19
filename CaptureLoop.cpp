@@ -25,7 +25,8 @@ CaptureLoop::~CaptureLoop() {
 }
 
 void CaptureLoop::capture() {
-	UINT32 numFramesAvailable, i, j;
+	UINT32 i, j;
+	UINT32 numFramesAvailable = 0;
 	time_t now;
 	time_t lastConfig = Date::getCurrentTimeMillis();
 	float *pCaptureBuffer, *pRenderBuffer;
@@ -36,6 +37,7 @@ void CaptureLoop::capture() {
 
 	//Run infinite capture loop
 	while (true) {
+
 		//Check for samples in capture buffer
 		assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
 
@@ -102,14 +104,11 @@ void CaptureLoop::capture() {
 			//Store timestamp
 			lastConfig = Date::getCurrentTimeMillis();
 		}
-		else {
-			//Check for samples in capture buffer
-			assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
+		else  {
 			//Short sleep just to not busy wait all resources.
-			if (numFramesAvailable == 0) {
-				Date::sleepMillis(1);
-			}
+			Date::sleepMillis(1);
 		}
+
 	}
 }
 

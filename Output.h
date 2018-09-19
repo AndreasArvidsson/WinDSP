@@ -13,7 +13,6 @@
 class Output {
 public:
 
-
 	Output() {}
 
 	~Output() {

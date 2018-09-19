@@ -139,12 +139,15 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 A common user case is that multiple channels or routes share filter configurations. Instead of having to copy and paste these you can reference one JSON node from another.
 ```json
  "outputs": {
+	"L": {
+		"gain": -5
+	},
     "R": { 
         "#ref": "outputs/L" 
     }
  }
 ```
-You can declare a list of your favorite filters and reuse them
+You can declare a list of your favorite filters and reuse them.
 ```json
  {
     "filters": {
@@ -165,6 +168,20 @@ You can declare a list of your favorite filters and reuse them
       }
    }
 }
+```
+
+A referenced node can redefine specific fields.
+```json
+ "outputs": {
+	"L": {
+		"delay": 2.5,
+		"gain": -5
+	},
+    "R": { 
+        "#ref": "outputs/L" ,
+		"gain": -7
+    }
+ }
 ```
 
 **Conditional routing**

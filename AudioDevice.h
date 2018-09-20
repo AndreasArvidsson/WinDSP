@@ -45,12 +45,12 @@ public:
 	}
 
 	inline const HRESULT getCaptureBuffer(float **pCaptureBuffer, UINT32 *pNumFramesToRead, DWORD *pFlags) const {
-		return _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, pFlags, NULL, NULL);
+		return _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, pFlags, nullptr, nullptr);
 	}
 
 	inline const HRESULT getCaptureBuffer(float **pCaptureBuffer, UINT32 *pNumFramesToRead) const {
 		static DWORD flags;
-		return _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, &flags, NULL, NULL);
+		return _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, &flags, nullptr, nullptr);
 	}
 
 	inline const HRESULT getRenderBuffer(float **pRenderBuffer, const UINT32 numFramesRequested) const {
@@ -63,6 +63,21 @@ public:
 
 	inline const HRESULT releaseRenderBuffer(const UINT32 numFramesWritten) const {
 		return _pRenderClient->ReleaseBuffer(numFramesWritten, 0);
+	}
+
+	inline void flushCaptureBuffer() const {
+		UINT32 frameCount;
+		static BYTE *buffer;
+		static DWORD flags;
+		assert(_pCaptureClient->GetBuffer(&buffer, &frameCount, &flags, nullptr, nullptr));
+		assert(_pCaptureClient->ReleaseBuffer(frameCount));
+	}
+
+	inline void flushRenderBuffer() const {
+		static BYTE *buffer;
+		const UINT32 frameCount = getBufferFrameCountAvailable();
+		assert(_pRenderClient->GetBuffer(frameCount, &buffer));
+		assert(_pRenderClient->ReleaseBuffer(frameCount, AUDCLNT_BUFFERFLAGS_SILENT));
 	}
 
 private:

@@ -25,75 +25,93 @@ CaptureLoop::~CaptureLoop() {
 }
 
 void CaptureLoop::capture() {
-	UINT32 i, j;
-	UINT32 numFramesAvailable = 0;
+	UINT32 i, j, numFramesAvailable;
 	time_t now, lastCritical, lastNotCritical;
 	float *pCaptureBuffer, *pRenderBuffer;
+	DWORD flags;
 	//Used to temporarily store sample(for all out channels) while they are being processed.
 	double tmpBuffer[8];
 	//The size of all sample frames for all channels with the same sample index/timestamp
 	const size_t renderBlockSize = sizeof(double) * _nChannelsOut;
-	bool clippingDetected = false;
 	lastCritical = lastNotCritical = 0;
+	bool clippingDetected = false;
+	bool silent = true;
 
 	//Run infinite capture loop
 	while (true) {
-
 		//Check for samples in capture buffer
 		assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
 
 		while (numFramesAvailable != 0) {
 			//Get capture buffer pointer and number of available frames.
-			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &numFramesAvailable));
+			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &numFramesAvailable, &flags));
 
-			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
-			while (numFramesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
-				//Short sleep just to not busy wait all resources.
-				Date::sleepMillis(1);
-			}
-
-			//Get render buffer
-			assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, numFramesAvailable));
-
-			//Get current timestamp to mark playing channels with
+			//Get current timestamp.
 			now = Date::getCurrentTimeMillis();
 
-			//Iterate all capture frames
-			for (i = 0; i < numFramesAvailable; ++i) {
-				//Set default value to 0 so we can add/mix values to it later
-				memset(tmpBuffer, 0, renderBlockSize);
-
-				//Iterate inputs
-				for (j = 0; j < _nChannelsIn; ++j) {
-					//Identify which channels are playing.
-					if (pCaptureBuffer[j] != 0) {
-						_pUsedChannels[j] = now;
-					}
-
-					//Route sample to outputs
-					_inputs[j]->route(pCaptureBuffer[j], tmpBuffer);
+			//Silence. Do NOT send anything to render buffer.
+			if (flags == AUDCLNT_BUFFERFLAGS_SILENT) {
+				//Was audio before. Reset filter states.
+				if (!silent) {
+					silent = true;
+					resetFilters();
+				}
+			}
+			//Audio playing. Send to render buffer.
+			else {
+				//Was silent before. Needs to flush render buffer before adding new data.
+				if (silent) {
+					silent = false;
+					_pRenderDevice->flushRenderBuffer();
 				}
 
-				//Iterate outputs
-				for (j = 0; j < _nChannelsOut; ++j) {
-					//Apply output forks and filters
-					pRenderBuffer[j] = (float)_outputs[j]->process(tmpBuffer[j]);
-
-					//Check for clipping
-					if (abs(pRenderBuffer[j]) > 1.0) {
-						_pClippingChannels[j] = max(_pClippingChannels[j], abs(pRenderBuffer[j]));
-						clippingDetected = true;
-					}
+				//Must read entire capture buffer at once. Wait until render buffer has enough space available.
+				while (numFramesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
+					//Short sleep just to not busy wait all resources.
+					Date::sleepMillis(1);
 				}
 
-				//Move buffers to next sample
-				pCaptureBuffer += _nChannelsIn;
-				pRenderBuffer += _nChannelsOut;
+				//Get render buffer
+				assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, numFramesAvailable));
+
+				//Iterate all capture frames
+				for (i = 0; i < numFramesAvailable; ++i) {
+					//Set default value to 0 so we can add/mix values to it later
+					memset(tmpBuffer, 0, renderBlockSize);
+
+					//Iterate inputs
+					for (j = 0; j < _nChannelsIn; ++j) {
+						//Identify which channels are playing.
+						if (pCaptureBuffer[j] != 0) {
+							_pUsedChannels[j] = now;
+						}
+						//Route sample to outputs
+						_inputs[j]->route(pCaptureBuffer[j], tmpBuffer);
+					}
+
+					//Iterate outputs
+					for (j = 0; j < _nChannelsOut; ++j) {
+						//Apply output forks and filters
+						pRenderBuffer[j] = (float)_outputs[j]->process(tmpBuffer[j]);
+
+						//Check for clipping
+						if (abs(pRenderBuffer[j]) > 1.0) {
+							clippingDetected = true;
+							_pClippingChannels[j] = max(_pClippingChannels[j], abs(pRenderBuffer[j]));
+						}
+					}
+
+					//Move buffers to next sample
+					pCaptureBuffer += _nChannelsIn;
+					pRenderBuffer += _nChannelsOut;
+				}
+
+				//Release/flush render buffer.
+				assert(_pRenderDevice->releaseRenderBuffer(numFramesAvailable));
 			}
 
-			//Release / flush buffers
+			//Release/flush capture buffer.
 			assert(_pCaptureDevice->releaseCaptureBuffer(numFramesAvailable));
-			assert(_pRenderDevice->releaseRenderBuffer(numFramesAvailable));
 
 			//Run always. Check time critical changes.
 			if (now - lastCritical > 1000) {
@@ -118,15 +136,14 @@ void CaptureLoop::capture() {
 			}
 			//Check for clipping output channels
 			if (clippingDetected) {
-				checkClippingChannels();
 				clippingDetected = false;
+				checkClippingChannels();
 			}
 		}
 		else {
 			//Short sleep just to not busy wait all resources.
 			Date::sleepMillis(1);
 		}
-
 	}
 }
 
@@ -161,5 +178,15 @@ void CaptureLoop::checkClippingChannels() {
 			printf("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", _pConfig->getChannelName(i).c_str(), Convert::levelToDb(_pClippingChannels[i]));
 			_pClippingChannels[i] = 0;
 		}
+	}
+}
+
+void CaptureLoop::resetFilters() {
+	//Reset i/o filter states.
+	for (Input *p : _inputs) {
+		p->reset();
+	}
+	for (Output *p : _outputs) {
+		p->reset();
 	}
 }

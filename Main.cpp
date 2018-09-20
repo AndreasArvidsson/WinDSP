@@ -17,7 +17,7 @@
 #define PROFILE ""
 #endif
 
-#define VERSION "0.13.0b-SNAPSHOT"
+#define VERSION "0.13.0b"
 
 char configFileNumber = '0';
 Config *pConfig = nullptr;

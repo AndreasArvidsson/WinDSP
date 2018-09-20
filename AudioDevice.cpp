@@ -94,23 +94,16 @@ void AudioDevice::startRenderService() {
 
 void AudioDevice::startService(const bool capture) {
 	if (capture) {
-		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, 0, 0, _pFormat, 0));
+		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, 0, 0, _pFormat, nullptr));
 		assert(_pAudioClient->GetService(__uuidof(IAudioCaptureClient), (void**)&_pCaptureClient));
 	}
 	else {
-		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, 0, 0, _pFormat, 0));
+		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, 0, 0, _pFormat, nullptr));
 		assert(_pAudioClient->GetService(__uuidof(IAudioRenderClient), (void**)&_pRenderClient));
 	}
 
 	//Get the size of the allocated buffer.
 	assert(_pAudioClient->GetBufferSize(&_bufferFrameCount));
-
-	if (!capture) {
-		//Get and release render buffer first time. Needed to not get audio glitches
-		BYTE *pRenderBuffer;
-		assert(_pRenderClient->GetBuffer(_bufferFrameCount, &pRenderBuffer));
-		assert(_pRenderClient->ReleaseBuffer(_bufferFrameCount, AUDCLNT_BUFFERFLAGS_SILENT));
-	}
 
 	//Start aduio service on device.
 	assert(_pAudioClient->Start());

@@ -190,3 +190,11 @@ void CaptureLoop::resetFilters() {
 		p->reset();
 	}
 }
+
+//For debug purposes only.
+void CaptureLoop::printUsedChannels(const time_t now) const {
+	for (size_t i = 0; i < _nChannelsIn; ++i) {
+		printf("%s %d\n", _pConfig->getChannelName(i).c_str(), now - _pUsedChannels[i] <= 1000);
+	}
+	printf("\n");
+}

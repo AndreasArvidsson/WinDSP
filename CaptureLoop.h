@@ -37,5 +37,6 @@ private:
 	void updateConditionalRouting(const time_t now);
 	void checkClippingChannels();
 	void resetFilters();
+	void printUsedChannels(const time_t now) const;
 
 };

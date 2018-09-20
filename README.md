@@ -63,7 +63,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 {
     "hide":  false,
     "minimize":  false,
-    "channels": [ "L", "R", "C", "SW", "SBL", "SBR", "SL", "SR" ],
+    "channels": ["L", "R", "C", "SW", "SL", "SR", "SBL", "SBR"],
     "devices": {
         "capture": "{0.0.0.00000000}.{3f6a035b-f23e-40f8-84dd-01018df49110}",
         "render": "{0.0.0.00000000}.{9aa1b7e8-b45d-4431-a43f-e6ca06dfe79e}"
@@ -101,7 +101,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 **Channels**   
 * Different devices may have different order on their channels. You can specify this order. 
 * You can also use this feature to rename the channels
-* Default value is: ```["L", "R", "C", "SW","SBL", "SBR", "SL", "SL" ]```
+* Default value is: ```["L", "R", "C", "SW", "SL", "SL", "SBL", "SBR"]```
 * Explanation of default channel short names
    * L: Front left
    * R: Front right

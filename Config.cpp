@@ -94,7 +94,7 @@ void Config::parseMisc() {
 	}
 	else {
 		//Default channel order.
-		_channelNames = { "L", "R", "C", "SW", "SBL", "SBR" ,"SL", "SR" };
+		_channelNames = { "L", "R", "C", "SW", "SL", "SR","SBL", "SBR" };
 	}
 }
 

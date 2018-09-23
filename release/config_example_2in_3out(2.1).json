@@ -1,0 +1,73 @@
+{
+    "minimize": false,
+    "hide": false,
+    "devices": {
+    },
+    "channels": [ "L", "R", "C", "SW" ],
+    "filters": {
+        "lp": {
+            "type": "LOW_PASS",
+            "subType": "BUTTERWORTH",
+            "order": 5,
+            "freq": 80.0
+        },
+        "hp": {
+            "type": "HIGH_PASS",
+            "subType": "BUTTERWORTH",
+            "order": 3,
+            "freq": 80.0
+        },
+        "peq": {
+            "type": "PEQ",
+            "freq": 52,
+            "gain": -9,
+            "q": 5
+        }
+    },
+    "inputs": {
+        "L": {
+            "routes": [
+                {
+                    "out": "L"
+                },
+                {
+                    "out": "SW"
+                }
+            ]
+        },
+        "R": {
+            "routes": [
+                {
+                    "out": "R"
+                },
+                {
+                    "out": "SW"
+                }
+            ]
+        }
+    },
+    "outputs": {
+        "L": {
+            "filters": [
+                {
+                    "#ref": "filters/hp"
+                }
+            ]
+        },
+        "R": {
+            "#ref": "outputs/L"
+        },
+        "SW": {
+            "gain": -5,
+            "delay": 2.5,
+            "filters": [
+                {
+                    "#ref": "filters/lp"
+                },
+                {
+                    "#ref": "filters/peq"
+                }
+            ]
+        }
+    }
+}

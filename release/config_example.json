@@ -1,11 +1,11 @@
 {
     "minimize": true,
     "hide": false,
-    "channels": [ "L", "R", "C", "SW", "SBL", "SBR", "SL", "SR" ],
     "devices": {
         "capture": "{0.0.0.00000000}.{008deed7-c84c-4ef2-ac18-2a2f453340cd}",
         "render": "{0.0.0.00000000}.{566111ac-1e7f-418c-bf35-ddb325835b69}"
     },
+    "channels": [ "L", "R", "C", "SW", "SBL", "SBR", "SL", "SR" ],
     "filters": {
         "hp": {
             "type": "HIGH_PASS",

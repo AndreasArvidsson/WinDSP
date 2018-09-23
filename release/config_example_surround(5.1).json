@@ -1,0 +1,150 @@
+{
+    "minimize": false,
+    "hide": false,
+    "devices": {},
+    "channels": [ "L", "R", "C", "SW", "SL", "SR" ],
+    "filters": {
+        "lp": {
+            "type": "LOW_PASS",
+            "subType": "BUTTERWORTH",
+            "order": 5,
+            "freq": 80.0
+        },
+        "hp": {
+            "type": "HIGH_PASS",
+            "subType": "BUTTERWORTH",
+            "order": 3,
+            "freq": 80.0
+        },
+        "peq": {
+            "type": "PEQ",
+            "freq": 52,
+            "gain": -9,
+            "q": 5
+        },
+        "lfeGain": -10
+    },
+    "inputs": {
+        "L": {
+            "routes": [
+                {
+                    "out": "L"
+                },
+                {
+                    "out": "SW",
+                    "gain": { "#ref": "filters/lfeGain" }
+                }
+            ]
+        },
+        "R": {
+            "routes": [
+                {
+                    "out": "R"
+                },
+                {
+                    "out": "SW",
+                    "gain": { "#ref": "filters/lfeGain" }
+                }
+            ]
+        },
+        "C": {
+            "routes": [
+                {
+                    "out": "C"
+                },
+                {
+                    "out": "SW",
+                    "gain": { "#ref": "filters/lfeGain" }
+                }
+            ]
+        },
+        "SW": {
+            "routes": [
+                {
+                    "out": "SW"
+                }
+            ]
+        },
+        "SL": {
+            "routes": [
+                {
+                    "out": "SL"
+                },
+                {
+                    "out": "SW",
+                    "gain": { "#ref": "filters/lfeGain" }
+                }
+            ]
+        },
+        "SR": {
+            "routes": [
+                {
+                    "out": "SR"
+                },
+                {
+                    "out": "SW",
+                    "gain": { "#ref": "filters/lfeGain" }
+                }
+            ]
+        }
+    },
+    "outputs": {
+        "L": {
+            "gain": 1,
+            "delay": {
+                "value": 3.2,
+                "unitMeter": true
+            },
+            "filters": [
+                {
+                    "#ref": "filters/hp"
+                }
+            ]
+        },
+        "R": {
+            "#ref": "outputs/L"
+        },
+        "SW": {
+            "gain": -5,
+            "delay": {
+                "value": 2.5,
+                "unitMeter": true
+            },
+            "filters": [
+                {
+                    "#ref": "filters/lp"
+                },
+                {
+                    "#ref": "filters/peq"
+                }
+            ]
+        },
+        "C": {
+            "gain": 3,
+            "delay": {
+                "value": 3.0,
+                "unitMeter": true
+            },
+            "filters": [
+                {
+                    "#ref": "filters/hp"
+                }
+            ]
+        },
+        "SL": {
+            "gain": 0,
+            "delay": {
+                "value": 2.6,
+                "unitMeter": true
+            },
+            "filters": [
+                {
+                    "#ref": "filters/hp"
+                }
+            ]
+        },
+        "SR": {
+            "#ref": "outputs/SL"
+        }
+    }
+}

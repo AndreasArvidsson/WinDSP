@@ -30,13 +30,14 @@ private:
 	std::vector<Input*> _inputs;
 	std::vector<Output*> _outputs;
 	size_t _nChannelsIn, _nChannelsOut;
-	time_t *_pUsedChannels;
+	bool *_pUsedChannels;
 	float *_pClippingChannels;
+	double *_renderBlockBuffer;
 
 	void checkConfig();
-	void updateConditionalRouting(const time_t now);
+	void updateConditionalRouting();
 	void checkClippingChannels();
 	void resetFilters();
-	void printUsedChannels(const time_t now) const;
+	void printUsedChannels() const;
 
 };

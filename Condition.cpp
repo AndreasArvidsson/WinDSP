@@ -1,8 +1,8 @@
 #include "Condition.h"
 
-const time_t* Condition::_pUsedChannels = nullptr;
+const bool* Condition::_pUsedChannels = nullptr;
 
-void Condition::init(const time_t *pUsedChannels) {
+void Condition::init(const bool *pUsedChannels) {
 	_pUsedChannels = pUsedChannels;
 }
 
@@ -14,8 +14,7 @@ Condition::Condition(const ConditionType type, const int value) {
 const bool Condition::eval() const {
 	switch (_type) {
 	case ConditionType::SILENT:
-		return _pUsedChannels[_value] == 0;
-		break;
+		return !_pUsedChannels[_value];
 	default:
 		throw Error("Route - Unknown condition: %d", _type);
 	}

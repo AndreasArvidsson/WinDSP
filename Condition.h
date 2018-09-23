@@ -16,14 +16,14 @@ enum class ConditionType {
 class Condition {
 public:
 
-	static void init(const time_t *pUsedChannels);
+	static void init(const bool *pUsedChannels);
 
 	Condition(const ConditionType type, const int value);
 
 	const bool eval() const;
 
 private:
-	static const time_t *_pUsedChannels;
+	static const bool *_pUsedChannels;
 
 	ConditionType _type;
 	int _value;

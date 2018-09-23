@@ -33,7 +33,7 @@ void CaptureLoop::capture() {
 	float *pCaptureBuffer, *pRenderBuffer;
 	DWORD flags;
 	//The size of all sample frames for all channels with the same sample index/timestamp
-	size_t renderBlockSize = sizeof(double) * _nChannelsOut;
+	const size_t renderBlockSize = sizeof(double) * _nChannelsOut;
 	time_t lastCritical = 0;;
 	time_t lastNotCritical = 0;
 	bool clippingDetected = false;

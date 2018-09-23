@@ -9,7 +9,6 @@
 #include "OS.h"
 #include "CaptureLoop.h"
 
-
 #ifdef DEBUG
 #include "MemoryManager.h"
 #define PROFILE " - DEBUG mode"

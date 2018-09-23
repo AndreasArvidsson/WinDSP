@@ -708,19 +708,22 @@ void Config::setDevices() {
 	do {
 		printf("Available playback devices:\n");
 		for (size_t i = 0; i < allDevices.size(); ++i) {
-			printf("%zu %s\n", i, allDevices[i]->getName().c_str());
+			printf("%zu %s\n", i + 1, allDevices[i]->getName().c_str());
 		}
 		//Make selection
 		printf("\nSelect capture device\n");
-		captureIndex = getSelection(allDevices.size());
+		captureIndex = getSelection(1, allDevices.size());
 		printf("\nSelect render device(Can't be same as capture)\n");
-		renderIndex = getSelection(allDevices.size(), captureIndex);
+		renderIndex = getSelection(1, allDevices.size(), captureIndex);
 		//Query if selection is ok.
 		printf("\nSelected devices:\n");
+		//Convert back fron list value to array index.
+		captureIndex--;
+		renderIndex--;
 		printf("Capture: %s\n", allDevices[captureIndex]->getName().c_str());
 		printf("Render: %s\n", allDevices[renderIndex]->getName().c_str());
 		printf("Press 1 to continue or 0 to re-select\n");
-		isOk = getSelection(2) == 1;
+		isOk = getSelection(0, 1) == 1;
 		printf("\n");
 	} while (!isOk);
 
@@ -743,12 +746,14 @@ void Config::setDevices() {
 	}
 }
 
-const size_t Config::getSelection(const size_t size, const size_t blacklist) const {
-	char c;
+const size_t Config::getSelection(const size_t start, const size_t end, const size_t blacklist) const {
+	char buf[10];
+	int value;
 	do {
-		c = std::cin.get();
-	} while (c < '0' || c >= '0' + size || c == '0' + blacklist);
-	return c - '0';
+		std::cin.getline(buf, 10);
+		value = atoi(buf);
+	} while (value < start || value > end || value == blacklist);
+	return value;
 }
 
 const size_t Config::getChannelIndex(const std::string &channelName, const std::string &path) const {

@@ -31,7 +31,7 @@ public:
 	const bool hide() const;
 	const bool minimize() const;
 	const std::string getChannelName(const size_t channelIndex) const;
-	
+
 	inline const bool Config::hasChanged() const {
 		return _lastModified != _configFile.getLastModifiedTime();
 	}
@@ -69,7 +69,8 @@ private:
 	const double getFilterGainSum(const std::vector<Filter*> &filters, double startLevel = 1.0) const;
 
 	void setDevices();
-	const size_t getSelection(const size_t size, const size_t blacklist = -1) const;
+	const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
+
 	const size_t getChannelIndex(const std::string &channelName, const std::string &path) const;
 	const std::string getChannelName(const size_t channelIndex, const std::string &path) const;
 

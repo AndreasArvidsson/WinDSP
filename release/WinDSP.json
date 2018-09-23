@@ -1,4 +1,6 @@
 {
+    "minimize": false,
+    "hide": false,
     "devices": {
     },
     "filters": {

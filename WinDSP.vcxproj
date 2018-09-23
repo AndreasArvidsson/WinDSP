@@ -100,7 +100,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="WinDSP-1.json" />
     <None Include="WinDSP.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

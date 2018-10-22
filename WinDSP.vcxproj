@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -88,6 +88,7 @@
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="OutputFork.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />
   </ItemGroup>
@@ -102,6 +103,11 @@
   <ItemGroup>
     <None Include="WinDSP.json" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WinDSP.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="WinDSP.ico" />  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

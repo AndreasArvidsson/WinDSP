@@ -9,16 +9,16 @@ const std::vector<Output*> *_pOutputs;
 AudioDevice *_pCaptureDevice = nullptr;
 AudioDevice *_pRenderDevice = nullptr;
 
-bool *_pUsedChannels;
-float *_pClippingChannels;
-double *_renderBlockBuffer;
-size_t _nChannelsIn, _nChannelsOut;
+bool *_pUsedChannels = nullptr;
+float *_pClippingChannels = nullptr;
+double *_renderBlockBuffer = nullptr;
+size_t _nChannelsIn, _nChannelsOut = 0;
 
 AsioDevice *_pRenderDeviceAsio = nullptr;
-ASIOBufferInfo *_pBufferInfos;
-ASIOChannelInfo *_pChannelInfos;
-long _bufferSize;
-bool _postOutput;
+ASIOBufferInfo *_pBufferInfos = nullptr;
+ASIOChannelInfo *_pChannelInfos = nullptr;
+long _bufferSize = 0;
+bool _postOutput = false;
 
 void initInner() {
 	_nChannelsIn = _pInputs->size();
@@ -72,48 +72,34 @@ UINT32 channelIndex, sampleIndex;
 
 void writeToBuffer(const float *pSource, const UINT32 length, const int bufferIndex) {
 	for (channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
-
-		
-		//printf("_bufferSize %d\n", _bufferSize);
-		//printf("%p\n", _pBufferInfos);
-	
-
-		//pRenderBuffer = (int*)_pBufferInfos[channelIndex].buffers[bufferIndex];
-		//pRenderBuffer[0] = 0;
-
-
-		/*pRenderBuffer = (int*)overflowBuffer;
+		pRenderBuffer = pRenderBuffer = (int*)_pBufferInfos[channelIndex].buffers[bufferIndex];
 		for (sampleIndex = 0; sampleIndex < length; ++sampleIndex) {
 			pRenderBuffer[sampleIndex] = (int)(MAX_INT32 * pSource[sampleIndex * _nChannelsIn + channelIndex]);
-		}*/
+		}
 	}
 }
 
 ASIOTime* asioBufferSwitchTimeInfo(ASIOTime* const pTimeInfo, const long bufferIndex, const ASIOBool processNow) {
-
-	printf("_bufferSize %d\n", _bufferSize);
-	printf("%p\n", _pBufferInfos);
-
 	UINT32 numFramesAvailable, length, framesLeft;
 	float *pCaptureBuffer;
 	DWORD flags;
 
-	/*for (int i = 0; i < _bufferSize; ++i) {
+	for (int i = 0; i < _bufferSize; ++i) {
 		double value = singen.next();
 		for (int j = 0; j < _nChannelsIn; ++j) {
 			overflowBuffer[i * _nChannelsIn + j] = value;
 		}
 	}
 	writeToBuffer(overflowBuffer, _bufferSize, bufferIndex);
-	return nullptr;*/
+	return nullptr;
 
-	for (int i = 0; i < _bufferSize; ++i) {
-		int value = singen.next() * MAX_INT32;
-		for (int j = 0; j < _nChannelsOut; ++j) {
-			pRenderBuffer = (int*)_pBufferInfos[j].buffers[bufferIndex];
-			pRenderBuffer[i] = value;
-		}
-	}
+	//for (int i = 0; i < _bufferSize; ++i) {
+	//	int value = singen.next() * MAX_INT32;
+	//	for (int j = 0; j < _nChannelsOut; ++j) {
+	//		pRenderBuffer = (int*)_pBufferInfos[j].buffers[bufferIndex];
+	//		pRenderBuffer[i] = value;
+	//	}
+	//}
 
 
 	//
@@ -176,35 +162,40 @@ void asioBufferSwitch(long index, ASIOBool processNow) {
 	asioBufferSwitchTimeInfo(&timeInfo, index, processNow);
 }
 
+long asioMessage(long selector, long value, void* message, double* opt) {
+	//Must be done here for thread purposes.
+	if (!_pBufferInfos) {
+		_pBufferInfos = _pRenderDeviceAsio->getBufferInfos();
+		_pChannelInfos = _pRenderDeviceAsio->getChannelsInfos();
+		_bufferSize = _pRenderDeviceAsio->getBufferSize();
+		_postOutput = _pRenderDeviceAsio->getPostOutput();
+	}
+
+	switch (selector) {
+	case kAsioSelectorSupported:
+	case kAsioResetRequest:
+	case kAsioResyncRequest:
+	case kAsioSupportsTimeInfo:
+	case kAsioLatenciesChanged:
+		return 1L;
+	case kAsioEngineVersion:
+		return 2L;
+	}
+	return 0L;
+}
+
 void startDevices() {
 	_pCaptureDevice->startCaptureService();
-
 	if (_pRenderDevice) {
 		_pRenderDevice->startRenderService();
 	}
 	if (_pRenderDeviceAsio) {
 		_pRenderDeviceAsio->printInfo();
 		ASIOCallbacks callbacks{ 0 };
+		callbacks.asioMessage = asioMessage;
 		callbacks.bufferSwitch = &asioBufferSwitch;
 		callbacks.bufferSwitchTimeInfo = &asioBufferSwitchTimeInfo;
-
 		_pRenderDeviceAsio->startRenderService(&callbacks);
-		//_pRenderDeviceAsio->createBuffers(&callbacks);
-		//_pRenderDeviceAsio->startRenderService();
-
-		_pBufferInfos = _pRenderDeviceAsio->getBufferInfos();
-		_pChannelInfos = _pRenderDeviceAsio->getChannelsInfos();
-		_bufferSize = _pRenderDeviceAsio->getBufferSize();
-		_postOutput = _pRenderDeviceAsio->getPostOutput();
-
-		
-
-		//printf("_bufferSize %d\n", _bufferSize);
-		//printf("%p\n", _pBufferInfos);
-		//int a = 2;
-
-		
-
 	}
 }
 

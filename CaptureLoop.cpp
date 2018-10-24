@@ -97,6 +97,8 @@ void CaptureLoop::capture() {
 						if (abs(pRenderBuffer[j]) > 1.0) {
 							clippingDetected = true;
 							_pClippingChannels[j] = max(_pClippingChannels[j], abs(pRenderBuffer[j]));
+							//Set to max value. Avoid wraparound if converting to int.
+							pRenderBuffer[j] = 1.0;
 						}
 					}
 

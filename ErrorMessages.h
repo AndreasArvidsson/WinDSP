@@ -9,6 +9,8 @@
 #pragma once
 #include <string>
 #include "Audioclient.h"
+#include "asio/asiosys.h"
+#include "asio/asio.h"
 #include "Error.h"
 
 class ErrorMessages {
@@ -101,6 +103,76 @@ public:
 		}
 	}
 
+	//Convert ASIOError to text explanation.
+	static const std::string asioResult(const ASIOError error) {
+		switch (error) {
+		case ASE_OK:
+			return "This value will be returned whenever the call succeeded";
+		case ASE_SUCCESS:
+			return "unique success return value for ASIOFuture calls";
+		case ASE_NotPresent:
+			return "hardware input or output is not present or available";
+		case ASE_HWMalfunction:
+			return "hardware is malfunctioning (can be returned by any ASIO function)";
+		case ASE_InvalidParameter:
+			return "input parameter invalid";
+		case ASE_InvalidMode:
+			return "hardware is in a bad mode or used in a bad mode";
+		case ASE_SPNotAdvancing:
+			return "hardware is not running when sample position is inquired";
+		case ASE_NoClock:
+			return "sample clock or rate cannot be determined or is not present";
+		case ASE_NoMemory:
+			return "not enough memory for completing the request";
+		default:
+			return "Unknown error";
+		}
+	}
+
+	static const std::string waitResult(const DWORD error) {
+		switch (error) {
+		case WAIT_ABANDONED:
+			return "WAIT_ABANDONED: The specified object is a mutex object that was not released by the thread that owned the mutex object before the owning thread terminated. Ownership of the mutex object is granted to the calling thread and the mutex is set to nonsignaled. If the mutex was protecting persistent state information, you should check it for consistency.";
+		case WAIT_IO_COMPLETION:
+			return "WAIT_IO_COMPLETION: The wait was ended by one or more user-mode asynchronous procedure calls (APC) queued to the thread.";
+		case WAIT_OBJECT_0:
+			return "WAIT_OBJECT_0: The state of the specified object is signaled.";
+		case WAIT_TIMEOUT:
+			return "WAIT_TIMEOUT: The time-out interval elapsed, and the object's state is nonsignaled.";
+		case WAIT_FAILED:
+			return "WAIT_FAILED: The function has failed. To get extended error information, call GetLastError.";
+		default:
+			return "Unknown error";
+		}
+	}
+
+	static const std::string asioSampleType(const ASIOSampleType type) {
+		switch (type) {
+		case ASIOSTInt16MSB: return "Int16MSB";
+		case ASIOSTInt24MSB: return "Int24MSB";
+		case ASIOSTInt32MSB: return "Int32MSB";
+		case ASIOSTFloat32MSB: return "Float32MSB";
+		case ASIOSTFloat64MSB: return "Float64MSB";
+		case ASIOSTInt32MSB16: return "Int32MSB16";
+		case ASIOSTInt32MSB18: return "Int32MSB18";
+		case ASIOSTInt32MSB20: return "Int32MSB20";
+		case ASIOSTInt32MSB24: return "Int32MSB24";
+		case ASIOSTInt16LSB: return "Int16LSB";
+		case ASIOSTInt24LSB: return "Int24LSB";
+		case ASIOSTInt32LSB: return "Int32LSB";
+		case ASIOSTFloat32LSB: return "Float32LSB";
+		case ASIOSTFloat64LSB: return "Float64LSB";
+		case ASIOSTInt32LSB16: return "Int32LSB16";
+		case ASIOSTInt32LSB18: return "Int32LSB18";
+		case ASIOSTInt32LSB20: return "Int32LSB20";
+		case ASIOSTInt32LSB24: return "Int32LSB24";
+		case ASIOSTDSDInt8LSB1: return "DSDInt8LSB1";
+		case ASIOSTDSDInt8MSB1: return "DSDInt8MSB1";
+		case ASIOSTDSDInt8NER8: return "DSDInt8NER8";
+		default: return std::to_string(type);
+		}
+	}
+
 };
 
 inline void assert(const HRESULT hr) {
@@ -108,3 +180,28 @@ inline void assert(const HRESULT hr) {
 		throw Error("WASAPI (0x%08x) %s", hr, ErrorMessages::hresult(hr).c_str());
 	}
 }
+
+inline void assertAsio(const ASIOError value) {
+	if (value != ASE_OK) {
+		throw Error("ASIO (0x%08x) %s", value, ErrorMessages::asioResult(value).c_str());
+	}
+}
+
+inline void assertWait(const DWORD value) {
+	if (value != WAIT_OBJECT_0) {
+		throw Error("WAIT (0x%08x) %s", value, ErrorMessages::waitResult(value).c_str());
+	}
+}
+
+inline void assertSampleType(const ASIOSampleType type) {
+	if (type != ASIOSTInt32LSB) {
+		throw new Error("ASIO: Unhandled sample type %s", ErrorMessages::asioSampleType(type));
+	}
+}
+
+inline void assertTrue(const bool value, const std::string &msg) {
+	if (!value) {
+		throw Error(msg.c_str());
+	}
+}
+

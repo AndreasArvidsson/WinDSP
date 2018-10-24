@@ -34,8 +34,8 @@ std::string AudioDevice::getDeviceName(IMMDevice *pDevice) {
 	std::wstring tmp(varName.pwszVal);
 	std::string result = std::string(tmp.begin(), tmp.end());
 	PropVariantClear(&varName);
-	SAFE_RELEASE(pProps)
-		return result;
+	SAFE_RELEASE(pProps);
+	return result;
 }
 
 AudioDevice* AudioDevice::getDevice(const std::string &name) {
@@ -129,7 +129,6 @@ void AudioDevice::startRenderService() {
 }
 
 void AudioDevice::startService(const bool capture) {
-
 	REFERENCE_TIME engineTime, minTime;
 	assert(_pAudioClient->GetDevicePeriod(&engineTime, &minTime));
 
@@ -141,50 +140,24 @@ void AudioDevice::startService(const bool capture) {
 	assert(_pAudioClient->GetSharedModeEnginePeriod(_pFormat, &default_, &fundamental, &min, &max));
 
 	if (capture) {
-
-		//assert(_pAudioClient->InitializeSharedAudioStream(
-		//	AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-		//	min,
-		//	_pFormat,
-		//	nullptr));
-
-		// Set the capture client options
-		//AudioClientProperties captureProperties = {
-		//	sizeof(AudioClientProperties),
-		//	FALSE,	// Capture stream is not hardware accelerated
-		//	AudioCategory_Other,	// Capture stream supports only "Other" category
-		//	//options
-		//	 //AUDCLNT_STREAMOPTIONS::AUDCLNT_STREAMOPTIONS_RAW : AUDCLNT_STREAMOPTIONS::AUDCLNT_STREAMOPTIONS_NONE
-		//	 AUDCLNT_STREAMOPTIONS::AUDCLNT_STREAMOPTIONS_NONE
-		//};
-		//assert(_pAudioClient->SetClientProperties(&captureProperties));
-
-
-		//assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, 0, 0, _pFormat, nullptr));
-
-		//HANDLE m_hCaptureCallbackEvent = ::CreateEventEx(NULL, NULL, 0, EVENT_ALL_ACCESS);
-		 //HANDLE m_hCaptureCallbackEvent = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
-		//assert(_pAudioClient->SetEventHandle(m_hCaptureCallbackEvent));
-		//assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pCaptureClient)));
-
-
-
-
-		//assert(_pAudioClient->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK, min, _pFormat, nullptr));
-
-		//assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED,
-		//	AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-		//	200000,
-		//	0,
-		//	_pFormat,
-		//	nullptr));
-
 		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, 0, 0, _pFormat, nullptr));
 		assert(_pAudioClient->GetService(__uuidof(IAudioCaptureClient), (void**)&_pCaptureClient));
 	}
 	else {
-		assert(_pAudioClient->InitializeSharedAudioStream(0, min, _pFormat, nullptr));
-		assert(_pAudioClient->GetService(__uuidof(IAudioRenderClient), (void**)&_pRenderClient));
+
+		//Create event handle
+		_eventHandle = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
+		if (_eventHandle == NULL) {
+			throw Error("WASAPI: Unable to create samples ready event %d", GetLastError());
+		}
+
+		assert(_pAudioClient->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK, min, _pFormat, nullptr));
+		//assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, 0, 0, _pFormat, nullptr));
+		assert(_pAudioClient->SetEventHandle(_eventHandle));
+		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pRenderClient)));
+
+		//assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, 0, 0, _pFormat, nullptr));
+		//assert(_pAudioClient->GetService(__uuidof(IAudioRenderClient), (void**)&_pRenderClient));
 	}
 
 	assert(_pAudioClient->GetBufferSize(&_bufferFrameCount));

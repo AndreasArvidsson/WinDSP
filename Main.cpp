@@ -8,6 +8,7 @@
 
 #include "OS.h"
 #include "CaptureLoop.h"
+#include "AsioDevice.h"
 
 #ifdef DEBUG
 #include "MemoryManager.h"
@@ -16,11 +17,13 @@
 #define PROFILE ""
 #endif
 
-#define VERSION "0.13.0b"
+#define VERSION "0.14.0b"
+#define TITLE_SIZE 64
 
 char configFileNumber = '0';
 Config *pConfig = nullptr;
-CaptureLoop *pLoop = nullptr;
+char title[TITLE_SIZE];
+//CaptureLoop *pLoop = nullptr;
 
 void setVisibility() {
 	if (pConfig->hide()) {
@@ -32,6 +35,14 @@ void setVisibility() {
 	else {
 		OS::showWindow();
 	}
+}
+
+void setTitle() {
+	snprintf(title, TITLE_SIZE, "WinDSP %s%s", VERSION, PROFILE);
+	SetConsoleTitle(title);
+	printf("----------------------------------------------\n");
+	printf("\t%s\n", title);
+	printf("----------------------------------------------\n\n");
 }
 
 const std::string getConfigFileName() {
@@ -55,14 +66,15 @@ const bool checkInput(const char input) {
 void clearData() {
 	delete pConfig;
 	pConfig = nullptr;
-	delete pLoop;
-	pLoop = nullptr;
+	Capture::destroy();
 	AudioDevice::destroyStatic();
+	AsioDevice::destroyStatic();
 	JsonNode::destroyStatic();
 #ifdef DEBUG_MEMORY
 	//Check for memory leaks
 	if (MemoryManager::getInstance()->hasLeak()) {
 		OS::showWindow();
+		printf("\n");
 		MemoryManager::getInstance()->assertNoLeak();
 	}
 #endif
@@ -125,26 +137,25 @@ void run(const std::string &configName) {
 	* Start capturing data
 	*/
 
-	//Initialize audio devices and start services
-	pCaptureDevice->startCaptureService();
-	pRenderDevice->startRenderService();
-
 	//Start capture loop.
-	pLoop = new CaptureLoop(pConfig, pCaptureDevice, pRenderDevice, inputs, outputs);
-	pLoop->capture();
+
+	const HWND windowHandle = FindWindow(NULL, title);
+	AsioDevice *pRenderDeviceAsio = new AsioDevice("Focusrite USB ASIO", pRenderFormat->nChannels, windowHandle);
+	//Capture::init(pConfig, &inputs, &outputs, pCaptureDevice, pRenderDevice);
+	Capture::init(pConfig, &inputs, &outputs, pCaptureDevice, pRenderDeviceAsio);
+	Capture::run();
+	delete pRenderDeviceAsio;
 }
 
 int main(int argc, char **argv) {
-	printf("----------------------------------------------\n");
-	printf("\tWinDSP %s%s\n", VERSION, PROFILE);
-	printf("----------------------------------------------\n\n");
+	setTitle();
 
 	//Flush denormalized zeroes
 	OS::flushDenormalizedZero();
 	//Set high priority on process
 	OS::setPriorityHigh();
 
-	while (true) {
+	for (;;) {
 		try {
 			//Run application
 			run(getConfigFileName());

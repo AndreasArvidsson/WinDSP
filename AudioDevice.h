@@ -82,6 +82,10 @@ public:
 		assert(_pRenderClient->ReleaseBuffer(frameCount, AUDCLNT_BUFFERFLAGS_SILENT));
 	}
 
+	inline const HANDLE getEventHandle() const {
+		return _eventHandle;
+	}
+
 private:
 	static IMMDeviceEnumerator *_pEnumerator;
 	static bool _initStatic;
@@ -99,6 +103,8 @@ private:
 	void initDefault();
 	void init(IMMDevice *pDevice);
 	void startService(const bool capture);
+
+	HANDLE _eventHandle;
 
 };
 

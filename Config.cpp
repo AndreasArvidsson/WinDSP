@@ -529,7 +529,7 @@ void Config::parseFirTxt(std::vector<Filter*> &filters, const File &file, std::s
 }
 
 void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, std::string path) const {
-	char *pBuffer;
+	char *pBuffer = nullptr;
 	try {
 		//Get data
 		size_t bufferSize = file.getData(&pBuffer);

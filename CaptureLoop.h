@@ -16,28 +16,11 @@
 #include "Convert.h"
 #include "Keyboard.h"
 
-class CaptureLoop {
-public:
+class AsioDevice;
 
-	CaptureLoop(Config *pConfig, const AudioDevice *pCaptureDevice, const AudioDevice *pRenderDevice, const std::vector<Input*> &inputs, const std::vector<Output*> &outputs);
-	~CaptureLoop();
-
-	void capture();
-
-private:
-	Config * _pConfig;
-	const AudioDevice *_pCaptureDevice, *_pRenderDevice;
-	std::vector<Input*> _inputs;
-	std::vector<Output*> _outputs;
-	size_t _nChannelsIn, _nChannelsOut;
-	bool *_pUsedChannels;
-	float *_pClippingChannels;
-	double *_renderBlockBuffer;
-
-	void checkConfig();
-	void updateConditionalRouting();
-	void checkClippingChannels();
-	void resetFilters();
-	void printUsedChannels() const;
-
-};
+namespace Capture {
+	void init(const Config *pConfig, const std::vector<Input*> *pInputs, const std::vector<Output*> *pOutputs, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice);
+	void init(const Config *pConfig, const std::vector<Input*> *pInputs, const std::vector<Output*> *pOutputs, AudioDevice *pCaptureDevice, AsioDevice *pRenderDevice);
+	void destroy();
+	void run();
+}

@@ -1,13 +1,28 @@
 #include "CaptureLoop.h"
+#include "AsioDevice.h"
 
-CaptureLoop::CaptureLoop(Config *pConfig, const AudioDevice *pCaptureDevice, const AudioDevice *pRenderDevice, const std::vector<Input*> &inputs, const std::vector<Output*> &outputs) {
-	_pConfig = pConfig;
-	_pCaptureDevice = pCaptureDevice;
-	_pRenderDevice = pRenderDevice;
-	_inputs = inputs;
-	_outputs = outputs;
-	_nChannelsIn = inputs.size();
-	_nChannelsOut = outputs.size();
+#define MAX_INT32 2147483647.0
+
+const Config *_pConfig;
+const std::vector<Input*> *_pInputs;
+const std::vector<Output*> *_pOutputs;
+AudioDevice *_pCaptureDevice = nullptr;
+AudioDevice *_pRenderDevice = nullptr;
+
+bool *_pUsedChannels;
+float *_pClippingChannels;
+double *_renderBlockBuffer;
+size_t _nChannelsIn, _nChannelsOut;
+
+AsioDevice *_pRenderDeviceAsio = nullptr;
+ASIOBufferInfo *_pBufferInfos;
+ASIOChannelInfo *_pChannelInfos;
+long _bufferSize;
+bool _postOutput;
+
+void initInner() {
+	_nChannelsIn = _pInputs->size();
+	_nChannelsOut = _pOutputs->size();
 
 	//Used to temporarily store sample(for all out channels) while they are being processed.
 	_renderBlockBuffer = new double[_nChannelsOut];
@@ -22,13 +37,178 @@ CaptureLoop::CaptureLoop(Config *pConfig, const AudioDevice *pCaptureDevice, con
 	Condition::init(_pUsedChannels);
 }
 
-CaptureLoop::~CaptureLoop() {
+void Capture::init(const Config *pConfig, const std::vector<Input*> *pInputs, const std::vector<Output*> *pOutputs, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice) {
+	_pConfig = pConfig;
+	_pInputs = pInputs;
+	_pOutputs = pOutputs;
+	_pCaptureDevice = pCaptureDevice;
+	_pRenderDevice = pRenderDevice;
+	initInner();
+}
+
+void Capture::init(const Config *pConfig, const std::vector<Input*> *pInputs, const std::vector<Output*> *pOutputs, AudioDevice *pCaptureDevice, AsioDevice *pRenderDevice) {
+	_pConfig = pConfig;
+	_pInputs = pInputs;
+	_pOutputs = pOutputs;
+	_pCaptureDevice = pCaptureDevice;
+	_pRenderDeviceAsio = pRenderDevice;
+	initInner();
+}
+
+void Capture::destroy() {
 	delete[] _pUsedChannels;
 	delete[] _pClippingChannels;
 	delete[] _renderBlockBuffer;
 }
 
-void CaptureLoop::capture() {
+
+#include "SineGenerator.h"
+SineGenerator singen(44100, 300);
+
+float overflowBuffer[1024 * 20];
+UINT32 overflowSize = 0;
+int* pRenderBuffer;
+UINT32 channelIndex, sampleIndex;
+
+void writeToBuffer(const float *pSource, const UINT32 length, const int bufferIndex) {
+	for (channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
+
+		
+		//printf("_bufferSize %d\n", _bufferSize);
+		//printf("%p\n", _pBufferInfos);
+	
+
+		//pRenderBuffer = (int*)_pBufferInfos[channelIndex].buffers[bufferIndex];
+		//pRenderBuffer[0] = 0;
+
+
+		/*pRenderBuffer = (int*)overflowBuffer;
+		for (sampleIndex = 0; sampleIndex < length; ++sampleIndex) {
+			pRenderBuffer[sampleIndex] = (int)(MAX_INT32 * pSource[sampleIndex * _nChannelsIn + channelIndex]);
+		}*/
+	}
+}
+
+ASIOTime* asioBufferSwitchTimeInfo(ASIOTime* const pTimeInfo, const long bufferIndex, const ASIOBool processNow) {
+
+	printf("_bufferSize %d\n", _bufferSize);
+	printf("%p\n", _pBufferInfos);
+
+	UINT32 numFramesAvailable, length, framesLeft;
+	float *pCaptureBuffer;
+	DWORD flags;
+
+	/*for (int i = 0; i < _bufferSize; ++i) {
+		double value = singen.next();
+		for (int j = 0; j < _nChannelsIn; ++j) {
+			overflowBuffer[i * _nChannelsIn + j] = value;
+		}
+	}
+	writeToBuffer(overflowBuffer, _bufferSize, bufferIndex);
+	return nullptr;*/
+
+	for (int i = 0; i < _bufferSize; ++i) {
+		int value = singen.next() * MAX_INT32;
+		for (int j = 0; j < _nChannelsOut; ++j) {
+			pRenderBuffer = (int*)_pBufferInfos[j].buffers[bufferIndex];
+			pRenderBuffer[i] = value;
+		}
+	}
+
+
+	//
+
+	//printf("asioBufferSwitchTimeInfo %d\n", processNow);
+
+	return nullptr;
+
+	framesLeft = _bufferSize;
+
+	//Have data leftover from last call. Process these first.
+	if (overflowSize) {
+		length = min(overflowSize, framesLeft);
+		writeToBuffer(overflowBuffer, length, bufferIndex);
+		overflowSize -= length;
+		framesLeft -= length;
+	}
+
+	while (framesLeft > 0) {
+		//Check for samples in capture buffer.
+		assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
+		if (numFramesAvailable) {
+			//Get capture buffer pointer and number of available frames.
+			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &numFramesAvailable, &flags));
+
+			length = min(numFramesAvailable, framesLeft);
+			writeToBuffer(pCaptureBuffer, length, bufferIndex);
+
+			//Data left in capture buffer. Store in overflow.
+			if (numFramesAvailable > length) {
+				overflowSize = numFramesAvailable - length;
+				memcpy(overflowBuffer, pCaptureBuffer + length * _nChannelsIn, overflowSize * _nChannelsIn * sizeof(float));
+			}
+
+			framesLeft -= length;
+
+			//Release/flush capture buffers.
+			assert(_pCaptureDevice->releaseCaptureBuffer(numFramesAvailable));
+		}
+		else {
+			//Short sleep just to not busy wait all resources.
+			Date::sleepMillis(1);
+		}
+	}
+
+	/*		int a = _pCaptureDevice->getBufferFrameCount();
+		int b = _pCaptureDevice->getBufferFrameCountAvailable();
+		int c = 2;*/
+
+	if (_postOutput) {
+		assertAsio(ASIOOutputReady());
+	}
+
+	return nullptr;
+}
+
+void asioBufferSwitch(long index, ASIOBool processNow) {
+	ASIOTime timeInfo{};
+	assertAsio(ASIOGetSamplePosition(&timeInfo.timeInfo.samplePosition, &timeInfo.timeInfo.systemTime));
+	asioBufferSwitchTimeInfo(&timeInfo, index, processNow);
+}
+
+void startDevices() {
+	_pCaptureDevice->startCaptureService();
+
+	if (_pRenderDevice) {
+		_pRenderDevice->startRenderService();
+	}
+	if (_pRenderDeviceAsio) {
+		_pRenderDeviceAsio->printInfo();
+		ASIOCallbacks callbacks{ 0 };
+		callbacks.bufferSwitch = &asioBufferSwitch;
+		callbacks.bufferSwitchTimeInfo = &asioBufferSwitchTimeInfo;
+
+		_pRenderDeviceAsio->startRenderService(&callbacks);
+		//_pRenderDeviceAsio->createBuffers(&callbacks);
+		//_pRenderDeviceAsio->startRenderService();
+
+		_pBufferInfos = _pRenderDeviceAsio->getBufferInfos();
+		_pChannelInfos = _pRenderDeviceAsio->getChannelsInfos();
+		_bufferSize = _pRenderDeviceAsio->getBufferSize();
+		_postOutput = _pRenderDeviceAsio->getPostOutput();
+
+		
+
+		//printf("_bufferSize %d\n", _bufferSize);
+		//printf("%p\n", _pBufferInfos);
+		//int a = 2;
+
+		
+
+	}
+}
+
+void Capture::run() {
 	UINT32 i, j, numFramesAvailable;
 	float *pCaptureBuffer, *pRenderBuffer;
 	DWORD flags;
@@ -39,161 +219,53 @@ void CaptureLoop::capture() {
 	bool clippingDetected = false;
 	bool silent = true;
 
-	//Run infinite capture loop
-	while (true) {
-		//Check for samples in capture buffer
+	//Initialize audio devices and start services
+	startDevices();
+
+	if (_pRenderDeviceAsio) {
+		for (;;);
+	}
+
+	printf("After\n");
+
+	for (;;) {
+		//Wait for device callback
+		assertWait(WaitForSingleObjectEx(_pRenderDevice->getEventHandle(), INFINITE, false));
+
+		//Check for samples in capture buffer.
 		assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
 
-		while (numFramesAvailable != 0) {
-			//Get capture buffer pointer and number of available frames.
-			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &numFramesAvailable, &flags));
-
-			//Silence. Do NOT send anything to render buffer.
-			if (flags == AUDCLNT_BUFFERFLAGS_SILENT) {
-				//Was audio before. Reset filter states.
-				if (!silent) {
-					silent = true;
-					resetFilters();
-				}
-			}
-			//Audio playing. Send to render buffer.
-			else {
-				//Was silent before. Needs to flush render buffer before adding new data.
-				if (silent) {
-					silent = false;
-					_pRenderDevice->flushRenderBuffer();
-				}
-
-				//Must read entire capture buffer at once. Wait until render buffer has enough space available.
-				while (numFramesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
-					//Short sleep just to not busy wait all resources.
-					Date::sleepMillis(1);
-				}
-
-				//Get render buffer
-				assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, numFramesAvailable));
-
-				//Iterate all capture frames
-				for (i = 0; i < numFramesAvailable; ++i) {
-					//Set default value to 0 so we can add/mix values to it later
-					memset(_renderBlockBuffer, 0, renderBlockSize);
-
-					//Iterate inputs
-					for (j = 0; j < _nChannelsIn; ++j) {
-						//Identify which channels are playing.
-						if (pCaptureBuffer[j] != 0) {
-							_pUsedChannels[j] = true;
-						}
-						//Route sample to outputs
-						_inputs[j]->route(pCaptureBuffer[j], _renderBlockBuffer);
-					}
-
-					//Iterate outputs
-					for (j = 0; j < _nChannelsOut; ++j) {
-						//Apply output forks and filters
-						pRenderBuffer[j] = (float)_outputs[j]->process(_renderBlockBuffer[j]);
-
-						//Check for clipping
-						if (abs(pRenderBuffer[j]) > 1.0) {
-							clippingDetected = true;
-							_pClippingChannels[j] = max(_pClippingChannels[j], abs(pRenderBuffer[j]));
-							//Set to max value. Avoid wraparound if converting to int.
-							pRenderBuffer[j] = 1.0;
-						}
-					}
-
-					//Move buffers to next sample
-					pCaptureBuffer += _nChannelsIn;
-					pRenderBuffer += _nChannelsOut;
-				}
-
-				//Release/flush render buffer.
-				assert(_pRenderDevice->releaseRenderBuffer(numFramesAvailable));
-			}
-
-			//Release/flush capture buffer.
-			assert(_pCaptureDevice->releaseCaptureBuffer(numFramesAvailable));
-
-			//Run always. Check time critical changes.
-			if (Date::getCurrentTimeMillis() - lastCritical > 1000) {
-				lastCritical = Date::getCurrentTimeMillis();
-				//Check if config file has changed
-				checkConfig();
-			}
-
-			//Check for samples in capture buffer
-			assert(_pCaptureDevice->getNextPacketSize(&numFramesAvailable));
+		//No data in capture device. Just continue.
+		if (!numFramesAvailable) {
+			continue;
 		}
 
-		//No input data. Take this time to check NOT time critical changes.
-		if (Date::getCurrentTimeMillis() - lastNotCritical > 1000) {
-			lastNotCritical = lastCritical = Date::getCurrentTimeMillis();
-			//Check if config file has changed. Needed here so that config can change when audio is not playing.
-			checkConfig();
-
-			//Update conditional routing if used.
-			if (_pConfig->useConditionalRouting()) {
-				updateConditionalRouting();
-			}
-			//Check for clipping output channels
-			if (clippingDetected) {
-				clippingDetected = false;
-				checkClippingChannels();
-			}
-		}
-		else {
+		//Must read entire capture buffer at once. Wait until render buffer has enough space available.
+		while (numFramesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
 			//Short sleep just to not busy wait all resources.
 			Date::sleepMillis(1);
 		}
-	}
-}
 
-void CaptureLoop::checkConfig() {
-	//Check if new config file has been selected
-	const char input = Keyboard::getDigit();
-	if (input) {
-		throw ConfigChangedException(input);
-	}
-	//Check if config file on disk has changed
-	if (_pConfig->hasChanged()) {
-		throw ConfigChangedException();
-	}
-}
+		//Get capture buffer pointer and number of available frames.
+		assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &numFramesAvailable, &flags));
 
-void CaptureLoop::updateConditionalRouting() {
-	//Update conditional routing.
-	for (const Input *pInut : _inputs) {
-		pInut->evalConditions();
-	}
-	//Set all to false so we can check anew until next time this func runs.
-	for (size_t i = 0; i < _nChannelsIn; ++i) {
-		_pUsedChannels[i] = false;
-	}
-}
+		//Get render buffer for size.
+		assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, numFramesAvailable));
 
-void CaptureLoop::checkClippingChannels() {
-	for (size_t i = 0; i < _nChannelsOut; ++i) {
-		if (_pClippingChannels[i] != 0) {
-			printf("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", _pConfig->getChannelName(i).c_str(), Convert::levelToDb(_pClippingChannels[i]));
-			_pClippingChannels[i] = 0;
+		UINT32 numChannels = (UINT32)min(_nChannelsIn, _nChannelsOut);
+		for (i = 0; i < numFramesAvailable; ++i) {
+			for (j = 0; j < _nChannelsOut; ++j) {
+				pRenderBuffer[j] = pCaptureBuffer[j];
+			}
+
+			//Move buffers to next sample
+			pCaptureBuffer += _nChannelsIn;
+			pRenderBuffer += _nChannelsOut;
 		}
-	}
-}
 
-void CaptureLoop::resetFilters() {
-	//Reset i/o filter states.
-	for (Input *p : _inputs) {
-		p->reset();
+		//Release/flush capture buffers.
+		assert(_pCaptureDevice->releaseCaptureBuffer(numFramesAvailable));
+		assert(_pRenderDevice->releaseRenderBuffer(numFramesAvailable));
 	}
-	for (Output *p : _outputs) {
-		p->reset();
-	}
-}
 
-//For debug purposes only.
-void CaptureLoop::printUsedChannels() const {
-	for (size_t i = 0; i < _nChannelsIn; ++i) {
-		printf("%s %d\n", _pConfig->getChannelName(i).c_str(), _pUsedChannels[i]);
-	}
-	printf("\n");
 }

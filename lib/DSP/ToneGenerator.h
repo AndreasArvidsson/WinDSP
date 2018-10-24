@@ -11,7 +11,6 @@ public:
 		double sampleIncrement = (frequency * (M_PI * 2)) / (double)sampleRate;
 		T *pDataBuffer = reinterpret_cast<T*>(pBuffer);
 		double sinValue;
-		//double theta = 0;
 		for (size_t i = 0; i < bufferLength / sizeof(T); i += numChannels) {
 			sinValue = sin(theta);
 			for (size_t j = 0; j < numChannels; j++) {

@@ -101,15 +101,16 @@ void Config::parseMisc() {
 void Config::parseDevices() {
 	JsonNode *pDvicesNode = _pJsonNode->path("devices");
 	//Devices not set in config. Query user
-	if (!pDvicesNode->has("capture") || !pDvicesNode->has("render")) {
+	if (!pDvicesNode->path("capture")->has("name") || !pDvicesNode->path("render")->has("name")) {
 		setDevices();
+		parseDevices();
 	}
-	//Devices set in config.
+	//Devices already set in config.
 	else {
-		std::string captureId = textValue(pDvicesNode->get("capture"), "devices/capture");
-		std::string renderId = textValue(pDvicesNode->get("render"), "devices/render");
-		_devices.push_back(new AudioDevice(captureId));
-		_devices.push_back(new AudioDevice(renderId));
+		std::string captureName = textValue(pDvicesNode->path("capture")->get("name"), "devices/capture/name");
+		std::string renderName = textValue(pDvicesNode->get("render")->get("name"), "devices/render/name");
+		_devices.push_back(AudioDevice::getDevice(captureName));
+		_devices.push_back(AudioDevice::getDevice(renderName));
 	}
 }
 
@@ -702,13 +703,13 @@ const bool Config::boolValue(const JsonNode *pNode, const std::string &path) con
 
 void Config::setDevices() {
 	OS::showWindow();
-	std::vector<AudioDevice*> allDevices = AudioDevice::getDevices();
+	std::vector<std::string> allDevices = AudioDevice::getDeviceNames();
 	size_t captureIndex, renderIndex;
 	bool isOk;
 	do {
 		printf("Available playback devices:\n");
 		for (size_t i = 0; i < allDevices.size(); ++i) {
-			printf("%zu %s\n", i + 1, allDevices[i]->getName().c_str());
+			printf("%zu %s\n", i + 1, allDevices[i].c_str());
 		}
 		//Make selection
 		printf("\nSelect capture device\n");
@@ -720,8 +721,8 @@ void Config::setDevices() {
 		//Convert back fron list value to array index.
 		captureIndex--;
 		renderIndex--;
-		printf("Capture: %s\n", allDevices[captureIndex]->getName().c_str());
-		printf("Render: %s\n", allDevices[renderIndex]->getName().c_str());
+		printf("Capture: %s\n", allDevices[captureIndex].c_str());
+		printf("Render: %s\n", allDevices[renderIndex].c_str());
 		printf("Press 1 to continue or 0 to re-select\n");
 		isOk = getSelection(0, 1) == 1;
 		printf("\n");
@@ -729,21 +730,14 @@ void Config::setDevices() {
 
 	//Update json
 	JsonNode *pDevicesNode = new JsonNode(JsonNodeType::OBJECT);
-	pDevicesNode->put("capture", allDevices[captureIndex]->getId());
-	pDevicesNode->put("render", allDevices[renderIndex]->getId());
 	_pJsonNode->put("devices", pDevicesNode);
+	JsonNode *pCaptureNode = new JsonNode(JsonNodeType::OBJECT);
+	JsonNode *pRenderNode = new JsonNode(JsonNodeType::OBJECT);
+	pCaptureNode->put("name", allDevices[captureIndex]);
+	pRenderNode->put("name", allDevices[renderIndex]);
+	pDevicesNode->put("capture", pCaptureNode);
+	pDevicesNode->put("render", pRenderNode);
 	save();
-
-	//Store selected devices
-	_devices.push_back(allDevices[captureIndex]);
-	_devices.push_back(allDevices[renderIndex]);
-
-	//Delete non used devices
-	for (size_t i = 0; i < allDevices.size(); ++i) {
-		if (i != captureIndex && i != renderIndex) {
-			delete allDevices[i];
-		}
-	}
 }
 
 const size_t Config::getSelection(const size_t start, const size_t end, const size_t blacklist) const {

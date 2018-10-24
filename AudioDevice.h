@@ -18,7 +18,9 @@ class AudioDevice {
 public:
 	static void initStatic();
 	static void destroyStatic();
-	static std::vector<AudioDevice*> getDevices();
+	static std::vector<std::string> getDeviceNames();
+	static std::string getDeviceName(IMMDevice *pDevice);
+	static AudioDevice* getDevice(const std::string &name);
 
 	AudioDevice();
 	AudioDevice(const std::string &id);
@@ -85,7 +87,7 @@ private:
 	static bool _initStatic;
 
 	IMMDevice *_pDevice;
-	IAudioClient *_pAudioClient;
+	IAudioClient3 *_pAudioClient;
 	IAudioCaptureClient *_pCaptureClient;
 	IAudioRenderClient *_pRenderClient;
 	ISimpleAudioVolume *_pSimpleVolume;

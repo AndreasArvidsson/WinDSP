@@ -16,11 +16,26 @@
 #include "Convert.h"
 #include "Keyboard.h"
 
-class AsioDevice;
-
-namespace Capture {
+namespace CaptureLoop {
 	void init(const Config *pConfig, const std::vector<Input*> *pInputs, const std::vector<Output*> *pOutputs, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice);
-	void init(const Config *pConfig, const std::vector<Input*> *pInputs, const std::vector<Output*> *pOutputs, AudioDevice *pCaptureDevice, AsioDevice *pRenderDevice);
+	void init(const Config *pConfig, const std::vector<Input*> *pInputs, const std::vector<Output*> *pOutputs, AudioDevice *pCaptureDevice);
 	void destroy();
 	void run();
+
+	//Private
+	extern const Config *_pConfig;
+	extern const std::vector<Input*> *_pInputs;
+	extern const std::vector<Output*> *_pOutputs;
+	extern AudioDevice *_pCaptureDevice;
+	extern AudioDevice *_pRenderDevice;
+	extern bool *_pUsedChannels;
+	extern float _pOverflowBuffer[];
+	extern float *_pClippingChannels;
+	extern double *_renderBlockBuffer;
+	extern UINT32 _overflowSize;
+	extern size_t _nChannelsIn, _nChannelsOut;
+
+	void __bufferSwitch(long bufferIndex, ASIOBool processNow);
+	void __wasapiLoop();
+	void __writeToBuffer(const float* const pSource, const UINT32 length, const int bufferIndex, const UINT32 offset = 0);
 }

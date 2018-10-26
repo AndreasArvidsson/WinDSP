@@ -66,7 +66,7 @@ const bool checkInput(const char input) {
 void clearData() {
 	delete pConfig;
 	pConfig = nullptr;
-	Capture::destroy();
+	CaptureLoop::destroy();
 	AudioDevice::destroyStatic();
 	AsioDevice::destroyStatic();
 	JsonNode::destroyStatic();
@@ -137,14 +137,13 @@ void run(const std::string &configName) {
 	* Start capturing data
 	*/
 
-	//Start capture loop.
-
 	const HWND windowHandle = FindWindow(NULL, title);
-	AsioDevice *pRenderDeviceAsio = new AsioDevice("Focusrite USB ASIO", pRenderFormat->nChannels, windowHandle);
-	//Capture::init(pConfig, &inputs, &outputs, pCaptureDevice, pRenderDevice);
-	Capture::init(pConfig, &inputs, &outputs, pCaptureDevice, pRenderDeviceAsio);
-	Capture::run();
-	delete pRenderDeviceAsio;
+	AsioDevice::init("Focusrite USB ASIO", 2, windowHandle);
+	//AsioDevice::init("ASIO4ALL v2", 2, windowHandle);
+
+	CaptureLoop::init(pConfig, &inputs, &outputs, pCaptureDevice, pRenderDevice);
+	//CaptureLoop::init(pConfig, &inputs, &outputs, pCaptureDevice);
+	CaptureLoop::run();
 }
 
 int main(int argc, char **argv) {

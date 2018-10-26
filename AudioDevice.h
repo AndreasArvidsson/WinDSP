@@ -36,10 +36,14 @@ public:
 	UINT32 getBufferFrameCount() const;
 	ISimpleAudioVolume* getVolumeControl();
 
-	inline const UINT32 AudioDevice::getBufferFrameCountAvailable() const {
-		UINT32 numFramesPadding;
+        inline const UINT32 getBufferSize() const {
+            return _bufferSize;
+        }
+        
+	inline const UINT32 getBufferFrameCountAvailable() const {
+		static UINT32 numFramesPadding;
 		assert(_pAudioClient->GetCurrentPadding(&numFramesPadding));
-		return _bufferFrameCount - numFramesPadding;
+		return _bufferSize - numFramesPadding;
 	}
 
 	inline const HRESULT getNextPacketSize(UINT32 *pNumFramesInNextPacket) const {
@@ -96,7 +100,7 @@ private:
 	IAudioRenderClient *_pRenderClient;
 	ISimpleAudioVolume *_pSimpleVolume;
 	WAVEFORMATEX *_pFormat;
-	UINT32 _bufferFrameCount;
+	UINT32 _bufferSize;
 	std::string _id, _name;
 
 	AudioDevice(IMMDevice *pDevice);

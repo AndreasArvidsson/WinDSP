@@ -1,52 +1,41 @@
 /*
-	This class represents a single audio endpoint/device/soundcard.
-	All operations having to do with capturing or rendering audio is defined here.
-	It's implemented using ASIO.
+	This class represents a single audio ASIO endpoint/device/soundcard.
+	All operations having to do with rendering audio to an ASIO device is defined here.
 
 	Author: Andreas Arvidsson
 	Source: https://github.com/AndreasArvidsson/WinDSP
 */
 
 #pragma once
+#include <string>
 #include <vector>
-#include <windows.h>
+#include <Windows.h> //HWND
 
 class AsioDrivers;
 struct ASIOBufferInfo;
 struct ASIOChannelInfo;
 struct ASIOCallbacks;
 
-class AsioDevice {
-public:
-	static void initStatic();
-	static void destroyStatic();
-	static std::vector<std::string> getDeviceNames();
+namespace AsioDevice {
+	extern AsioDrivers* pAsioDrivers;
+	extern ASIOBufferInfo* pBufferInfos;
+	extern ASIOChannelInfo* pChannelInfos;
+	extern long numInputChannels, numOutputChannels, numChannels, asioVersion, driverVersion;
+	extern long minSize, maxSize, preferredSize, granularity, bufferSize, inputLatency, outputLatency;
+	extern double sampleRate;
+	extern bool outputReady;
+	extern std::string driverName;
 
-	AsioDevice(const char* driverName, const long numChannels = -1, const HWND windowHandle = 0);
-	~AsioDevice();
-
-	void printInfo() const;
+	void destroyStatic();
+	std::vector<std::string> getDeviceNames();
+	void init(char* const driverName, const long nChannels = -1, const HWND windowHandle = nullptr);
 	void startRenderService(ASIOCallbacks *pCallbacks);
 	void stopRenderService();
-	
-	ASIOBufferInfo* getBufferInfos();
-	ASIOChannelInfo* getChannelsInfos();
-	const long getBufferSize();
-	const bool getPostOutput();
+	void printInfo();
 
-private:
-	static bool _initStatic;
-	static AsioDrivers *_pAsioDrivers;
-
-	ASIOBufferInfo *_pBufferInfos;
-	ASIOChannelInfo *_pChannelInfos;
-	std::string _name;
-	long _asioVersion, _driverVersion;
-	long _numInputChannels, _numOutputChannels, _numChannels, _numChannelsRequested;
-	long _minSize, _maxSize, _preferredSize, _granularity;
-	long _inputLatency, _outputLatency;
-	long _bufferSize;
-	double _sampleRate;
-	bool _postOutput;
-
-};
+	//Privates
+	void __initStatic();
+	long __asioMessage(const long selector, const long value, void* const message, double* const opt);
+	void __loadDriver(char* const dName, const HWND windowHandle);
+	void __loadNumChannels(const long nChannels);
+}

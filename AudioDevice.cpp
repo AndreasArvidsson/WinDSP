@@ -111,7 +111,7 @@ void AudioDevice::initDefault() {
 	_pCaptureClient = nullptr;
 	_pRenderClient = nullptr;
 	_pSimpleVolume = nullptr;
-	_bufferFrameCount = 0;
+	_bufferSize = 0;
 }
 
 void AudioDevice::init(IMMDevice *pDevice) {
@@ -160,10 +160,10 @@ void AudioDevice::startService(const bool capture) {
 		//assert(_pAudioClient->GetService(__uuidof(IAudioRenderClient), (void**)&_pRenderClient));
 	}
 
-	assert(_pAudioClient->GetBufferSize(&_bufferFrameCount));
+	assert(_pAudioClient->GetBufferSize(&_bufferSize));
 
-	//printf("hw min = %f, engine = %f, buffer = %f\n", minTime / 10000.0, engineTime / 10000.0, 1000.0 * _bufferFrameCount / _pFormat->nSamplesPerSec);
-	//printf("default = %d, fundamental = %d, min = %d, max = %d, current = %d, buffer = %d\n", default_, fundamental, min, max, pCurrentPeriodInFrames, _bufferFrameCount);
+	//printf("hw min = %f, engine = %f, buffer = %f\n", minTime / 10000.0, engineTime / 10000.0, 1000.0 * _bufferSize / _pFormat->nSamplesPerSec);
+	//printf("default = %d, fundamental = %d, min = %d, max = %d, current = %d, buffer = %d\n", default_, fundamental, min, max, pCurrentPeriodInFrames, _bufferSize);
 
 	//Start aduio service on device.
 	assert(_pAudioClient->Start());
@@ -192,7 +192,7 @@ const WAVEFORMATEX* AudioDevice::getFormat() const {
 }
 
 UINT32 AudioDevice::getBufferFrameCount() const {
-	return _bufferFrameCount;
+	return _bufferSize;
 }
 
 ISimpleAudioVolume* AudioDevice::getVolumeControl() {

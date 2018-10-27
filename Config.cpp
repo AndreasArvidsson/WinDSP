@@ -6,13 +6,13 @@
 #include "JsonParser.h"
 #include "Convert.h"
 #include "OS.h"
+#include "AsioDevice.h"
 
-Config::Config() {}
+Config::Config() {
+	_pJsonNode = nullptr;
+}
 
 Config::~Config() {
-	for (AudioDevice *p : _devices) {
-		delete p;
-	}
 	for (Input *p : _inputs) {
 		delete p;
 	}
@@ -25,9 +25,10 @@ Config::~Config() {
 		delete p;
 	}
 	delete _pJsonNode;
+	_pJsonNode = nullptr;
 }
 
-void Config::init(const std::string path) {
+void Config::init(const std::string &path) {
 	_configFile = path;
 	load();
 	parseMisc();
@@ -43,16 +44,20 @@ void Config::init(const uint32_t sampleRate, const uint32_t numChannelsIn, const
 	parseOutputs();
 }
 
-const std::vector<AudioDevice*>& Config::getDevices() const {
-	return _devices;
+const std::string Config::getCaptureDeviceName() const {
+	return _captureDeviceName;
 }
 
-const std::vector<Input*>& Config::getInputs() const {
-	return _inputs;
+const std::string Config::getRenderDeviceName() const {
+	return _renderDeviceName;
 }
 
-const std::vector<Output*>& Config::getOutputs() const {
-	return _outputs;
+const std::vector<Input*>* Config::getInputs() const {
+	return &_inputs;
+}
+
+const std::vector<Output*>* Config::getOutputs() const {
+	return &_outputs;
 }
 
 const bool Config::hide() const {
@@ -61,6 +66,10 @@ const bool Config::hide() const {
 
 const bool Config::minimize() const {
 	return _minimize;
+}
+
+const bool Config::useAsioRenderer() const {
+	return _useAsioRenderer;
 }
 
 void Config::parseMisc() {
@@ -100,17 +109,28 @@ void Config::parseMisc() {
 
 void Config::parseDevices() {
 	JsonNode *pDvicesNode = _pJsonNode->path("devices");
+	JsonNode *pCaptureNode = pDvicesNode->path("capture");
+	JsonNode *pRenderNode = pDvicesNode->path("render");
+
 	//Devices not set in config. Query user
-	if (!pDvicesNode->path("capture")->has("name") || !pDvicesNode->path("render")->has("name")) {
+	if (!pCaptureNode->has("name") || !pRenderNode->has("name")) {
 		setDevices();
 		parseDevices();
 	}
 	//Devices already set in config.
 	else {
-		std::string captureName = textValue(pDvicesNode->path("capture")->get("name"), "devices/capture/name");
-		std::string renderName = textValue(pDvicesNode->get("render")->get("name"), "devices/render/name");
-		_devices.push_back(AudioDevice::getDevice(captureName));
-		_devices.push_back(AudioDevice::getDevice(renderName));
+		std::string path = "devices/capture";
+		_captureDeviceName = textValue(pCaptureNode->get("name"), path + "/name");
+
+		path = "devices/render";
+		_renderDeviceName = textValue(pRenderNode->get("name"), path + "/name");
+		_useAsioRenderer = pRenderNode->has("asio") ? boolValue(pRenderNode->get("asio"), path + "/asio") : false;
+		if (_useAsioRenderer) {
+			_numChannelsRender = pRenderNode->has("numChannels") ? intValue(pRenderNode->get("numChannels"), path + "/numChannels") : 0;
+		}
+		else {
+			_numChannelsRender = 0;
+		}
 	}
 }
 
@@ -129,8 +149,7 @@ void Config::parseInputs() {
 			//Output exists. Route to output
 			if (i < _numChannelsOut) {
 				_inputs[i] = new Input(i);
-			}
-			//Output doesn't exists. Add default non-route input.
+			}//Output doesn't exists. Add default non-route input.
 			else {
 				_inputs[i] = new Input();
 			}
@@ -225,8 +244,7 @@ void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelNam
 		if (pChannelNode->size() == 0) {
 			pOutput->add(new OutputFork());
 		}
-	}
-	//Object. Parse single fork
+	}//Object. Parse single fork
 	else {
 		parseOutputFork(pOutput, pChannelNode, path);
 	}
@@ -285,7 +303,7 @@ void Config::validateLevels(const std::string &path) const {
 const double Config::getFilterGainSum(const std::vector<Filter*> &filters, double startLevel) const {
 	for (Filter *pFilter : filters) {
 		//If filter is gain: Apply gain
-		if (typeid(*pFilter) == typeid(GainFilter)) {
+		if (typeid (*pFilter) == typeid (GainFilter)) {
 			startLevel = pFilter->process(startLevel);
 		}
 	}
@@ -308,8 +326,7 @@ void Config::parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, 
 	//No biquads added. Don't use biquad filter.
 	if (pBiquadFilter->isEmpty()) {
 		delete pBiquadFilter;
-	}
-	//Use  biquad filter
+	}//Use  biquad filter
 	else {
 		filters.push_back(pBiquadFilter);
 	}
@@ -407,7 +424,7 @@ void Config::parseFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFil
 	};
 }
 
-void  Config::parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
+void Config::parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
 	SubType subType = SubTypes::fromString(getField(pFilterNode, "subType", path)->textValue());
 	double freq = doubleValue(pFilterNode, "freq", path);
 	int order = getField(pFilterNode, "order", path)->intValue();
@@ -421,7 +438,8 @@ void  Config::parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, 
 	case SubType::BESSEL:
 		pBiquadFilter->addCrossover(isLowPass, freq, order, CrossoverType::Bessel);
 		break;
-	case SubType::CUSTOM: {
+	case SubType::CUSTOM:
+	{
 		const JsonNode *pQNode = getField(pFilterNode, "q", path);
 		std::vector<double> qValues;
 		int calculatedOrder = 0;
@@ -584,6 +602,82 @@ void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, std::s
 	}
 }
 
+void Config::setDevices() {
+	OS::showWindow();
+	std::vector<std::string> wasapiDevices = AudioDevice::getDeviceNames();
+	std::vector<std::string> asioDevices = AsioDevice::getDeviceNames();
+
+	size_t selectedIndex;
+	bool isOk;
+	do {
+		printf("Available capture devices:\n");
+		for (size_t i = 0; i < wasapiDevices.size(); ++i) {
+			printf("%zu WASAPI: %s\n", i + 1, wasapiDevices[i].c_str());
+		}
+		//Make selection
+		selectedIndex = getSelection(1, wasapiDevices.size());
+		_captureDeviceName = wasapiDevices[selectedIndex - 1];
+
+		printf("\nAvailable render devices:\n");
+		size_t index = 1;
+		for (size_t i = 0; i < wasapiDevices.size(); ++i, ++index) {
+			//Cant reuse capture device.
+			if (index != selectedIndex) {
+				printf("%zu WASAPI: %s\n", index, wasapiDevices[i].c_str());
+			}
+		}
+		for (size_t i = 0; i < asioDevices.size(); ++i, ++index) {
+			printf("%zu ASIO: %s\n", index, asioDevices[i].c_str());
+		}
+		//Make selection
+		selectedIndex = getSelection(1, wasapiDevices.size() + asioDevices.size(), selectedIndex);
+
+		//Query if selection is ok.
+		printf("\nSelected devices:\n");
+		printf("Capture(WASAPI): %s\n", _captureDeviceName.c_str());
+		if (selectedIndex - 1 < wasapiDevices.size()) {
+			_renderDeviceName = wasapiDevices[selectedIndex - 1];
+			_useAsioRenderer = false;
+		}
+		else {
+			_renderDeviceName = asioDevices[selectedIndex - wasapiDevices.size() - 1];
+			_useAsioRenderer = true;
+		}
+		printf("Render(%s): %s\n", _useAsioRenderer ? "ASIO" : "WASAPI", _renderDeviceName.c_str());
+		printf("\nPress 1 to continue or 0 to re-select\n");
+		isOk = getSelection(0, 1) == 1;
+		printf("\n");
+	} while (!isOk);
+
+	//Update json
+	if (!_pJsonNode->has("devices")) {
+		_pJsonNode->put("devices", new JsonNode(JsonNodeType::OBJECT));
+	}
+	JsonNode *pDevicesNode = _pJsonNode->get("devices");
+
+	if (!pDevicesNode->has("capture")) {
+		pDevicesNode->put("capture", new JsonNode(JsonNodeType::OBJECT));
+	}
+	JsonNode *pCaptureNode = pDevicesNode->get("capture");
+
+	if (!pDevicesNode->has("render")) {
+		pDevicesNode->put("render", new JsonNode(JsonNodeType::OBJECT));
+	}
+	JsonNode *pRenderNode = pDevicesNode->get("render");
+
+	pCaptureNode->put("name", _captureDeviceName);
+	pRenderNode->put("name", _renderDeviceName);
+	if (_useAsioRenderer) {
+		pRenderNode->put("asio", true);
+	}
+	//Only for asio. Remove othervise
+	else {
+		pRenderNode->remove("asio");
+		pRenderNode->remove("numChannels");
+	}
+	save();
+}
+
 const JsonNode* Config::getField(const JsonNode *pNode, const std::string &field, const std::string &path) const {
 	const JsonNode *pResult = pNode->path(field);
 	if (pResult->isMissingNode()) {
@@ -701,45 +795,6 @@ const bool Config::boolValue(const JsonNode *pNode, const std::string &path) con
 	return pNode->boolValue();
 }
 
-void Config::setDevices() {
-	OS::showWindow();
-	std::vector<std::string> allDevices = AudioDevice::getDeviceNames();
-	size_t captureIndex, renderIndex;
-	bool isOk;
-	do {
-		printf("Available playback devices:\n");
-		for (size_t i = 0; i < allDevices.size(); ++i) {
-			printf("%zu %s\n", i + 1, allDevices[i].c_str());
-		}
-		//Make selection
-		printf("\nSelect capture device\n");
-		captureIndex = getSelection(1, allDevices.size());
-		printf("\nSelect render device(Can't be same as capture)\n");
-		renderIndex = getSelection(1, allDevices.size(), captureIndex);
-		//Query if selection is ok.
-		printf("\nSelected devices:\n");
-		//Convert back fron list value to array index.
-		captureIndex--;
-		renderIndex--;
-		printf("Capture: %s\n", allDevices[captureIndex].c_str());
-		printf("Render: %s\n", allDevices[renderIndex].c_str());
-		printf("Press 1 to continue or 0 to re-select\n");
-		isOk = getSelection(0, 1) == 1;
-		printf("\n");
-	} while (!isOk);
-
-	//Update json
-	JsonNode *pDevicesNode = new JsonNode(JsonNodeType::OBJECT);
-	_pJsonNode->put("devices", pDevicesNode);
-	JsonNode *pCaptureNode = new JsonNode(JsonNodeType::OBJECT);
-	JsonNode *pRenderNode = new JsonNode(JsonNodeType::OBJECT);
-	pCaptureNode->put("name", allDevices[captureIndex]);
-	pRenderNode->put("name", allDevices[renderIndex]);
-	pDevicesNode->put("capture", pCaptureNode);
-	pDevicesNode->put("render", pRenderNode);
-	save();
-}
-
 const size_t Config::getSelection(const size_t start, const size_t end, const size_t blacklist) const {
 	char buf[10];
 	int value;
@@ -764,6 +819,10 @@ const std::string Config::getChannelName(const size_t channelIndex, const std::s
 		throw Error("Config(%s) - Unknown channel index: %d", path.c_str(), channelIndex);
 	}
 	return _channelNames[channelIndex];
+}
+
+const uint32_t Config::getNumChannelsRender(const uint32_t capacity) const {
+	return _numChannelsRender > 0 ? min(_numChannelsRender, capacity) : capacity;
 }
 
 const std::string Config::getChannelName(const size_t channelIndex) const {

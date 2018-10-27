@@ -22,15 +22,18 @@ public:
 
 	Config();
 	~Config();
-	void init(const std::string path);
+	void init(const std::string &path);
 	void init(const uint32_t sampleRate, const uint32_t numChannelsIn, const uint32_t numChannelsOut);
 
-	const std::vector<AudioDevice*>& getDevices() const;
-	const std::vector<Input*>& getInputs() const;
-	const std::vector<Output*>& getOutputs() const;
+	const std::string getCaptureDeviceName() const;
+	const std::string getRenderDeviceName() const;
+	const std::vector<Input*>* getInputs() const;
+	const std::vector<Output*>* getOutputs() const;
 	const bool hide() const;
 	const bool minimize() const;
+	const bool useAsioRenderer() const;
 	const std::string getChannelName(const size_t channelIndex) const;
+	const uint32_t getNumChannelsRender(const uint32_t capacity) const;
 
 	inline const bool Config::hasChanged() const {
 		return _lastModified != _configFile.getLastModifiedTime();
@@ -44,13 +47,13 @@ private:
 	File _configFile;
 	JsonNode *_pJsonNode;
 	std::vector<JsonNode*> _tmpJsonNodes;
-	uint32_t _sampleRate, _numChannelsIn, _numChannelsOut;
 	std::vector<Input*> _inputs;
 	std::vector<Output*> _outputs;
-	std::vector<AudioDevice*> _devices;
 	std::vector<std::string> _channelNames;
+	std::string _captureDeviceName, _renderDeviceName;
+	uint32_t _sampleRate, _numChannelsIn, _numChannelsOut, _numChannelsRender;
 	time_t _lastModified;
-	bool _hide, _minimize, _useConditionalRouting;
+	bool _hide, _minimize, _useConditionalRouting, _useAsioRenderer;
 
 	void load();
 	void save();
@@ -68,6 +71,7 @@ private:
 	void validateLevels(const std::string &path) const;
 	const double getFilterGainSum(const std::vector<Filter*> &filters, double startLevel = 1.0) const;
 
+	//void select();
 	void setDevices();
 	const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
 

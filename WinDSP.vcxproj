@@ -51,7 +51,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP;%(AdditionalIncludeDirectories);$(SolutionDir)/..</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK;$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;DEBUG;DEBUG_MEMORY</PreprocessorDefinitions>
       <SupportJustMyCode>true</SupportJustMyCode>
     </ClCompile>
@@ -63,7 +63,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP;%(AdditionalIncludeDirectories);$(SolutionDir)/..</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK;$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -76,11 +76,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)\..\Core\Core.vcxproj">
+      <Project>{5f894556-9a4b-4255-b8b7-5c1ae0f9cf26}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\lib\DSP\DSP.vcxproj">
+      <Project>{49c706ab-09b0-451e-a6d6-403a28a54ce5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\AsioSDK\AsioSDK\AsioSDK.vcxproj">
+      <Project>{0ab9a655-ba2c-42cb-909f-b61ae395e2e8}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WinDSP.json" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="AsioDevice.cpp" />
-    <ClCompile Include="asio\asio.cpp" />
-    <ClCompile Include="asio\ASIOConvertSamples.cpp" />
-    <ClCompile Include="asio\asiodrivers.cpp" />
-    <ClCompile Include="asio\asiolist.cpp" />
     <ClCompile Include="AudioDevice.cpp" />
     <ClCompile Include="CaptureLoop.cpp" />
     <ClCompile Include="Condition.cpp" />
@@ -89,13 +99,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AsioDevice.h" />
-    <ClInclude Include="asio\asio.h" />
-    <ClInclude Include="asio\ASIOConvertSamples.h" />
-    <ClInclude Include="asio\asiodrivers.h" />
-    <ClInclude Include="asio\asiolist.h" />
-    <ClInclude Include="asio\asiosys.h" />
-    <ClInclude Include="asio\ginclude.h" />
-    <ClInclude Include="asio\iasiodrv.h" />
     <ClInclude Include="AudioDevice.h" />
     <ClInclude Include="CaptureLoop.h" />
     <ClInclude Include="Condition.h" />
@@ -110,23 +113,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Core\Core.vcxproj">
-      <Project>{5f894556-9a4b-4255-b8b7-5c1ae0f9cf26}</Project>
-    </ProjectReference>
-    <ProjectReference Include="lib\DSP\DSP.vcxproj">
-      <Project>{49c706ab-09b0-451e-a6d6-403a28a54ce5}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="WinDSP.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="WinDSP.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="WinDSP.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

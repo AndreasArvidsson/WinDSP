@@ -22,8 +22,9 @@
 
 char configFileNumber = '0';
 Config *pConfig = nullptr;
+AudioDevice *pCaptureDevice = nullptr;
+AudioDevice *pRenderDevice = nullptr;
 char title[TITLE_SIZE];
-//CaptureLoop *pLoop = nullptr;
 
 void setVisibility() {
 	if (pConfig->hide()) {
@@ -64,12 +65,18 @@ const bool checkInput(const char input) {
 }
 
 void clearData() {
-	delete pConfig;
-	pConfig = nullptr;
+	CaptureLoop::stop();
 	CaptureLoop::destroy();
+	delete pConfig;
+	delete pCaptureDevice;
+	delete pRenderDevice;
+	pConfig = nullptr;
+	pCaptureDevice = nullptr;
+	pRenderDevice = nullptr;
+	AsioDevice::destroy();
 	AudioDevice::destroyStatic();
-	AsioDevice::destroyStatic();
 	JsonNode::destroyStatic();
+
 #ifdef DEBUG_MEMORY
 	//Check for memory leaks
 	if (MemoryManager::getInstance()->hasLeak()) {
@@ -80,10 +87,10 @@ void clearData() {
 #endif
 }
 
-void run(const std::string &configName) {
+void run() {
 	//Load config file
 	pConfig = new Config();
-	pConfig->init(configName);
+	pConfig->init(getConfigFileName());
 
 	//Show or hide window
 	setVisibility();
@@ -92,72 +99,84 @@ void run(const std::string &configName) {
 	* Get capture and render devices
 	*/
 
-	std::vector<AudioDevice*> devices = pConfig->getDevices();
-	AudioDevice *pCaptureDevice = devices[0];
-	AudioDevice *pRenderDevice = devices[1];
+	const std::string captureDeviceName = pConfig->getCaptureDeviceName();
+	const std::string renderDeviceName = pConfig->getRenderDeviceName();
 
 	printf("----------------------------------------------\n");
 	printf("Starting DSP service @ %s\n", Date::getLocalDateTimeString().c_str());
-	printf("Capture: %s\n", pCaptureDevice->getName().c_str());
-	printf("Render: %s\n", pRenderDevice->getName().c_str());
+	printf("Capture(WASAPI): %s\n", captureDeviceName.c_str());
+	if (!pConfig->useAsioRenderer()) {
+		printf("Render(WASAPI): %s\n", renderDeviceName.c_str());
+	}
+	else {
+		printf("Render(ASIO): %s\n", renderDeviceName.c_str());
+	}
 	printf("----------------------------------------------\n\n");
 
-	const WAVEFORMATEX *pCaptureFormat = pCaptureDevice->getFormat();
-	const WAVEFORMATEX *pRenderFormat = pRenderDevice->getFormat();
-
 	/*
-	* Validate device settings
-	*/
+	 * Create and initalize devices and validate device settings
+	 */
 
-	//The application have no resampler. Sample rate and bit depth must be a match
-	if (pCaptureFormat->nSamplesPerSec != pRenderFormat->nSamplesPerSec) {
-		throw Error("Sample rate missmatch: Capture(%d), Render(%d))", pCaptureFormat->nSamplesPerSec, pRenderFormat->nSamplesPerSec);
+	pCaptureDevice = AudioDevice::initDevice(captureDeviceName);
+	const WAVEFORMATEX *pCaptureFormat = pCaptureDevice->getFormat();
+	int rendererSampleRate, renderNumChannels;
+
+	if (pConfig->useAsioRenderer()) {
+		AsioDevice::init(renderDeviceName, FindWindow(NULL, title));
+		rendererSampleRate = (int)AsioDevice::sampleRate;
+		renderNumChannels = pConfig->getNumChannelsRender(AsioDevice::numOutputChannels);
 	}
-	if (pCaptureFormat->wBitsPerSample != pRenderFormat->wBitsPerSample) {
-		throw Error("Bit depth missmatch: Capture(%d), Render(%d)", pCaptureFormat->wBitsPerSample, pRenderFormat->wBitsPerSample);
+	else {
+		pRenderDevice = AudioDevice::initDevice(renderDeviceName);
+		const WAVEFORMATEX *pRenderFormat = pRenderDevice->getFormat();
+		rendererSampleRate = pRenderFormat->nSamplesPerSec;
+		renderNumChannels = pRenderFormat->nChannels;
+
+		if (pCaptureFormat->wBitsPerSample != pRenderFormat->wBitsPerSample) {
+			throw Error("Bit depth missmatch: Capture(%d), Render(%d)", pCaptureFormat->wBitsPerSample, pRenderFormat->wBitsPerSample);
+		}
+		//Sample buffers must contains a 32bit float. All code depends on it.
+		if (pCaptureFormat->wBitsPerSample != 32) {
+			throw Error("Bit depth doesnt match float(32), Found(%d)", pCaptureFormat->wBitsPerSample);
+		}
+		if (pCaptureFormat->wFormatTag != pRenderFormat->wFormatTag) {
+			throw Error("Format tag missmatch: Capture(%d), Render(%d)", pCaptureFormat->wFormatTag, pRenderFormat->wFormatTag);
+		}
 	}
-	//Sample buffers must contains a 32bit float. All code depends on it
-	if (pCaptureFormat->wBitsPerSample != 32) {
-		throw Error("Bit depth doesnt match float(32), Found(%d)", pCaptureFormat->wBitsPerSample);
+
+	//The application have no resampler. Sample rate and bit depth must be a match.
+	if (pCaptureFormat->nSamplesPerSec != rendererSampleRate) {
+		throw Error("Sample rate missmatch: Capture(%d), Render(%d))", pCaptureFormat->nSamplesPerSec, rendererSampleRate);
 	}
-	if (pCaptureFormat->wFormatTag != pRenderFormat->wFormatTag) {
-		throw Error("Format tag missmatch: Capture(%d), Render(%d)", pCaptureFormat->wFormatTag, pRenderFormat->wFormatTag);
-	}
+
 
 	/*
 	* Init I/O and filters
 	*/
 
 	//Read config and get I/O instances with filters 
-	pConfig->init(pCaptureFormat->nSamplesPerSec, pCaptureFormat->nChannels, pRenderFormat->nChannels);
-	std::vector<Input*> inputs = pConfig->getInputs();
-	std::vector<Output*> outputs = pConfig->getOutputs();
+	pConfig->init(rendererSampleRate, pCaptureFormat->nChannels, renderNumChannels);
+
 
 	/*
 	* Start capturing data
 	*/
 
-	const HWND windowHandle = FindWindow(NULL, title);
-	AsioDevice::init("Focusrite USB ASIO", 2, windowHandle);
-	//AsioDevice::init("ASIO4ALL v2", 2, windowHandle);
-
-	CaptureLoop::init(pConfig, &inputs, &outputs, pCaptureDevice, pRenderDevice);
-	//CaptureLoop::init(pConfig, &inputs, &outputs, pCaptureDevice);
+	CaptureLoop::init(pConfig, pCaptureDevice, pRenderDevice);
 	CaptureLoop::run();
 }
 
 int main(int argc, char **argv) {
 	setTitle();
 
-	//Flush denormalized zeroes
+	//Very important for filter performance.
 	OS::flushDenormalizedZero();
-	//Set high priority on process
 	OS::setPriorityHigh();
 
 	for (;;) {
 		try {
 			//Run application
-			run(getConfigFileName());
+			run();
 		}
 		catch (const ConfigChangedException &e) {
 			if (!checkInput(e.input)) {
@@ -169,7 +188,7 @@ int main(int argc, char **argv) {
 			OS::showWindow();
 			printf("ERROR: %s\n\n", e.what());
 			//Wait for device to possible come back after reconfigure
-			Date::sleepMillis(1000);
+			Sleep(2000);
 			//Check keyboard input
 			checkInput(Keyboard::getDigit());
 		}

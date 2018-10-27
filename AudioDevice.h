@@ -20,7 +20,7 @@ public:
 	static void destroyStatic();
 	static std::vector<std::string> getDeviceNames();
 	static std::string getDeviceName(IMMDevice *pDevice);
-	static AudioDevice* getDevice(const std::string &name);
+	static AudioDevice* initDevice(const std::string &name);
 
 	AudioDevice();
 	AudioDevice(const std::string &id);
@@ -33,13 +33,12 @@ public:
 	const std::string getId();
 	const std::string getName();
 	const WAVEFORMATEX* getFormat() const;
-	UINT32 getBufferFrameCount() const;
 	ISimpleAudioVolume* getVolumeControl();
 
-        inline const UINT32 getBufferSize() const {
-            return _bufferSize;
-        }
-        
+	inline const UINT32 getBufferSize() const {
+		return _bufferSize;
+	}
+
 	inline const UINT32 getBufferFrameCountAvailable() const {
 		static UINT32 numFramesPadding;
 		assert(_pAudioClient->GetCurrentPadding(&numFramesPadding));
@@ -69,6 +68,10 @@ public:
 
 	inline const HRESULT releaseRenderBuffer(const UINT32 numFramesWritten) const {
 		return _pRenderClient->ReleaseBuffer(numFramesWritten, 0);
+	}
+
+	inline const HRESULT releaseRenderBuffer(const UINT32 numFramesWritten, DWORD flags) const {
+		return _pRenderClient->ReleaseBuffer(numFramesWritten, flags);
 	}
 
 	inline void flushCaptureBuffer() const {

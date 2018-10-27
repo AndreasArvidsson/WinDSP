@@ -8,9 +8,8 @@
 
 #pragma once
 #include <string>
+#include "asio.h"
 #include "Audioclient.h"
-#include "asio/asiosys.h"
-#include "asio/asio.h"
 #include "Error.h"
 
 class ErrorMessages {
@@ -109,21 +108,21 @@ public:
 		case ASE_OK:
 			return "This value will be returned whenever the call succeeded";
 		case ASE_SUCCESS:
-			return "unique success return value for ASIOFuture calls";
+			return "Unique success return value for ASIOFuture calls";
 		case ASE_NotPresent:
-			return "hardware input or output is not present or available";
+			return "Hardware input or output is not present or available";
 		case ASE_HWMalfunction:
-			return "hardware is malfunctioning (can be returned by any ASIO function)";
+			return "Hardware is malfunctioning (can be returned by any ASIO function)";
 		case ASE_InvalidParameter:
-			return "input parameter invalid";
+			return "Input parameter invalid";
 		case ASE_InvalidMode:
-			return "hardware is in a bad mode or used in a bad mode";
+			return "Hardware is in a bad mode or used in a bad mode";
 		case ASE_SPNotAdvancing:
-			return "hardware is not running when sample position is inquired";
+			return "Hardware is not running when sample position is inquired";
 		case ASE_NoClock:
-			return "sample clock or rate cannot be determined or is not present";
+			return "Sample clock or rate cannot be determined or is not present";
 		case ASE_NoMemory:
-			return "not enough memory for completing the request";
+			return "Not enough memory for completing the request";
 		default:
 			return "Unknown error";
 		}

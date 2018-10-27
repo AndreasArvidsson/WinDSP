@@ -17,25 +17,26 @@ struct ASIOChannelInfo;
 struct ASIOCallbacks;
 
 namespace AsioDevice {
-	extern AsioDrivers* pAsioDrivers;
+	//Public
 	extern ASIOBufferInfo* pBufferInfos;
 	extern ASIOChannelInfo* pChannelInfos;
 	extern long numInputChannels, numOutputChannels, numChannels, asioVersion, driverVersion;
 	extern long minSize, maxSize, preferredSize, granularity, bufferSize, inputLatency, outputLatency;
 	extern double sampleRate;
 	extern bool outputReady;
-	extern std::string driverName;
 
-	void destroyStatic();
+	void destroy();
 	std::vector<std::string> getDeviceNames();
-	void init(char* const driverName, const long nChannels = -1, const HWND windowHandle = nullptr);
-	void startRenderService(ASIOCallbacks *pCallbacks);
+	void init(const std::string &driverName, const HWND windowHandle = nullptr);
+	void startRenderService(ASIOCallbacks *pCallbacks, const long numChannels = 0);
 	void stopRenderService();
+	void renderSilence(const long bufferIndex);
 	void printInfo();
+	const std::string getName();
 
 	//Privates
-	void __initStatic();
-	long __asioMessage(const long selector, const long value, void* const message, double* const opt);
-	void __loadDriver(char* const dName, const HWND windowHandle);
-	void __loadNumChannels(const long nChannels);
+	extern std::string *_pDriverName;
+
+	long _asioMessage(const long selector, const long value, void* const message, double* const opt);
+	void _loadDriver(const std::string &driverName, const HWND windowHandle);
 }

@@ -7,12 +7,12 @@ IMMDeviceEnumerator *AudioDevice::_pEnumerator = nullptr;
 bool AudioDevice::_initStatic = false;
 
 std::vector<std::string> AudioDevice::getDeviceNames() {
+	std::vector<std::string> result;
 	initStatic();
 	IMMDeviceCollection *pCollection;
 	assert(_pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &pCollection));
 	UINT count;
 	assert(pCollection->GetCount(&count));
-	std::vector<std::string> result;
 	for (ULONG i = 0; i < count; i++) {
 		IMMDevice *pDevice;
 		assert(pCollection->Item(i, &pDevice));
@@ -38,7 +38,7 @@ std::string AudioDevice::getDeviceName(IMMDevice *pDevice) {
 	return result;
 }
 
-AudioDevice* AudioDevice::getDevice(const std::string &name) {
+AudioDevice* AudioDevice::initDevice(const std::string &name) {
 	initStatic();
 	IMMDeviceCollection *pCollection;
 	assert(_pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &pCollection));
@@ -55,6 +55,9 @@ AudioDevice* AudioDevice::getDevice(const std::string &name) {
 		SAFE_RELEASE(pDevice);
 	}
 	SAFE_RELEASE(pCollection);
+	if (!result) {
+		throw Error("Can't find WASAPI endpoint '%s'", name.c_str());
+	}
 	return result;
 }
 
@@ -189,10 +192,6 @@ const std::string AudioDevice::getName() {
 
 const WAVEFORMATEX* AudioDevice::getFormat() const {
 	return _pFormat;
-}
-
-UINT32 AudioDevice::getBufferFrameCount() const {
-	return _bufferSize;
 }
 
 ISimpleAudioVolume* AudioDevice::getVolumeControl() {

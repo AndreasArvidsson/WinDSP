@@ -16,11 +16,13 @@
 #include "Convert.h"
 #include "Keyboard.h"
 
+#include <vector>
+
 namespace CaptureLoop {
-	void init(const Config *pConfig, const std::vector<Input*> *pInputs, const std::vector<Output*> *pOutputs, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice);
-	void init(const Config *pConfig, const std::vector<Input*> *pInputs, const std::vector<Output*> *pOutputs, AudioDevice *pCaptureDevice);
+	void init(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice);
 	void destroy();
 	void run();
+	void stop();
 
 	//Private
 	extern const Config *_pConfig;
@@ -28,14 +30,24 @@ namespace CaptureLoop {
 	extern const std::vector<Output*> *_pOutputs;
 	extern AudioDevice *_pCaptureDevice;
 	extern AudioDevice *_pRenderDevice;
+	extern double *_pOverflowBuffer;
+	extern double *_pClippingChannels;
+	extern double *_renderTmpBuffer;
 	extern bool *_pUsedChannels;
-	extern float _pOverflowBuffer[];
-	extern float *_pClippingChannels;
-	extern double *_renderBlockBuffer;
 	extern UINT32 _overflowSize;
-	extern size_t _nChannelsIn, _nChannelsOut;
+	extern size_t _nChannelsIn, _nChannelsOut, _renderBlockSize;
+	extern bool _clippingDetected, _silent, _run;
+	extern std::thread _wasapiRenderThread;
 
-	void __bufferSwitch(long bufferIndex, ASIOBool processNow);
-	void __wasapiLoop();
-	void __writeToBuffer(const float* const pSource, const UINT32 length, const int bufferIndex, const UINT32 offset = 0);
+	void _bufferSwitch(const long bufferIndex, const ASIOBool);
+	void _wasapiLoop();
+	void _writeToBuffer(const double* const pSource, const UINT32 length, const int bufferIndex, const UINT32 offset = 0);
+	void _fillRenderTmpBuffer(float* captureBuffer, const UINT32 length);
+	void _getCaptureBuffer(UINT32 * const pNumFramesAvailable, bool * const pSilenceToPlayback = nullptr);
+	void _resetFilters();
+	void _checkConfig();
+	void _checkClippingChannels();
+	void _updateConditionalRouting();
+	void _printUsedChannels();
+
 }

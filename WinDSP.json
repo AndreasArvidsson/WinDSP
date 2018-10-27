@@ -16,7 +16,8 @@
             "name" : "CABLE Input (VB-Audio Virtual Cable)"
         },
         "render" : {
-            "name" : "Focusrite USB (Focusrite USB Audio)"
+            "name" : "Focusrite USB ASIO",
+            "asio" : true
         }
     },
     "filters" : {
@@ -24,5 +25,8 @@
     "inputs" : {
     },
     "outputs" : {
+        "L" : {
+            "gain" : 0
+        }
     }
 }

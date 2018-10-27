@@ -110,9 +110,11 @@
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="OutputFork.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WinDSP.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

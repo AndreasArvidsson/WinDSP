@@ -17,7 +17,8 @@
         },
         "render" : {
             "name" : "Focusrite USB ASIO",
-            "asio" : true
+            "asio" : true,
+			"numChannels": 2
         }
     },
     "filters" : {

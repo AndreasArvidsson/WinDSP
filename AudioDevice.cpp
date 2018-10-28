@@ -123,15 +123,20 @@ void AudioDevice::init(IMMDevice *pDevice) {
 	assert(_pAudioClient->GetMixFormat(&_pFormat));
 }
 
-void AudioDevice::startCaptureService() {
-	startService(true);
+void AudioDevice::initCaptureService() {
+	prepareService(true);
 }
 
-void AudioDevice::startRenderService() {
-	startService(false);
+void AudioDevice::initRenderService() {
+	prepareService(false);
 }
 
-void AudioDevice::startService(const bool capture) {
+void AudioDevice::startService() {
+	//Start aduio service on device.
+	assert(_pAudioClient->Start());
+}
+
+void AudioDevice::prepareService(const bool capture) {
 	REFERENCE_TIME engineTime, minTime;
 	assert(_pAudioClient->GetDevicePeriod(&engineTime, &minTime));
 
@@ -144,32 +149,31 @@ void AudioDevice::startService(const bool capture) {
 
 	if (capture) {
 		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, 0, 0, _pFormat, nullptr));
-		assert(_pAudioClient->GetService(__uuidof(IAudioCaptureClient), (void**)&_pCaptureClient));
+		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pCaptureClient)));
+		assert(_pAudioClient->GetBufferSize(&_bufferSize));
 	}
 	else {
-
 		//Create event handle
 		_eventHandle = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
 		if (_eventHandle == NULL) {
 			throw Error("WASAPI: Unable to create samples ready event %d", GetLastError());
 		}
 
-		assert(_pAudioClient->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK, min, _pFormat, nullptr));
-		//assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, 0, 0, _pFormat, nullptr));
+		//assert(_pAudioClient->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK, min, _pFormat, nullptr));
+		//assert(_pAudioClient->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 0, _pFormat, nullptr));
+
+		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 0, 0, _pFormat, nullptr));
 		assert(_pAudioClient->SetEventHandle(_eventHandle));
-		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pRenderClient)));
 
 		//assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, 0, 0, _pFormat, nullptr));
-		//assert(_pAudioClient->GetService(__uuidof(IAudioRenderClient), (void**)&_pRenderClient));
+
+		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pRenderClient)));
+
+		_bufferSize = pCurrentPeriodInFrames;
 	}
 
-	assert(_pAudioClient->GetBufferSize(&_bufferSize));
-
-	//printf("hw min = %f, engine = %f, buffer = %f\n", minTime / 10000.0, engineTime / 10000.0, 1000.0 * _bufferSize / _pFormat->nSamplesPerSec);
-	//printf("default = %d, fundamental = %d, min = %d, max = %d, current = %d, buffer = %d\n", default_, fundamental, min, max, pCurrentPeriodInFrames, _bufferSize);
-
-	//Start aduio service on device.
-	assert(_pAudioClient->Start());
+	printf("hw min = %f, engine = %f, buffer = %f\n", minTime / 10000.0, engineTime / 10000.0, 1000.0 * _bufferSize / _pFormat->nSamplesPerSec);
+	printf("default = %d, fundamental = %d, min = %d, max = %d, current = %d, buffer = %d\n", default_, fundamental, min, max, pCurrentPeriodInFrames, _bufferSize);
 }
 
 const std::string AudioDevice::getId() {

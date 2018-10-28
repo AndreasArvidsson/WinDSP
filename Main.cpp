@@ -118,6 +118,7 @@ void run() {
 	 */
 
 	pCaptureDevice = AudioDevice::initDevice(captureDeviceName);
+	pCaptureDevice->initCaptureService();
 	const WAVEFORMATEX *pCaptureFormat = pCaptureDevice->getFormat();
 	int rendererSampleRate, renderNumChannels;
 
@@ -128,6 +129,7 @@ void run() {
 	}
 	else {
 		pRenderDevice = AudioDevice::initDevice(renderDeviceName);
+		pRenderDevice->initRenderService();
 		const WAVEFORMATEX *pRenderFormat = pRenderDevice->getFormat();
 		rendererSampleRate = pRenderFormat->nSamplesPerSec;
 		renderNumChannels = pRenderFormat->nChannels;

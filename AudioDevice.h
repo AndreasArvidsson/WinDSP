@@ -27,8 +27,9 @@ public:
 	AudioDevice(const std::wstring &id);
 	~AudioDevice();
 
-	void startCaptureService();
-	void startRenderService();
+	void initCaptureService();
+	void initRenderService();
+	void startService();
 
 	const std::string getId();
 	const std::string getName();
@@ -109,7 +110,7 @@ private:
 	AudioDevice(IMMDevice *pDevice);
 	void initDefault();
 	void init(IMMDevice *pDevice);
-	void startService(const bool capture);
+	void prepareService(const bool capture);
 
 	HANDLE _eventHandle;
 

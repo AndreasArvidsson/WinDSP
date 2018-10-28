@@ -120,8 +120,8 @@ void AsioDevice::printInfo() {
 	printf("driverVersion: %d\n", driverVersion);
 	printf("Name: %s\n", _pDriverName->c_str());
 	printf("ASIOGetChannels (inputs: %d, outputs: %d) - numChannels: %d\n", numInputChannels, numOutputChannels, numChannels);
-	printf("ASIOGetBufferSize (min: %d, max: %d, preferred: %d, granularity: %d)\n", minSize, maxSize, preferredSize, granularity);
-	printf("ASIOGetSampleRate (sampleRate: %f)\n", sampleRate);
+	printf("ASIOGetBufferSize (min: %d, max: %d, preferred: %d, granularity: %d) - bufferSize: %d\n", minSize, maxSize, preferredSize, granularity, bufferSize);
+	printf("ASIOGetSampleRate (sampleRate: %d)\n", (int)sampleRate);
 	printf("ASIOGetLatencies (input: %d, output: %d)\n", inputLatency, outputLatency);
 	printf("ASIOOutputReady(); - %s\n", outputReady ? "Supported" : "Not supported");
 	if (pChannelInfos) {

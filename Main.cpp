@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
 
 	//Very important for filter performance.
 	OS::flushDenormalizedZero();
-	//OS::setPriorityHigh();
+	OS::setPriorityHigh();
 
 	for (;;) {
 		try {

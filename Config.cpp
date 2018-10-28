@@ -217,7 +217,7 @@ void Config::parseOutputs() {
 	//Add default empty output to missing
 	for (size_t i = 0; i < _outputs.size(); ++i) {
 		if (!_outputs[i]) {
-			_outputs[i] = new Output();
+			_outputs[i] = new Output(getChannelName(i));
 			_outputs[i]->add(new OutputFork());
 		}
 	}
@@ -231,7 +231,7 @@ void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelNam
 		return;
 	}
 	const JsonNode *pChannelNode = getNode(pOutputs, channelName, path);
-	Output *pOutput = new Output;
+	Output *pOutput = new Output(channelName);
 	_outputs[channel] = pOutput;
 	//Array parse each fork.
 	if (pChannelNode->isArray()) {

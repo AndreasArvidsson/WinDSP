@@ -150,9 +150,8 @@ void AudioDevice::prepareService(const bool capture) {
 		}
 		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 0, 0, _pFormat, nullptr));
 		assert(_pAudioClient->SetEventHandle(_eventHandle));
-		//assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, 0, 0, _pFormat, nullptr));
 		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pRenderClient)));
-		WAVEFORMATEX *p;
+		WAVEFORMATEX *p; //Need this. Cant be null
 		_pAudioClient->GetCurrentSharedModeEnginePeriod(&p, &_bufferSize);
 	}
 }

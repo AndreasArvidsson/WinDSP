@@ -8,12 +8,19 @@
 
 #pragma once
 #include <vector>
+#include <algorithm>
+#include <cstdlib>
 #include "OutputFork.h"
 
 class Output {
 public:
+	double clipping;
+	std::string name;
 
-	Output() {}
+	Output(const std::string &n) {
+		name = n;
+		clipping = 0.0;
+	}
 
 	~Output() {
 		for (OutputFork *pFork : _forks) {
@@ -29,10 +36,13 @@ public:
 		return _forks;
 	}
 
-	inline const double process(const double data) const {
+	inline const double process(const double data) {
 		double out = 0;
 		for (const OutputFork *pFork : _forks) {
 			out += pFork->process(data);
+		}
+		if (std::abs(out) > 1.0) {
+			clipping = std::max(clipping, std::abs(out));
 		}
 		return out;
 	}
@@ -45,5 +55,6 @@ public:
 
 private:
 	std::vector<OutputFork*> _forks;
+	
 
 };

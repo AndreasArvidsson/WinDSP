@@ -2,8 +2,6 @@
 #include "asiosys.h"
 #include "ErrorMessages.h"
 #include "asiodrivers.h"
-//#include "asiosys.h"
-
 
 //External references
 extern AsioDrivers* asioDrivers;

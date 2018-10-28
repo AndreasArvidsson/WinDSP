@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
 
 	//Very important for filter performance.
 	OS::flushDenormalizedZero();
-	OS::setPriorityHigh();
+	//OS::setPriorityHigh();
 
 	for (;;) {
 		try {
@@ -190,7 +190,7 @@ int main(int argc, char **argv) {
 			OS::showWindow();
 			printf("ERROR: %s\n\n", e.what());
 			//Wait for device to possible come back after reconfigure
-			Sleep(2000);
+			Date::sleepMillis(2000);
 			//Check keyboard input
 			checkInput(Keyboard::getDigit());
 		}

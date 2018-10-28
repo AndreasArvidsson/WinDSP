@@ -18,6 +18,7 @@
 #include "Convert.h"
 #include "Keyboard.h"
 #include "Buffer.h"
+#include <atomic>
 
 #define NUM_BUFFERS 3
 
@@ -34,15 +35,13 @@ namespace CaptureLoop {
 	extern AudioDevice *_pCaptureDevice;
 	extern AudioDevice *_pRenderDevice;
 	extern size_t _nChannelsIn, _nChannelsOut, _renderBlockSize, _renderBufferCapacity;
-	extern bool _silent, _run;
 	extern std::thread _wasapiRenderThread, _wasapiCaptureThread;
 	extern Buffer _buffers[NUM_BUFFERS];
-	extern std::mutex _indexMutex, _silentMutex;
 	extern std::mutex _swapMutex;
 	extern  std::condition_variable _swapCondition;
-
-	extern size_t _bufferIndexCapture, _bufferIndexRender;
-
+	extern std::atomic<size_t> _bufferIndexCapture, _bufferIndexRender;
+	extern std::atomic<bool> _silent;
+	extern bool _run;
 
 	void _bufferSwitch(const long bufferIndex, const ASIOBool);
 	void _wasapiCaptureLoop();
@@ -56,55 +55,27 @@ namespace CaptureLoop {
 	void _printUsedChannels();
 
 	inline const size_t _getNextBufferIndex(const size_t index) {
-		return index + 1 == NUM_BUFFERS ? 0 : index + 1;
-	}
-
-	inline const size_t _getBufferIndexCapture() {
-		std::lock_guard<std::mutex> lock(_indexMutex);
-		return _bufferIndexCapture;
-	}
-
-	inline const size_t _getBufferIndexRender() {
-		std::lock_guard<std::mutex> lock(_indexMutex);
-		return _bufferIndexRender;
-	}
-
-	inline void _setBufferIndexCapture(const size_t index) {
-		_indexMutex.lock();
-		_bufferIndexCapture = index;
-		_indexMutex.unlock();
-	}
-
-	inline void _setBufferIndexRender(const size_t index) {
-		_indexMutex.lock();
-		_bufferIndexRender = index;
-		_indexMutex.unlock();
+		return index + 1 < NUM_BUFFERS ? index + 1 : 0;
 	}
 
 	inline void _advanceBufferIndex() {
-		_setBufferIndexCapture(_getNextBufferIndex(_getBufferIndexRender()));
-		size_t index = _getBufferIndexRender();
-		_buffers[index].resetSize();
-		_setBufferIndexRender(_getNextBufferIndex(index));
-	}
-
-	inline const bool _isSilence() {
-		std::lock_guard<std::mutex> lock(_silentMutex);
-		return _silent;
-	}
-
-	inline void _setSilence(const bool silence) {
-		_silentMutex.lock();
-		_silent = silence;
-		_silentMutex.unlock();
+		_bufferIndexCapture = _getNextBufferIndex(_bufferIndexCapture);
+		_buffers[_bufferIndexRender].resetSize();
+		_bufferIndexRender = _getNextBufferIndex(_bufferIndexRender);
 	}
 
 	inline void _resetBuffers() {
-		for (int i = 0; i < NUM_BUFFERS; ++i) {
-			_buffers[i].fillWithSilence();
+		for (Buffer &buf : _buffers) {
+			buf.fillWithSilence();
+			buf.resetSize();
 		}
-		_setBufferIndexCapture(0);
-		_setBufferIndexRender(NUM_BUFFERS - 1);
+
+		//_buffers[_bufferIndexRender].fillWithSilence();
+		//_buffers[_bufferIndexCapture].resetSize();
+
+	/*	_buffers[0].fillWithSilence();
+		_setBufferIndexRender(0);
+		_setBufferIndexCapture(1);*/
 	}
 
 	inline void _notifySwap() {
@@ -116,6 +87,5 @@ namespace CaptureLoop {
 		std::unique_lock<decltype(_swapMutex)> lock(_swapMutex);
 		_swapCondition.wait(lock);
 	}
-
 
 }

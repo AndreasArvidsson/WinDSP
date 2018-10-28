@@ -106,7 +106,8 @@ void AsioDevice::destroy() {
 }
 
 void AsioDevice::renderSilence(const long bufferIndex) {
-	for (size_t channelIndex = 0; channelIndex < numChannels; ++channelIndex) {
+	static size_t channelIndex;
+	for (channelIndex = 0; channelIndex < numChannels; ++channelIndex) {
 		memset((int*)AsioDevice::pBufferInfos[channelIndex].buffers[bufferIndex], 0, AsioDevice::bufferSize * sizeof(int));
 	}
 }

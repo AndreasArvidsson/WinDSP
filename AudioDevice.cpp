@@ -137,16 +137,6 @@ void AudioDevice::startService() {
 }
 
 void AudioDevice::prepareService(const bool capture) {
-	REFERENCE_TIME engineTime, minTime;
-	assert(_pAudioClient->GetDevicePeriod(&engineTime, &minTime));
-
-	WAVEFORMATEX *p;
-	UINT32  pCurrentPeriodInFrames;
-	_pAudioClient->GetCurrentSharedModeEnginePeriod(&p, &pCurrentPeriodInFrames);
-
-	UINT32 default_, fundamental, min, max;
-	assert(_pAudioClient->GetSharedModeEnginePeriod(_pFormat, &default_, &fundamental, &min, &max));
-
 	if (capture) {
 		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, 0, 0, _pFormat, nullptr));
 		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pCaptureClient)));
@@ -158,22 +148,22 @@ void AudioDevice::prepareService(const bool capture) {
 		if (_eventHandle == NULL) {
 			throw Error("WASAPI: Unable to create samples ready event %d", GetLastError());
 		}
-
-		//assert(_pAudioClient->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK, min, _pFormat, nullptr));
-		//assert(_pAudioClient->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 0, _pFormat, nullptr));
-
 		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 0, 0, _pFormat, nullptr));
 		assert(_pAudioClient->SetEventHandle(_eventHandle));
-
 		//assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, 0, 0, _pFormat, nullptr));
-
 		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pRenderClient)));
-
-		_bufferSize = pCurrentPeriodInFrames;
+		WAVEFORMATEX *p;
+		_pAudioClient->GetCurrentSharedModeEnginePeriod(&p, &_bufferSize);
 	}
+}
 
+void AudioDevice::printInfo() const {
+	REFERENCE_TIME engineTime, minTime;
+	assert(_pAudioClient->GetDevicePeriod(&engineTime, &minTime));
+	UINT32 default_, fundamental, min, max;
+	assert(_pAudioClient->GetSharedModeEnginePeriod(_pFormat, &default_, &fundamental, &min, &max));
 	printf("hw min = %f, engine = %f, buffer = %f\n", minTime / 10000.0, engineTime / 10000.0, 1000.0 * _bufferSize / _pFormat->nSamplesPerSec);
-	printf("default = %d, fundamental = %d, min = %d, max = %d, current = %d, buffer = %d\n", default_, fundamental, min, max, pCurrentPeriodInFrames, _bufferSize);
+	printf("default = %d, fundamental = %d, min = %d, max = %d, current = %d, buffer = %d\n", default_, fundamental, min, max, _bufferSize, _bufferSize);
 }
 
 const std::string AudioDevice::getId() {

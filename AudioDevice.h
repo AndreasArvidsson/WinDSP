@@ -35,6 +35,7 @@ public:
 	const std::string getName();
 	const WAVEFORMATEX* getFormat() const;
 	ISimpleAudioVolume* getVolumeControl();
+	void printInfo() const;
 
 	inline const UINT32 getBufferSize() const {
 		return _bufferSize;

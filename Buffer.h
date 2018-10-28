@@ -4,8 +4,6 @@ struct Buffer {
 	double *_pData;
 	size_t _size, _capacity, _numChannels, _totalByteSize;
 	std::mutex _dataMutex, _sizeMutex;
-	//std::mutex _dataMutex, _sizeMutex, _readyMutex;
-	//std::condition_variable _condition;
 
 	Buffer() {
 		_pData = nullptr;
@@ -26,16 +24,6 @@ struct Buffer {
 		_pData = nullptr;
 	}
 
-	//void notify() {
-	//	std::lock_guard<decltype(_readyMutex)> lock(_readyMutex);
-	//	_condition.notify_one();
-	//}
-
-	//void wait() {
-	//	std::unique_lock<decltype(_readyMutex)> lock(_readyMutex);
-	//	_condition.wait(lock);
-	//}
-
 	inline const size_t getAvailableSize() {
 		std::lock_guard<std::mutex> lock(_sizeMutex);
 		return _capacity - _size;
@@ -49,7 +37,6 @@ struct Buffer {
 	inline double* getData() {
 		_dataMutex.lock();
 		return _pData + size() * _numChannels;
-		//return _pData;
 	}
 
 	inline void releaseData(const size_t length) {

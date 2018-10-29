@@ -673,7 +673,6 @@ void Config::setDevices() {
 	//Only for asio. Remove othervise
 	else {
 		pRenderNode->remove("asio");
-		pRenderNode->remove("numChannels");
 	}
 	save();
 }
@@ -691,7 +690,6 @@ const JsonNode* Config::getNode(const JsonNode *pNode, const std::string &field,
 	path = path + "/" + field;
 	const JsonNode *pRefNode = pResult->path("#ref");
 	if (!pRefNode->isMissingNode()) {
-		//pResult = getReference(pRefNode, path);
 		pRefNode = getReference(pRefNode, path);
 		pResult = getEnrichedReference(pRefNode, pResult);
 	}
@@ -822,7 +820,10 @@ const std::string Config::getChannelName(const size_t channelIndex, const std::s
 }
 
 const uint32_t Config::getNumChannelsRender(const uint32_t capacity) const {
-	return _numChannelsRender > 0 ? min(_numChannelsRender, capacity) : capacity;
+	if (_numChannelsRender > 0) {
+		return _numChannelsRender;
+	}
+	return (uint32_t)min(_channelNames.size(), capacity);
 }
 
 const std::string Config::getChannelName(const size_t channelIndex) const {

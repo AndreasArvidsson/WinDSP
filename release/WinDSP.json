@@ -1,37 +1,39 @@
 {
-    "minimize": false,
-    "hide": false,
-    "devices": {
+    "minimize" : false,
+    "hide" : false,
+    "devices" : {
+        "capture" : "{0.0.0.00000000}.{1214b1b9-5bd7-4f27-a5e6-6cd7c5b7f8ff}",
+        "render" : "{0.0.0.00000000}.{3fcd702a-5f04-45e1-84d1-538239c72fc8}"
     },
-    "filters": {
+    "filters" : {
     },
-    "inputs": {
-        "L": {
-            "routes": [
+    "inputs" : {
+        "L" : {
+            "routes" : [
                 {
-                    "out": "L",
-                    "filters": [
+                    "out" : "L",
+                    "filters" : [
                     ]
                 }
             ]
         },
-        "R": {
-            "routes": [
+        "R" : {
+            "routes" : [
                 {
-                    "out": "R",
-                    "filters": [
+                    "out" : "R",
+                    "filters" : [
                     ]
                 }
             ]
         }
     },
-    "outputs": {
-        "L": {
-            "filters": [
+    "outputs" : {
+        "L" : {
+            "filters" : [
             ]
         },
-        "R": {
-            "#ref": "outputs/L"
+        "R" : {
+            "#ref" : "outputs/L"
         }
     }
 }

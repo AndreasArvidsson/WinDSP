@@ -28,7 +28,7 @@ namespace AsioDevice {
 	void destroy();
 	std::vector<std::string> getDeviceNames();
 	void init(const std::string &driverName, const HWND windowHandle = nullptr);
-	void startRenderService(ASIOCallbacks *pCallbacks, const long numChannels = 0);
+	void startRenderService(ASIOCallbacks *pCallbacks, const long bufferSize = 0, const long numChannels = 0);
 	void stopRenderService();
 	void renderSilence(const long bufferIndex);
 	void printInfo();

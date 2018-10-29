@@ -100,7 +100,6 @@
   <ItemGroup>
     <ClInclude Include="AsioDevice.h" />
     <ClInclude Include="AudioDevice.h" />
-    <ClInclude Include="Buffer.h" />
     <ClInclude Include="CaptureLoop.h" />
     <ClInclude Include="Condition.h" />
     <ClInclude Include="Config.h" />

@@ -190,11 +190,13 @@ int main(int argc, char **argv) {
 			OS::showWindow();
 			printf("ERROR: %s\n\n", e.what());
 			//Wait for device to possible come back after reconfigure
-			Date::sleepMillis(2000);
-			//Check keyboard input
-			checkInput(Keyboard::getDigit());
+			for (int i = 0; i < 20; ++i) {
+				Date::sleepMillis(100);
+				//Check keyboard input. Needed if user want to change config during error state.
+				checkInput(Keyboard::getDigit());
+			}
 		}
-		//Release old resources
+		//Release old resources.
 		clearData();
 	}
 

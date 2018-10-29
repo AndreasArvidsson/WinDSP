@@ -11,17 +11,16 @@
 
 #pragma once
 #include <vector>
+#include <atomic>
 #include "Config.h"
 #include "ConfigChangedException.h"
 #include "Date.h"
 #include "Convert.h"
 #include "Keyboard.h"
-#include "Buffer.h"
-#include "Semaphore.h"
-
-#define NUM_BUFFERS 3
 
 namespace CaptureLoop {
+	
+	//Public
 	void init(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice);
 	void destroy();
 	void run();
@@ -33,25 +32,23 @@ namespace CaptureLoop {
 	extern const std::vector<Output*> *_pOutputs;
 	extern AudioDevice *_pCaptureDevice;
 	extern AudioDevice *_pRenderDevice;
-	extern size_t _nChannelsIn, _nChannelsOut, _renderBlockSize;
+	extern size_t _nChannelsIn, _nChannelsOut, _overflowSize;
 	extern UINT32 _renderBufferCapacity;
-	extern std::thread _wasapiRenderThread, _wasapiCaptureThread;
-	extern Buffer _buffers[NUM_BUFFERS];
-	extern std::condition_variable _swapCondition;
-	extern size_t _bufferIndexRender;
+	extern std::thread _wasapiRenderThread;
 	extern std::atomic<bool> _run;
-	extern Semaphore _swap;
+	extern bool _silence;
+	extern float *_pOverflowBuffer;
+	extern double *_pProcessBuffer;
 
-	void _bufferSwitch(const long bufferIndex, const ASIOBool);
-	void _wasapiCaptureLoop();
+	void _asioRenderCallback(const long bufferIndex, const ASIOBool);
 	void _wasapiRenderLoop();
-	const size_t _getNextBufferIndex(const size_t index);
 	void _resetFilters();
 	void _checkConfig();
 	void _checkClippingChannels();
 	void _updateConditionalRouting();
 	void _printUsedChannels();
-
-	inline void processCaptureBuffer(const float *pCaptureBuffer, size_t captureAvailable, size_t bufferIndex);
+	void _fillProcessBuffer(size_t renderLeft);
+	void _processCaptureBuffer(const float * pCaptureBuffer, const size_t length, const size_t offset = 0);
+	void _fillProcessBufferWithSilence();
 
 }

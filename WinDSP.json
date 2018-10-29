@@ -9,7 +9,9 @@
         "SBL",
         "SBR",
         "SL",
-        "SR"
+        "SR",
+		"9",
+		"10"
     ],
     "devices" : {
         "capture" : {
@@ -17,17 +19,16 @@
         },
         "render" : {
             "name" : "Focusrite USB ASIO",
-            "asio" : true,
-			"numChannels": 2
+            "numChannels" : 2,
+            "asio" : true
         }
     },
     "filters" : {
     },
-    "inputs" : {
+    "inputs" : {	
+
     },
     "outputs" : {
-        "L" : {
-            "gain" : 0
-        }
+    
     }
 }

@@ -140,20 +140,17 @@ void AudioDevice::prepareService(const bool capture) {
 	if (capture) {
 		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, 0, 0, _pFormat, nullptr));
 		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pCaptureClient)));
-		assert(_pAudioClient->GetBufferSize(&_bufferSize));
 	}
 	else {
-		//Create event handle
-		_eventHandle = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
-		if (_eventHandle == NULL) {
-			throw Error("WASAPI: Unable to create samples ready event %d", GetLastError());
-		}
-		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 0, 0, _pFormat, nullptr));
-		assert(_pAudioClient->SetEventHandle(_eventHandle));
+		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, 0, 0, _pFormat, nullptr));
 		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pRenderClient)));
-		WAVEFORMATEX *p; //Need this. Cant be null
-		_pAudioClient->GetCurrentSharedModeEnginePeriod(&p, &_bufferSize);
 	}
+
+	//Get the size of the allocated buffer.
+	assert(_pAudioClient->GetBufferSize(&_bufferSize));
+
+	WAVEFORMATEX *p; //Need this. Cant be null.
+	_pAudioClient->GetCurrentSharedModeEnginePeriod(&p, &_engineBufferSize);
 }
 
 void AudioDevice::printInfo() const {
@@ -192,4 +189,12 @@ ISimpleAudioVolume* AudioDevice::getVolumeControl() {
 		assert(_pAudioClient->GetService(__uuidof(ISimpleAudioVolume), (void**)&_pSimpleVolume));
 	}
 	return _pSimpleVolume;
+}
+
+const UINT32 AudioDevice::getBufferSize() const {
+	return _bufferSize;
+}
+
+const UINT32 AudioDevice::getEngineBufferSize() const {
+	return _engineBufferSize;
 }

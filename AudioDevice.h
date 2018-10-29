@@ -36,10 +36,8 @@ public:
 	const WAVEFORMATEX* getFormat() const;
 	ISimpleAudioVolume* getVolumeControl();
 	void printInfo() const;
-
-	inline const UINT32 getBufferSize() const {
-		return _bufferSize;
-	}
+	const UINT32 getBufferSize() const;
+	const UINT32 getEngineBufferSize() const;
 
 	inline const UINT32 getBufferFrameCountAvailable() const {
 		static UINT32 numFramesPadding;
@@ -91,10 +89,6 @@ public:
 		assert(_pRenderClient->ReleaseBuffer(frameCount, AUDCLNT_BUFFERFLAGS_SILENT));
 	}
 
-	inline const HANDLE getEventHandle() const {
-		return _eventHandle;
-	}
-
 private:
 	static IMMDeviceEnumerator *_pEnumerator;
 	static bool _initStatic;
@@ -105,15 +99,13 @@ private:
 	IAudioRenderClient *_pRenderClient;
 	ISimpleAudioVolume *_pSimpleVolume;
 	WAVEFORMATEX *_pFormat;
-	UINT32 _bufferSize;
+	UINT32 _bufferSize, _engineBufferSize;
 	std::string _id, _name;
 
 	AudioDevice(IMMDevice *pDevice);
 	void initDefault();
 	void init(IMMDevice *pDevice);
 	void prepareService(const bool capture);
-
-	HANDLE _eventHandle;
 
 };
 

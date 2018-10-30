@@ -13,9 +13,14 @@ class Input {
 public:
 	std::vector<Route*> routes;
 
-	Input() {}
+	Input(const std::string &name) {
+		_name = name;
+		_isPlaying = false;
+	}
 
-	Input(const size_t out) {
+	Input(const std::string &name, const size_t out) {
+		_name = name;
+		_isPlaying = false;
 		routes.push_back(new Route(out));
 	}
 
@@ -25,7 +30,10 @@ public:
 		}
 	}
 
-	inline void route(const double data, double *pRenderBuffer) const {
+	inline void route(const double data, double *pRenderBuffer) {
+		if (data != 0.0) {
+			_isPlaying = true;
+		}
 		for (const Route *p : routes) {
 			p->process(data, pRenderBuffer);
 		}
@@ -42,5 +50,21 @@ public:
 			pRoute->reset();
 		}
 	}
+
+	const std::string getName() const {
+		return _name;
+	}
+
+	const bool resetIsPlaying() {
+		if (_isPlaying) {
+			_isPlaying = false;
+			return true;
+		}
+		return false;
+	}
+
+private:
+	std::string _name;
+	bool _isPlaying;
 
 };

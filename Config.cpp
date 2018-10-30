@@ -148,10 +148,11 @@ void Config::parseInputs() {
 		if (!_inputs[i]) {
 			//Output exists. Route to output
 			if (i < _numChannelsOut) {
-				_inputs[i] = new Input(i);
-			}//Output doesn't exists. Add default non-route input.
+				_inputs[i] = new Input(getChannelName(i), i);
+			}
+			//Output doesn't exists. Add default non-route input.
 			else {
-				_inputs[i] = new Input();
+				_inputs[i] = new Input(getChannelName(i));
 			}
 		}
 	}
@@ -164,7 +165,7 @@ void Config::parseInput(const JsonNode *pInputs, const std::string &channelName,
 		return;
 	}
 	const JsonNode *pChannelNode = getNode(pInputs, channelName, path);
-	_inputs[channelIn] = new Input();
+	_inputs[channelIn] = new Input(channelName);
 	JsonNode *pRoutes = pChannelNode->path("routes");
 	path = path + "/" + "routes";
 	for (size_t i = 0; i < pRoutes->size(); ++i) {

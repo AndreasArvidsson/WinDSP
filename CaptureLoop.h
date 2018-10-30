@@ -39,6 +39,7 @@ namespace CaptureLoop {
 	extern bool _silence;
 	extern float *_pOverflowBuffer;
 	extern double *_pProcessBuffer;
+	extern bool *_pUsedChannels;
 
 	void _asioRenderCallback(const long bufferIndex, const ASIOBool);
 	void _wasapiRenderLoop();

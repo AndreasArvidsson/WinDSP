@@ -15,10 +15,9 @@
 class Output {
 public:
 	double clipping;
-	std::string name;
 
-	Output(const std::string &n) {
-		name = n;
+	Output(const std::string &name) {
+		_name = name;
 		clipping = 0.0;
 	}
 
@@ -53,7 +52,12 @@ public:
 		}
 	}
 
+	const std::string getName() const {
+		return _name;
+	}
+
 private:
+	std::string _name;
 	std::vector<OutputFork*> _forks;
 	
 

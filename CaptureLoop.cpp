@@ -29,6 +29,7 @@ bool CaptureLoop::_silence = false;
 double *CaptureLoop::_pProcessBuffer = nullptr;
 size_t CaptureLoop::_overflowSize = 0;
 float *CaptureLoop::_pOverflowBuffer = nullptr;
+bool *CaptureLoop::_pUsedChannels;
 
 void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice) {
 	_pConfig = pConfig;
@@ -43,9 +44,9 @@ void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, Audio
 	_pOverflowBuffer = new float[_renderBufferCapacity * _nChannelsIn];
 
 	//Initialize conditions
-	//_pUsedChannels = new bool[_nChannelsIn];
-	//memset(_pUsedChannels, 0, _nChannelsIn * sizeof(bool));
-	//Condition::init(_pUsedChannels);
+	_pUsedChannels = new bool[_nChannelsIn];
+	memset(_pUsedChannels, 0, _nChannelsIn * sizeof(bool));
+	Condition::init(_pUsedChannels);
 }
 
 void CaptureLoop::destroy() {
@@ -103,12 +104,6 @@ void CaptureLoop::_fillProcessBufferWithSilence() {
 }
 
 void CaptureLoop::_processCaptureBuffer(const float * pCaptureBuffer, const size_t length, const size_t offset) {
-	/*for (size_t sampleIndex = 0; sampleIndex < length; ++sampleIndex) {
-		for (size_t channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
-			_pProcessBuffer[(offset + sampleIndex) * _nChannelsOut + channelIndex] = pCaptureBuffer[sampleIndex * _nChannelsIn + channelIndex];
-		}
-	}*/
-
 	double *pProcessBuffer = _pProcessBuffer + offset * _nChannelsOut;
 
 	//Set default value to 0 so we can add/mix values to it later
@@ -116,12 +111,7 @@ void CaptureLoop::_processCaptureBuffer(const float * pCaptureBuffer, const size
 
 	//Iterate inputs and route samples from input to process buffer.
 	for (size_t sampleIndex = 0; sampleIndex < length; ++sampleIndex) {
-		//for (size_t channelIndex = 0; channelIndex < _nChannelsIn; ++channelIndex) {
 		for (size_t channelIndex = 0; channelIndex < _nChannelsIn; ++channelIndex) {
-			//Identify which channels are playing.
-	/*		if (pCaptureBuffer[j] != 0) {
-				_pUsedChannels[j] = true;
-			}*/
 			(*_pInputs)[channelIndex]->route(pCaptureBuffer[sampleIndex * _nChannelsIn + channelIndex], pProcessBuffer);
 		}
 		pProcessBuffer += _nChannelsOut;
@@ -163,12 +153,14 @@ void CaptureLoop::_fillProcessBuffer(size_t renderLeft) {
 		//Get capture buffer pointer and number of available frames.
 		assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &captureAvailable, &flags));
 
-		//if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-		//	printf("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY\n");
-		//}
-		//if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
-		//	printf("AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR\n");
-		//}
+#ifdef DEBUG
+		if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+			printf("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY\n");
+		}
+		if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
+			printf("AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR\n");
+		}
+#endif
 
 		//Silence flag set. 
 		if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
@@ -303,27 +295,28 @@ void CaptureLoop::_checkConfig() {
 void CaptureLoop::_checkClippingChannels() {
 	for (Output *pOutput : *_pOutputs) {
 		if (pOutput->clipping != 0.0) {
-			printf("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", pOutput->name.c_str(), Convert::levelToDb(pOutput->clipping));
+			printf("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", pOutput->getName().c_str(), Convert::levelToDb(pOutput->clipping));
 			pOutput->clipping = 0.0;
 		}
 	}
 }
 
 void CaptureLoop::_updateConditionalRouting() {
+	//Get current is playing status per channel.
+	for (size_t i = 0; i < _nChannelsIn; ++i) {
+		_pUsedChannels[i] = (*_pInputs)[i]->resetIsPlaying();
+	}
+
 	//Update conditional routing.
 	for (const Input *pInut : *_pInputs) {
 		pInut->evalConditions();
 	}
-	//Set all to false so we can check anew until next time this func runs.
-	/*for (size_t i = 0; i < _nChannelsIn; ++i) {
-		_pUsedChannels[i] = false;
-	}*/
 }
 
 //For debug purposes only.
 void CaptureLoop::_printUsedChannels() {
-	/*for (size_t i = 0; i < _nChannelsIn; ++i) {
-		printf("%s %d\n", _pConfig->getChannelName(i).c_str(), _pUsedChannels[i]);
+	for (size_t i = 0; i < _nChannelsIn; ++i) {
+		printf("%s %d\n", (*_pInputs)[i]->getName().c_str(), _pUsedChannels[i]);
 	}
-	printf("\n");*/
+	printf("\n");
 }

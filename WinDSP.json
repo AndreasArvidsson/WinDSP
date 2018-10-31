@@ -1,6 +1,4 @@
 {
-    "hide" : false,
-    "minimize" : false,
     "channels" : [
         "L",
         "R",
@@ -9,9 +7,7 @@
         "SBL",
         "SBR",
         "SL",
-        "SR",
-		"9",
-		"10"
+        "SR"
     ],
     "devices" : {
         "capture" : {
@@ -19,16 +15,35 @@
         },
         "render" : {
             "name" : "Focusrite USB ASIO",
-            "numChannels" : 2,
             "asio" : true
         }
     },
-    "filters" : {
-    },
-    "inputs" : {	
-
+    "minimize" : false,
+    "filters" : { },
+    "inputs" : {
+        "L" : {
+            "routes" : [
+                {
+                    "out" : "L"
+                }
+            ]
+        },
+        "R" : {
+            "routes" : [
+                {
+                    "out" : "R"
+                }
+            ]
+        }
     },
     "outputs" : {
-    
+        "L" : {
+            "gain" : 0,
+            "filters" : [
+            ]
+        },
+        "R" : {
+            "#ref" : "outputs/L"
+        }
     }
 }

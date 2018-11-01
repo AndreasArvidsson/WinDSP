@@ -85,13 +85,6 @@ void CaptureLoop::run() {
 		_wasapiRenderThread = std::thread(_wasapiRenderLoop);
 	}
 
-
-
-	//float * pCaptureBuffer;
-	//UINT32 captureAvailable;
-	//assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &captureAvailable));
-	//assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
-
 	size_t count = 0;
 	for (;;) {
 		//Asio renderer operates in its on thread context and cant directly throw exceptions.
@@ -181,12 +174,12 @@ void CaptureLoop::_wasapiRenderLoop() {
 	}
 }
 
-void CaptureLoop::_fillProcessBuffer(size_t renderLeft) {
-	UINT32 captureAvailable;
+void CaptureLoop::_fillProcessBuffer(size_t renderLeft) {	UINT32 captureAvailable;
 	size_t length;
 	float *pCaptureBuffer;
 	DWORD flags;
 
+	//Overflow from last pass. Use these first.
 	if (_overflowSize) {
 		length = min(renderLeft, _overflowSize);
 		_processCaptureBuffer(_pOverflowBuffer, length);
@@ -203,7 +196,7 @@ void CaptureLoop::_fillProcessBuffer(size_t renderLeft) {
 			//In silence 'mode'. Fill buffer with silence and be done.
 			if (_silence) {
 				_fillProcessBufferWithSilence();
-				break;
+				return;
 			}
 			//Just waiting for data during playback.
 			else {
@@ -215,12 +208,6 @@ void CaptureLoop::_fillProcessBuffer(size_t renderLeft) {
 
 		//Get capture buffer pointer and number of available frames.
 		assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &captureAvailable, &flags));
-
-#ifdef DEBUG
-		if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-			printf("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY %d\n", captureAvailable);
-		}
-#endif
 
 		//Silence flag set. 
 		if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {

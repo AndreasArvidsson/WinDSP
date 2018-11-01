@@ -38,6 +38,21 @@ void setVisibility() {
 	}
 }
 
+void updateStartWithOS() {
+	const HKEY hKey = HKEY_CURRENT_USER;
+	const std::string path = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+	const std::string name = "WinDSP";
+	//Should start with OS. Add to registry.
+	if (pConfig->startWithOS()) {
+		const std::string exePath = OS::getExePath();
+		OS::regSetValue(hKey, path, name, exePath);
+	}
+	//Added to registry previusly. Remove.
+	else if (OS::regValueExists(hKey, path, name)) {
+		OS::regRemoveValue(hKey, path, name);
+	}
+}
+
 void setTitle() {
 	snprintf(title, TITLE_SIZE, "WinDSP %s%s", VERSION, PROFILE);
 	SetConsoleTitle(title);
@@ -85,21 +100,6 @@ void clearData() {
 		MemoryManager::getInstance()->assertNoLeak();
 	}
 #endif
-}
-
-void updateStartWithOS() {
-	const HKEY hKey = HKEY_CURRENT_USER;
-	const std::string path = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-	const std::string name = "WinDSP";
-	//Should start with OS. Add to registry.
-	if (pConfig->startWithOS()) {
-		const std::string exePath = OS::getExePath();
-		OS::regSetValue(hKey, path, name, exePath);
-	}
-	//Added to registry previusly. Remove.
-	else if (OS::regValueExists(hKey, path, name)) {
-		OS::regRemoveValue(hKey, path, name);
-	}
 }
 
 void run() {

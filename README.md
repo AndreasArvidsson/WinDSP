@@ -119,8 +119,10 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 * If devices are not set the user will be queried from a list of available devices. Do **NOT** write these names yourself
 
 **ASIO devices**
-* Experimental support for ASIO devices
-* For now only supports 32bit integer format defined as: ASIOSTInt32LSB.
+* Experimental support for ASIO devices.
+* Only works for render devices. Capture devices still use WASAPI.
+* For now only supports devices using 32bit integer format defined as: ASIOSTInt32LSB
+* Optional parameter 'numChannels' can be given to the ASIO device to restrict number of output channels. Saves on CPU cycles. 
 
 **Inputs**
 * Inputs contains the routes. i.e. the mapping between inputs and outputs

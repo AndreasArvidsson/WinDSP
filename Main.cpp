@@ -186,8 +186,6 @@ void run() {
 	CaptureLoop::run();
 }
 
-
-
 int main(int argc, char **argv) {
 	setTitle();
 
@@ -208,9 +206,6 @@ int main(int argc, char **argv) {
 		}
 		//Keep trying for the service to come back
 		catch (const std::exception &e) {
-			//Release old resources before waiting.
-			clearData();
-
 			OS::showWindow();
 			printf("ERROR: %s\n\n", e.what());
 
@@ -221,7 +216,7 @@ int main(int argc, char **argv) {
 		//Release old resources.
 		clearData();
 
-		//Wait for device to possible come back after reconfigure
+		//Wait for device to possible come back after reconfigure.
 		while (waiting > 0) {
 			--waiting;
 

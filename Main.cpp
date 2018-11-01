@@ -120,12 +120,12 @@ void run() {
 	pCaptureDevice = AudioDevice::initDevice(captureDeviceName);
 	pCaptureDevice->initCaptureService();
 	const WAVEFORMATEX *pCaptureFormat = pCaptureDevice->getFormat();
-	int rendererSampleRate, renderNumChannels;
+	uint32_t rendererSampleRate, renderNumChannels;
 
 	if (pConfig->useAsioRenderer()) {
 		AsioDevice::init(renderDeviceName, FindWindow(NULL, title));
-		rendererSampleRate = (int)AsioDevice::sampleRate;
-		renderNumChannels = pConfig->getNumChannelsRender(AsioDevice::numOutputChannels);
+		rendererSampleRate = AsioDevice::getSampleRate();
+		renderNumChannels = pConfig->getNumChannelsRender(AsioDevice::getNumOutputChannels());
 	}
 	else {
 		pRenderDevice = AudioDevice::initDevice(renderDeviceName);
@@ -175,6 +175,7 @@ int main(int argc, char **argv) {
 	OS::flushDenormalizedZero();
 	OS::setPriorityHigh();
 
+	size_t waiting = 0;
 	for (;;) {
 		try {
 			//Run application
@@ -187,17 +188,29 @@ int main(int argc, char **argv) {
 		}
 		//Keep trying for the service to come back
 		catch (const std::exception &e) {
+			//Release old resources before waiting.
+			clearData();
+
 			OS::showWindow();
 			printf("ERROR: %s\n\n", e.what());
-			//Wait for device to possible come back after reconfigure
-			for (int i = 0; i < 20; ++i) {
-				Date::sleepMillis(100);
-				//Check keyboard input. Needed if user want to change config during error state.
-				checkInput(Keyboard::getDigit());
-			}
+
+			//Wait before trying again.
+			waiting = 20;
 		}
+
 		//Release old resources.
 		clearData();
+
+		//Wait for device to possible come back after reconfigure
+		while (waiting > 0) {
+			--waiting;
+
+			//Sleep not to busy wait all resources.
+			Date::sleepMillis(100);
+
+			//Check keyboard input. Needed if user want to change config during error state.
+			checkInput(Keyboard::getDigit());
+		}
 	}
 
 	return EXIT_SUCCESS;

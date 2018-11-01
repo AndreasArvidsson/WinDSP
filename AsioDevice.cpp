@@ -7,22 +7,22 @@
 extern AsioDrivers* asioDrivers;
 bool loadAsioDriver(char *name);
 
-ASIOBufferInfo* AsioDevice::pBufferInfos = nullptr;
-ASIOChannelInfo* AsioDevice::pChannelInfos = nullptr;
-long AsioDevice::numInputChannels = 0;
-long AsioDevice::numOutputChannels = 0;
-long AsioDevice::numChannels = 0;
-long AsioDevice::asioVersion = 0;
-long AsioDevice::driverVersion = 0;
-long AsioDevice::minSize = 0;
-long AsioDevice::maxSize = 0;
-long AsioDevice::preferredSize = 0;
-long AsioDevice::granularity = 0;
-long AsioDevice::bufferSize = 0;
-long AsioDevice::inputLatency = 0;
-long AsioDevice::outputLatency = 0;
-double AsioDevice::sampleRate = 0.0;
-bool AsioDevice::outputReady = false;
+ASIOBufferInfo* AsioDevice::_pBufferInfos = nullptr;
+ASIOChannelInfo* AsioDevice::_pChannelInfos = nullptr;
+long AsioDevice::_numInputChannels = 0;
+long AsioDevice::_numOutputChannels = 0;
+long AsioDevice::_numChannels = 0;
+long AsioDevice::_asioVersion = 0;
+long AsioDevice::_driverVersion = 0;
+long AsioDevice::_minSize = 0;
+long AsioDevice::_maxSize = 0;
+long AsioDevice::_preferredSize = 0;
+long AsioDevice::_granularity = 0;
+long AsioDevice::_bufferSize = 0;
+long AsioDevice::_inputLatency = 0;
+long AsioDevice::_outputLatency = 0;
+double AsioDevice::_sampleRate = 0.0;
+bool AsioDevice::_outputReady = false;
 std::string *AsioDevice::_pDriverName = nullptr;
 
 std::vector<std::string> AsioDevice::getDeviceNames() {
@@ -46,21 +46,21 @@ std::vector<std::string> AsioDevice::getDeviceNames() {
 
 void AsioDevice::init(const std::string &dName, const HWND windowHandle) {
 	_loadDriver(dName, windowHandle);
-	assertAsio(ASIOGetChannels(&numInputChannels, &numOutputChannels));
-	assertAsio(ASIOGetBufferSize(&minSize, &maxSize, &preferredSize, &granularity));
-	assertAsio(ASIOGetSampleRate(&sampleRate));
-	assertAsio(ASIOGetLatencies(&inputLatency, &outputLatency));
-	outputReady = ASIOOutputReady() == ASE_OK;
+	assertAsio(ASIOGetChannels(&_numInputChannels, &_numOutputChannels));
+	assertAsio(ASIOGetBufferSize(&_minSize, &_maxSize, &_preferredSize, &_granularity));
+	assertAsio(ASIOGetSampleRate(&_sampleRate));
+	assertAsio(ASIOGetLatencies(&_inputLatency, &_outputLatency));
+	_outputReady = ASIOOutputReady() == ASE_OK;
 }
 
 void AsioDevice::startRenderService(ASIOCallbacks *pCallbacks, const long bSize, const long nChannels) {
-	bufferSize = bSize > 0 ? bSize : preferredSize;
-	numChannels = nChannels > 0 ? min(nChannels, numOutputChannels) : numOutputChannels;
+	_bufferSize = bSize > 0 ? bSize : _preferredSize;
+	_numChannels = nChannels > 0 ? min(nChannels, _numOutputChannels) : _numOutputChannels;
 
 	//Create buffer info per channel.
-	pBufferInfos = new ASIOBufferInfo[numChannels];
-	ASIOBufferInfo *buf = pBufferInfos;
-	for (int i = 0; i < numChannels; ++i, ++buf) {
+	_pBufferInfos = new ASIOBufferInfo[_numChannels];
+	ASIOBufferInfo *buf = _pBufferInfos;
+	for (int i = 0; i < _numChannels; ++i, ++buf) {
 		buf->isInput = ASIOFalse;
 		buf->channelNum = i;
 		buf->buffers[0] = buf->buffers[1] = 0;
@@ -71,18 +71,16 @@ void AsioDevice::startRenderService(ASIOCallbacks *pCallbacks, const long bSize,
 		pCallbacks->asioMessage = &_asioMessage;
 	}
 
-	bufferSize = 441;
-
 	//Create buffers and connect callbacks.
-	assertAsio(ASIOCreateBuffers(pBufferInfos, numChannels, bufferSize, pCallbacks));
+	assertAsio(ASIOCreateBuffers(_pBufferInfos, _numChannels, _bufferSize, pCallbacks));
 
 	//Get channel infos.
-	pChannelInfos = new ASIOChannelInfo[numChannels];
-	for (int i = 0; i < numChannels; ++i) {
-		pChannelInfos[i].channel = pBufferInfos[i].channelNum;
-		pChannelInfos[i].isInput = pBufferInfos[i].isInput;
-		assertAsio(ASIOGetChannelInfo(&pChannelInfos[i]));
-		assertSampleType(pChannelInfos[i].type);
+	_pChannelInfos = new ASIOChannelInfo[_numChannels];
+	for (int i = 0; i < _numChannels; ++i) {
+		_pChannelInfos[i].channel = _pBufferInfos[i].channelNum;
+		_pChannelInfos[i].isInput = _pBufferInfos[i].isInput;
+		assertAsio(ASIOGetChannelInfo(&_pChannelInfos[i]));
+		assertSampleType(_pChannelInfos[i].type);
 	}
 
 	assertAsio(ASIOStart());
@@ -95,40 +93,59 @@ void AsioDevice::stopRenderService() {
 
 void AsioDevice::destroy() {
 	ASIOExit();
-	delete[] pBufferInfos;
-	delete[] pChannelInfos;
+	delete[] _pBufferInfos;
+	delete[] _pChannelInfos;
 	delete _pDriverName;
 	delete asioDrivers;
-	pBufferInfos = nullptr;
-	pChannelInfos = nullptr;
+	_pBufferInfos = nullptr;
+	_pChannelInfos = nullptr;
 	_pDriverName = nullptr;
 	asioDrivers = nullptr;
 }
 
 void AsioDevice::renderSilence(const long bufferIndex) {
 	static size_t channelIndex;
-	for (channelIndex = 0; channelIndex < numChannels; ++channelIndex) {
-		memset((int*)AsioDevice::pBufferInfos[channelIndex].buffers[bufferIndex], 0, AsioDevice::bufferSize * sizeof(int));
+	for (channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
+		memset((int*)_pBufferInfos[channelIndex].buffers[bufferIndex], 0, _bufferSize * sizeof(int));
 	}
+}
+
+void AsioDevice::outputReady() {
+	//If available this can reduce letency.
+	if (_outputReady) {
+		assertAsio(ASIOOutputReady());
+	}
+}
+
+int* AsioDevice::getBuffer(const size_t channelIndex, const long bufferIndex) {
+	return (int*)_pBufferInfos[channelIndex].buffers[bufferIndex];
 }
 
 const std::string AsioDevice::getName() {
 	return *_pDriverName;
 }
 
+const long AsioDevice::getSampleRate() {
+	return (long)_sampleRate;
+}
+
+const long AsioDevice::getNumOutputChannels() {
+	return _numOutputChannels;
+}
+
 void AsioDevice::printInfo() {
-	printf("asioVersion: %d\n", asioVersion);
-	printf("driverVersion: %d\n", driverVersion);
+	printf("asioVersion: %d\n", _asioVersion);
+	printf("driverVersion: %d\n", _driverVersion);
 	printf("Name: %s\n", _pDriverName->c_str());
-	printf("ASIOGetChannels (inputs: %d, outputs: %d) - numChannels: %d\n", numInputChannels, numOutputChannels, numChannels);
-	printf("ASIOGetBufferSize (min: %d, max: %d, preferred: %d, granularity: %d)\n", minSize, maxSize, preferredSize, granularity);
-	printf("ASIOGetSampleRate (sampleRate: %d)\n", (int)sampleRate);
-	printf("ASIOGetLatencies (input: %d, output: %d)\n", inputLatency, outputLatency);
-	printf("ASIOOutputReady(); - %s\n", outputReady ? "Supported" : "Not supported");
-	if (pChannelInfos) {
-		for (int i = 0; i < numOutputChannels; ++i) {
-			printf("ASIOGetChannelInfo(channel: %d, name: %s, group: %d, isActive: %d, isInput: %d, type: %d)\n",
-				pChannelInfos[i].channel, pChannelInfos[i].name, pChannelInfos[i].channelGroup, pChannelInfos[i].isActive, pChannelInfos[i].isInput, pChannelInfos[i].type);
+	printf("ASIOGetChannels (inputs: %d, outputs: %d) - numChannels: %d\n", _numInputChannels, _numOutputChannels, _numChannels);
+	printf("ASIOGetBufferSize (min: %d, max: %d, preferred: %d, granularity: %d)\n", _minSize, _maxSize, _preferredSize, _granularity);
+	printf("ASIOGetSampleRate (sampleRate: %d)\n", (int)_sampleRate);
+	printf("ASIOGetLatencies (input: %d, output: %d)\n", _inputLatency, _outputLatency);
+	printf("ASIOOutputReady(); - %s\n", _outputReady ? "Supported" : "Not supported");
+	if (_pChannelInfos) {
+		for (int i = 0; i < _numOutputChannels; ++i) {
+			const ASIOChannelInfo &c = _pChannelInfos[i];
+			printf("ASIOGetChannelInfo(channel: %d, name: %s, group: %d, isActive: %d, isInput: %d, type: %d)\n", c.channel, c.name, c.channelGroup, c.isActive, c.isInput, c.type);
 		}
 	}
 }
@@ -144,8 +161,8 @@ void AsioDevice::_loadDriver(const std::string &dName, const HWND windowHandle) 
 	assertAsio(ASIOInit(&driverInfo));
 	_pDriverName = new std::string();
 	*_pDriverName = driverInfo.name;
-	asioVersion = driverInfo.asioVersion;
-	driverVersion = driverInfo.driverVersion;
+	_asioVersion = driverInfo.asioVersion;
+	_driverVersion = driverInfo.driverVersion;
 }
 
 long AsioDevice::_asioMessage(const long selector, const long value, void* const message, double* const opt) {

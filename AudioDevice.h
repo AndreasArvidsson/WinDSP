@@ -75,7 +75,7 @@ public:
 	}
 
 	inline void flushCaptureBuffer() const {
-		UINT32 frameCount;
+		static UINT32 frameCount;
 		static BYTE *buffer;
 		static DWORD flags;
 		assert(_pCaptureClient->GetBuffer(&buffer, &frameCount, &flags, nullptr, nullptr));
@@ -84,9 +84,14 @@ public:
 
 	inline void flushRenderBuffer() const {
 		static BYTE *buffer;
-		const UINT32 frameCount = getBufferFrameCountAvailable();
+		static UINT32 frameCount;
+		frameCount = getBufferFrameCountAvailable();
 		assert(_pRenderClient->GetBuffer(frameCount, &buffer));
 		assert(_pRenderClient->ReleaseBuffer(frameCount, AUDCLNT_BUFFERFLAGS_SILENT));
+	}
+
+	void reset() {
+		_pAudioClient->Reset();
 	}
 
 private:

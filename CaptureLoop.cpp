@@ -73,9 +73,7 @@ void CaptureLoop::run() {
 	//Asio render device.
 	if (_pConfig->useAsioRenderer()) {
 		ASIOCallbacks callbacks{ 0 };
-
 		callbacks.asioMessage = &_asioMessage;
-
 		callbacks.bufferSwitch = &_asioRenderCallback;
 		//Asio driver automatically starts in new thread
 		AsioDevice::startRenderService(&callbacks, (long)_renderBufferCapacity, (long)_nChannelsOut);
@@ -86,6 +84,13 @@ void CaptureLoop::run() {
 		//Start rendering in a new thread.
 		_wasapiRenderThread = std::thread(_wasapiRenderLoop);
 	}
+
+
+
+	//float * pCaptureBuffer;
+	//UINT32 captureAvailable;
+	//assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &captureAvailable));
+	//assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
 
 	size_t count = 0;
 	for (;;) {
@@ -114,101 +119,6 @@ void CaptureLoop::run() {
 	}
 }
 
-void CaptureLoop::_fillProcessBufferWithSilence() {
-	memset(_pProcessBuffer, 0, _renderBufferCapacity * _nChannelsOut * sizeof(double));
-}
-
-void CaptureLoop::_processCaptureBuffer(const float * pCaptureBuffer, const size_t length, const size_t offset) {
-	double *pProcessBuffer = _pProcessBuffer + offset * _nChannelsOut;
-
-	//Set default value to 0 so we can add/mix values to it later
-	memset(pProcessBuffer, 0, length * _nChannelsOut * sizeof(double));
-
-	//Iterate inputs and route samples from input to process buffer.
-	for (size_t sampleIndex = 0; sampleIndex < length; ++sampleIndex) {
-		for (size_t channelIndex = 0; channelIndex < _nChannelsIn; ++channelIndex) {
-			(*_pInputs)[channelIndex]->route(pCaptureBuffer[sampleIndex * _nChannelsIn + channelIndex], pProcessBuffer);
-		}
-		pProcessBuffer += _nChannelsOut;
-	}
-}
-
-void CaptureLoop::_fillProcessBuffer(size_t renderLeft) {
-	UINT32 captureAvailable;
-	size_t length;
-	float *pCaptureBuffer;
-	DWORD flags;
-
-	if (_overflowSize) {
-		length = min(renderLeft, _overflowSize);
-		_processCaptureBuffer(_pOverflowBuffer, length);
-		_overflowSize = 0;
-		renderLeft -= length;
-	}
-
-	while (renderLeft > 0) {
-		//Check for samples in capture buffer.
-		assert(_pCaptureDevice->getNextPacketSize(&captureAvailable));
-
-		//No data available
-		if (captureAvailable == 0) {
-			//In silence 'mode'. Fill buffer with silence and be done.
-			if (_silence) {
-				_fillProcessBufferWithSilence();
-				break;
-			}
-			//Just waiting for data during playback.
-			else {
-				//Short sleep just to not busy wait all resources.
-				Date::sleepMillis(1);
-				continue;
-			}
-		}
-
-		//Get capture buffer pointer and number of available frames.
-		assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &captureAvailable, &flags));
-
-		//#ifdef DEBUG
-		//		if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-		//			printf("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY\n");
-		//		}
-		//		if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
-		//			printf("AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR\n");
-		//		}
-		//#endif
-
-				//Silence flag set. 
-		if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
-			//Was audio before. Reset filter states.
-			if (!_silence) {
-				_silence = true;
-				_resetFilters();
-			}
-			_fillProcessBufferWithSilence();
-			renderLeft = 0;
-		}
-		else {
-			_silence = false;
-
-			//Available frames to write to buffer.
-			length = min(renderLeft, captureAvailable);
-
-			//Copy data from capture buffer to temporary render buffer.
-			_processCaptureBuffer(pCaptureBuffer, length, _renderBufferCapacity - renderLeft);
-
-			if (captureAvailable > length) {
-				_overflowSize = captureAvailable - length;
-				memcpy(_pOverflowBuffer, pCaptureBuffer + length * _nChannelsIn, _overflowSize * _nChannelsIn * sizeof(float));
-			}
-
-			renderLeft -= length;
-		}
-
-		//Release/flush capture buffer.
-		assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
-	}
-}
-
 void CaptureLoop::_asioRenderCallback(const long asioBufferIndex, const ASIOBool) {
 	swStart();
 
@@ -217,7 +127,7 @@ void CaptureLoop::_asioRenderCallback(const long asioBufferIndex, const ASIOBool
 
 	//Copy data from process buffer to render buffer.
 	for (size_t channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
-		int* pRenderBuffer = (int*)AsioDevice::pBufferInfos[channelIndex].buffers[asioBufferIndex];
+		int* pRenderBuffer = AsioDevice::getBuffer(channelIndex, asioBufferIndex);
 		for (size_t sampleIndex = 0; sampleIndex < _renderBufferCapacity; ++sampleIndex) {
 			//Apply output forks and filters and then convert from float to int.
 			pRenderBuffer[sampleIndex] = (int)(MAX_INT32 * (*_pOutputs)[channelIndex]->process(_pProcessBuffer[sampleIndex * _nChannelsOut + channelIndex]));
@@ -225,9 +135,7 @@ void CaptureLoop::_asioRenderCallback(const long asioBufferIndex, const ASIOBool
 	}
 
 	//If available this can reduce letency.
-	if (AsioDevice::outputReady) {
-		assertAsio(ASIOOutputReady());
-	}
+	AsioDevice::outputReady();
 
 	swEnd();
 }
@@ -271,6 +179,98 @@ void CaptureLoop::_wasapiRenderLoop() {
 		//Short sleep just to not busy wait all resources.
 		Date::sleepMillis(1);
 	}
+}
+
+void CaptureLoop::_fillProcessBuffer(size_t renderLeft) {
+	UINT32 captureAvailable;
+	size_t length;
+	float *pCaptureBuffer;
+	DWORD flags;
+
+	if (_overflowSize) {
+		length = min(renderLeft, _overflowSize);
+		_processCaptureBuffer(_pOverflowBuffer, length);
+		_overflowSize = 0;
+		renderLeft -= length;
+	}
+
+	while (renderLeft > 0) {
+		//Check for samples in capture buffer.
+		assert(_pCaptureDevice->getNextPacketSize(&captureAvailable));
+
+		//No data available
+		if (captureAvailable == 0) {
+			//In silence 'mode'. Fill buffer with silence and be done.
+			if (_silence) {
+				_fillProcessBufferWithSilence();
+				break;
+			}
+			//Just waiting for data during playback.
+			else {
+				//Short sleep just to not busy wait all resources.
+				Date::sleepMillis(1);
+				continue;
+			}
+		}
+
+		//Get capture buffer pointer and number of available frames.
+		assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &captureAvailable, &flags));
+
+#ifdef DEBUG
+		if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+			printf("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY %d\n", captureAvailable);
+		}
+#endif
+
+		//Silence flag set. 
+		if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
+			//Was audio before. Reset filter states.
+			if (!_silence) {
+				_silence = true;
+				_resetFilters();
+			}
+			_fillProcessBufferWithSilence();
+			renderLeft = 0;
+		}
+		else {
+			_silence = false;
+
+			//Available frames to write to buffer.
+			length = min(renderLeft, captureAvailable);
+
+			//Copy data from capture buffer to temporary render buffer.
+			_processCaptureBuffer(pCaptureBuffer, length, _renderBufferCapacity - renderLeft);
+
+			if (captureAvailable > length) {
+				_overflowSize = captureAvailable - length;
+				memcpy(_pOverflowBuffer, pCaptureBuffer + length * _nChannelsIn, _overflowSize * _nChannelsIn * sizeof(float));
+			}
+
+			renderLeft -= length;
+		}
+
+		//Release/flush capture buffer.
+		assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
+	}
+}
+
+void CaptureLoop::_processCaptureBuffer(const float * pCaptureBuffer, const size_t length, const size_t offset) {
+	double *pProcessBuffer = _pProcessBuffer + offset * _nChannelsOut;
+
+	//Set default value to 0 so we can add/mix values to it later
+	memset(pProcessBuffer, 0, length * _nChannelsOut * sizeof(double));
+
+	//Iterate inputs and route samples from input to process buffer.
+	for (size_t sampleIndex = 0; sampleIndex < length; ++sampleIndex) {
+		for (size_t channelIndex = 0; channelIndex < _nChannelsIn; ++channelIndex) {
+			(*_pInputs)[channelIndex]->route(pCaptureBuffer[sampleIndex * _nChannelsIn + channelIndex], pProcessBuffer);
+		}
+		pProcessBuffer += _nChannelsOut;
+	}
+}
+
+void CaptureLoop::_fillProcessBufferWithSilence() {
+	memset(_pProcessBuffer, 0, _renderBufferCapacity * _nChannelsOut * sizeof(double));
 }
 
 long CaptureLoop::_asioMessage(const long selector, const long value, void* const message, double* const opt) {

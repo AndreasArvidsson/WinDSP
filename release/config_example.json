@@ -1,8 +1,10 @@
 {
-    "minimize": true,
+	"startWithOS": false,
+	"minimize": false,
     "hide": false,
-    "devices": {},
     "channels": [ "L", "R", "C", "SW", "SBL", "SBR", "SL", "SR" ],
+	"devices": {
+	},
     "filters": {
         "hp": {
             "type": "HIGH_PASS",

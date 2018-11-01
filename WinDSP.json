@@ -1,15 +1,9 @@
 {
-    "channels" : [
-        "L",
-        "R",
-        "C",
-        "SW",
-        "SBL",
-        "SBR",
-        "SL",
-        "SR"
-    ],
-    "devices" : {
+	"startWithOS": false,
+	"minimize" : false,
+	"hide": false,
+	"channels": [ "L", "R", "C", "SW", "SBL", "SBR", "SL", "SR" ],
+	"devices" : {
         "capture" : {
             "name" : "CABLE Input (VB-Audio Virtual Cable)"
         },
@@ -18,8 +12,8 @@
             "asio" : true
         }
     },
-    "minimize" : false,
-    "filters" : { },
+    "filters" : { 
+	},
     "inputs" : {
         "L" : {
             "routes" : [

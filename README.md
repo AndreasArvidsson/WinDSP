@@ -43,13 +43,6 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 1. Configure WinDSP.json configuration file
 1. Start WinDSP.exe
 
-**Start WinDSP with Windows**
-1. Create shortcut to WinDSP.exe (right click/create shortcut)
-1. Press win+R
-1. Type "shell:startup" and press enter
-1. Startup folder opens
-1. Paste shortcut to WinDSP.exe in the folder
-
 ## JSON config file
 * Saving the config file will automatically restart WinDSP. No need to manually close and open the program
 * If you are not used to JSON use an editor like [Json Parser Online](http://json.parser.online.fr) to get the format correct
@@ -62,8 +55,9 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 **Config layout**    
 ```json
 {
-    "hide":  false,
-    "minimize":  false,
+    "startWithOS": false,
+	"minimize":  false,
+	"hide":  false,
     "channels": ["L", "R", "C", "SW", "SBL", "SBR", "SL", "SR"],
     "devices": {
         "capture" : {
@@ -95,6 +89,9 @@ If you don't have a spare soundcard in your computer to use for the capture devi
     }
 }
 ```
+
+**Start WinDSP with Windows**
+* Set startWithOS to true and WinDSP will start with the OS/Windows
 
 **Hide and minimize**    
 * Set hide to true to hide window on startup.

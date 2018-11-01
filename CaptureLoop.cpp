@@ -25,11 +25,13 @@ size_t CaptureLoop::_nChannelsOut = 0;
 UINT32 CaptureLoop::_renderBufferCapacity = 0;
 std::thread CaptureLoop::_wasapiRenderThread;
 std::atomic<bool> CaptureLoop::_run = false;
+std::atomic<bool> CaptureLoop::_throwError = false;
 bool CaptureLoop::_silence = false;
 double *CaptureLoop::_pProcessBuffer = nullptr;
 size_t CaptureLoop::_overflowSize = 0;
 float *CaptureLoop::_pOverflowBuffer = nullptr;
 bool *CaptureLoop::_pUsedChannels;
+Error CaptureLoop::_error;
 
 void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice) {
 	_pConfig = pConfig;
@@ -52,25 +54,33 @@ void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, Audio
 void CaptureLoop::destroy() {
 	delete[] _pProcessBuffer;
 	delete[] _pOverflowBuffer;
+	delete[] _pUsedChannels;
 	_pProcessBuffer = nullptr;
 	_pOverflowBuffer = nullptr;
+	_pUsedChannels = nullptr;
 	_pInputs = nullptr;
 	_pOutputs = nullptr;
 }
 
 void CaptureLoop::run() {
 	_run = _silence = true;
-	_pCaptureDevice->startService();
+	_throwError = false;
 	_overflowSize = 0;
 
-	//Asio render device
+	//Start wasapi capture device.
+	_pCaptureDevice->startService();
+
+	//Asio render device.
 	if (_pConfig->useAsioRenderer()) {
 		ASIOCallbacks callbacks{ 0 };
+
+		callbacks.asioMessage = &_asioMessage;
+
 		callbacks.bufferSwitch = &_asioRenderCallback;
 		//Asio driver automatically starts in new thread
 		AsioDevice::startRenderService(&callbacks, (long)_renderBufferCapacity, (long)_nChannelsOut);
 	}
-	//Wasapi render device
+	//Wasapi render device.
 	else {
 		_pRenderDevice->startService();
 		//Start rendering in a new thread.
@@ -79,6 +89,11 @@ void CaptureLoop::run() {
 
 	size_t count = 0;
 	for (;;) {
+		//Asio renderer operates in its on thread context and cant directly throw exceptions.
+		if (_throwError) {
+			throw _error;
+		}
+
 		//Short sleep just to not busy wait all resources.
 		Date::sleepMillis(100);
 
@@ -153,16 +168,16 @@ void CaptureLoop::_fillProcessBuffer(size_t renderLeft) {
 		//Get capture buffer pointer and number of available frames.
 		assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &captureAvailable, &flags));
 
-#ifdef DEBUG
-		if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-			printf("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY\n");
-		}
-		if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
-			printf("AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR\n");
-		}
-#endif
+		//#ifdef DEBUG
+		//		if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+		//			printf("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY\n");
+		//		}
+		//		if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
+		//			printf("AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR\n");
+		//		}
+		//#endif
 
-		//Silence flag set. 
+				//Silence flag set. 
 		if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
 			//Was audio before. Reset filter states.
 			if (!_silence) {
@@ -256,6 +271,32 @@ void CaptureLoop::_wasapiRenderLoop() {
 		//Short sleep just to not busy wait all resources.
 		Date::sleepMillis(1);
 	}
+}
+
+long CaptureLoop::_asioMessage(const long selector, const long value, void* const message, double* const opt) {
+	switch (selector) {
+	case kAsioSelectorSupported:
+		switch (value) {
+		case kAsioResetRequest:
+		case kAsioResyncRequest:
+			return 1L;
+		}
+		break;
+		//Ask the host application for its ASIO implementation. Host ASIO implementation version, 2 or higher 
+	case kAsioEngineVersion:
+		return 2L;
+		//Requests a driver reset. Return value is always 1L.
+	case kAsioResetRequest:
+		_error = Error("ASIO hardware is not available or has been reset.");
+		_throwError = true;
+		return 1L;
+		//The driver went out of sync, such that the timestamp is no longer valid.This is a request to re -start the engine and slave devices(sequencer). 1L if request is accepted or 0 otherwise.
+	case kAsioResyncRequest:
+		_error = Error("ASIO driver went out of sync.");
+		_throwError = true;
+		return 1L;
+	}
+	return 0L;
 }
 
 void CaptureLoop::stop() {

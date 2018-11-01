@@ -35,11 +35,12 @@ namespace CaptureLoop {
 	extern size_t _nChannelsIn, _nChannelsOut, _overflowSize;
 	extern UINT32 _renderBufferCapacity;
 	extern std::thread _wasapiRenderThread;
-	extern std::atomic<bool> _run;
+	extern std::atomic<bool> _run, _throwError;
 	extern bool _silence;
 	extern float *_pOverflowBuffer;
 	extern double *_pProcessBuffer;
 	extern bool *_pUsedChannels;
+	extern Error _error;
 
 	void _asioRenderCallback(const long bufferIndex, const ASIOBool);
 	void _wasapiRenderLoop();
@@ -51,5 +52,6 @@ namespace CaptureLoop {
 	void _fillProcessBuffer(size_t renderLeft);
 	void _processCaptureBuffer(const float * pCaptureBuffer, const size_t length, const size_t offset = 0);
 	void _fillProcessBufferWithSilence();
+	long _asioMessage(const long selector, const long value, void* const message, double* const opt);
 
 }

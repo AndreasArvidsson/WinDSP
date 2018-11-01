@@ -56,8 +56,8 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 ```json
 {
     "startWithOS": false,
-	"minimize":  false,
-	"hide":  false,
+    "minimize":  false,
+    "hide":  false,
     "channels": ["L", "R", "C", "SW", "SBL", "SBR", "SL", "SR"],
     "devices": {
         "capture" : {

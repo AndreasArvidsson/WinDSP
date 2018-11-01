@@ -30,6 +30,9 @@ Config::~Config() {
 
 void Config::init(const std::string &path) {
 	_configFile = path;
+	_hide = _minimize = _useConditionalRouting = _useAsioRenderer = _startWithOS = false;
+	_sampleRate = _numChannelsIn = _numChannelsOut = _numChannelsRender = 0;
+	_lastModified = 0;
 	load();
 	parseMisc();
 	parseDevices();
@@ -60,6 +63,10 @@ const std::vector<Output*>* Config::getOutputs() const {
 	return &_outputs;
 }
 
+const bool Config::startWithOS() const {
+	return _startWithOS;
+}
+
 const bool Config::hide() const {
 	return _hide;
 }
@@ -74,19 +81,13 @@ const bool Config::useAsioRenderer() const {
 
 void Config::parseMisc() {
 	//Parse visibility options
-	if (_pJsonNode->has("hide")) {
-		_hide = boolValue(_pJsonNode, "hide", "");
-	}
-	else {
-		_hide = false;
-	}
-	if (_pJsonNode->has("minimize")) {
-		_minimize = boolValue(_pJsonNode, "minimize", "");
-	}
-	else {
-		_minimize = false;
-	}
+	_hide = _pJsonNode->has("hide") ? boolValue(_pJsonNode, "hide", "") : false;
+	_minimize = _pJsonNode->has("minimize") ? boolValue(_pJsonNode, "minimize", "") : false;
 
+	//Parse startup
+	_startWithOS = _pJsonNode->has("startWithOS") ? boolValue(_pJsonNode, "startWithOS", "") : false;
+
+	//Parse channels
 	std::string path = "channels";
 	JsonNode *pChannels = _pJsonNode->path(path);
 	if (!pChannels->isMissingNode()) {

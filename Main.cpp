@@ -87,10 +87,28 @@ void clearData() {
 #endif
 }
 
+void updateStartWithOS() {
+	const HKEY hKey = HKEY_CURRENT_USER;
+	const std::string path = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+	const std::string name = "WinDSP";
+	//Should start with OS. Add to registry.
+	if (pConfig->startWithOS()) {
+		const std::string exePath = OS::getExePath();
+		OS::regSetValue(hKey, path, name, exePath);
+	}
+	//Added to registry previusly. Remove.
+	else if (OS::regValueExists(hKey, path, name)) {
+		OS::regRemoveValue(hKey, path, name);
+	}
+}
+
 void run() {
 	//Load config file
 	pConfig = new Config();
 	pConfig->init(getConfigFileName());
+
+	//Update start with OS.
+	updateStartWithOS();
 
 	//Show or hide window
 	setVisibility();
@@ -167,6 +185,8 @@ void run() {
 	CaptureLoop::init(pConfig, pCaptureDevice, pRenderDevice);
 	CaptureLoop::run();
 }
+
+
 
 int main(int argc, char **argv) {
 	setTitle();

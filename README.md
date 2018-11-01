@@ -27,11 +27,12 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 
 ## Prerequisites(To run application)
 * Capture and render audio devices
-* Windows 8.1 or newer. May work on older OS. Feel free to try it out.
+* Windows 10 or newer. May work on older OS. Feel free to try it out.
 * [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
 
 ## Prerequisites(To compile source code)
 * [CoreLib](https://github.com/AndreasArvidsson/CoreLib)
+* [ASIO SDK](https://www.steinberg.net/en/company/developers.html)
 
 ## Install
 1. Download and install [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
@@ -65,8 +66,12 @@ If you don't have a spare soundcard in your computer to use for the capture devi
     "minimize":  false,
     "channels": ["L", "R", "C", "SW", "SBL", "SBR", "SL", "SR"],
     "devices": {
-        "capture": "{0.0.0.00000000}.{3f6a035b-f23e-40f8-84dd-01018df49110}",
-        "render": "{0.0.0.00000000}.{9aa1b7e8-b45d-4431-a43f-e6ca06dfe79e}"
+        "capture" : {
+            "name" : "CABLE Input (VB-Audio Virtual Cable)"
+        },
+        "render" : {
+            "name" : "Focusrite USB AUDIO"
+        }
     },
     "inputs": {
         "L": {
@@ -113,8 +118,12 @@ If you don't have a spare soundcard in your computer to use for the capture devi
    * SR: Surround right
 
 **Devices**
-* Devices contains the capture and render device IDs
-* If devices are not set the user will be queried from a list of available devices. Do **NOT** write these IDs yourself
+* Devices contains the capture and render device names
+* If devices are not set the user will be queried from a list of available devices. Do **NOT** write these names yourself
+
+**ASIO devices**
+* Experimental support for ASIO devices
+* For now only supports 32bit integer format defined as: ASIOSTInt32LSB.
 
 **Inputs**
 * Inputs contains the routes. i.e. the mapping between inputs and outputs

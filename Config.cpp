@@ -652,17 +652,18 @@ void Config::setDevices() {
 	} while (!isOk);
 
 	//Update json
-	if (!_pJsonNode->has("devices")) {
+
+	if (!_pJsonNode->path("devices")->isObject()) {
 		_pJsonNode->put("devices", new JsonNode(JsonNodeType::OBJECT));
 	}
 	JsonNode *pDevicesNode = _pJsonNode->get("devices");
 
-	if (!pDevicesNode->has("capture")) {
+	if (!_pJsonNode->path("capture")->isObject()) {
 		pDevicesNode->put("capture", new JsonNode(JsonNodeType::OBJECT));
 	}
 	JsonNode *pCaptureNode = pDevicesNode->get("capture");
 
-	if (!pDevicesNode->has("render")) {
+	if (!_pJsonNode->path("render")->isObject()) {
 		pDevicesNode->put("render", new JsonNode(JsonNodeType::OBJECT));
 	}
 	JsonNode *pRenderNode = pDevicesNode->get("render");

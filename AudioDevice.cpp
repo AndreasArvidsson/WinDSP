@@ -142,7 +142,14 @@ void AudioDevice::prepareService(const bool capture) {
 		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pCaptureClient)));
 	}
 	else {
-		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, 0, 0, _pFormat, nullptr));
+        //Create event handle
+		_eventHandle = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
+		if (_eventHandle == NULL) {
+			throw Error("WASAPI: Unable to create samples ready event %d", GetLastError());
+		}
+        
+        assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 0, 0, _pFormat, nullptr));
+		assert(_pAudioClient->SetEventHandle(_eventHandle));
 		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pRenderClient)));
 	}
 
@@ -186,7 +193,7 @@ const WAVEFORMATEX* AudioDevice::getFormat() const {
 
 ISimpleAudioVolume* AudioDevice::getVolumeControl() {
 	if (!_pSimpleVolume) {
-		assert(_pAudioClient->GetService(__uuidof(ISimpleAudioVolume), (void**)&_pSimpleVolume));
+        assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pSimpleVolume)));
 	}
 	return _pSimpleVolume;
 }
@@ -197,4 +204,26 @@ const UINT32 AudioDevice::getBufferSize() const {
 
 const UINT32 AudioDevice::getEngineBufferSize() const {
 	return _engineBufferSize;
+}
+
+void AudioDevice::flushCaptureBuffer() const {
+	UINT32 frameCount;
+	BYTE *buffer;
+	DWORD flags;
+	assert(_pCaptureClient->GetNextPacketSize(&frameCount));
+	while (frameCount != 0) {
+		assert(_pCaptureClient->GetBuffer(&buffer, &frameCount, &flags, nullptr, nullptr));
+		assert(_pCaptureClient->ReleaseBuffer(frameCount));
+		assert(_pCaptureClient->GetNextPacketSize(&frameCount));
+	}
+}
+
+void AudioDevice::flushRenderBuffer() const {
+	BYTE *buffer;
+	UINT32 frameCount = getBufferFrameCountAvailable();
+	while (frameCount != 0) {
+		assert(_pRenderClient->GetBuffer(frameCount, &buffer));
+		assert(_pRenderClient->ReleaseBuffer(frameCount, AUDCLNT_BUFFERFLAGS_SILENT));
+		frameCount = getBufferFrameCountAvailable();
+	}
 }

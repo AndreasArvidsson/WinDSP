@@ -38,6 +38,8 @@ public:
 	void printInfo() const;
 	const UINT32 getBufferSize() const;
 	const UINT32 getEngineBufferSize() const;
+	void flushCaptureBuffer() const;
+	void flushRenderBuffer() const;
 
 	inline const UINT32 getBufferFrameCountAvailable() const {
 		static UINT32 numFramesPadding;
@@ -47,6 +49,10 @@ public:
 
 	inline const HRESULT getNextPacketSize(UINT32 *pNumFramesInNextPacket) const {
 		return _pCaptureClient->GetNextPacketSize(pNumFramesInNextPacket);
+	}
+
+	inline const HRESULT getCaptureBuffer(float **pCaptureBuffer, UINT32 *pNumFramesToRead, DWORD *pFlags, UINT64 *pPosition) const {
+		return _pCaptureClient->GetBuffer((BYTE**)pCaptureBuffer, pNumFramesToRead, pFlags, pPosition, nullptr);
 	}
 
 	inline const HRESULT getCaptureBuffer(float **pCaptureBuffer, UINT32 *pNumFramesToRead, DWORD *pFlags) const {
@@ -74,24 +80,8 @@ public:
 		return _pRenderClient->ReleaseBuffer(numFramesWritten, flags);
 	}
 
-	inline void flushCaptureBuffer() const {
-		static UINT32 frameCount;
-		static BYTE *buffer;
-		static DWORD flags;
-		assert(_pCaptureClient->GetBuffer(&buffer, &frameCount, &flags, nullptr, nullptr));
-		assert(_pCaptureClient->ReleaseBuffer(frameCount));
-	}
-
-	inline void flushRenderBuffer() const {
-		static BYTE *buffer;
-		static UINT32 frameCount;
-		frameCount = getBufferFrameCountAvailable();
-		assert(_pRenderClient->GetBuffer(frameCount, &buffer));
-		assert(_pRenderClient->ReleaseBuffer(frameCount, AUDCLNT_BUFFERFLAGS_SILENT));
-	}
-
-	void reset() {
-		_pAudioClient->Reset();
+	inline const HANDLE getEventHandle() const {
+		return _eventHandle;
 	}
 
 private:
@@ -106,6 +96,7 @@ private:
 	WAVEFORMATEX *_pFormat;
 	UINT32 _bufferSize, _engineBufferSize;
 	std::string _id, _name;
+	HANDLE _eventHandle;
 
 	AudioDevice(IMMDevice *pDevice);
 	void initDefault();

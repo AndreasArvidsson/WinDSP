@@ -103,9 +103,11 @@ void clearData() {
 }
 
 void run() {
+	const std::string configPath = OS::getExeDirPath() + getConfigFileName();
+
 	//Load config file
 	pConfig = new Config();
-	pConfig->init(getConfigFileName());
+	pConfig->init(configPath);
 
 	//Update start with OS.
 	updateStartWithOS();

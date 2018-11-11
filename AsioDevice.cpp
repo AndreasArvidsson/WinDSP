@@ -59,11 +59,10 @@ void AsioDevice::startRenderService(ASIOCallbacks *pCallbacks, const long bSize,
 
 	//Create buffer info per channel.
 	_pBufferInfos = new ASIOBufferInfo[_numChannels];
-	ASIOBufferInfo *buf = _pBufferInfos;
-	for (int i = 0; i < _numChannels; ++i, ++buf) {
-		buf->isInput = ASIOFalse;
-		buf->channelNum = i;
-		buf->buffers[0] = buf->buffers[1] = 0;
+	for (int i = 0; i < _numChannels; ++i) {
+		_pBufferInfos[i].channelNum = i;
+		_pBufferInfos[i].buffers[0] = _pBufferInfos[i].buffers[1] = nullptr;
+		_pBufferInfos[i].isInput = ASIOFalse;
 	}
 
 	//Use default message callback if not given.

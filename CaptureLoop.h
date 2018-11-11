@@ -36,13 +36,13 @@ namespace CaptureLoop {
 	extern UINT32 _renderBufferCapacity;
 	extern std::thread _wasapiRenderThread;
 	extern std::atomic<bool> _run, _throwError;
-	extern bool _silence;
-	extern double *_pProcessBuffer;
+	extern bool _silence, _firstCapture;
 	extern bool *_pUsedChannels;
+	extern double *_pProcessBuffer;
 	extern Error _error;
 
-	void _asioRenderCallback(const long bufferIndex, const ASIOBool);
 	void _wasapiRenderLoop();
+	void _asioRenderCallback(const long bufferIndex, const ASIOBool);
 	void _resetFilters();
 	void _checkConfig();
 	void _checkClippingChannels();

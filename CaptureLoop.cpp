@@ -120,7 +120,8 @@ void CaptureLoop::_asioRenderCallback(const long asioBufferIndex, const ASIOBool
 	for (size_t channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
 		int *pRenderBuffer = AsioDevice::getBuffer(channelIndex, asioBufferIndex);
 		for (size_t sampleIndex = 0; sampleIndex < _renderBufferCapacity; ++sampleIndex) {
-			pRenderBuffer[sampleIndex] = (int)(MAX_INT32 * _pProcessBuffer[sampleIndex * _nChannelsOut + channelIndex]);
+			//Apply output forks and filters.
+			pRenderBuffer[sampleIndex] = (int)(MAX_INT32 * (*_pOutputs)[channelIndex]->process(_pProcessBuffer[sampleIndex * _nChannelsOut + channelIndex]));
 		}
 	}
 

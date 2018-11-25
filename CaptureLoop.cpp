@@ -1,11 +1,11 @@
 #include "CaptureLoop.h"
 #include "AsioDevice.h"
 
-//#define DEBUG_PRINT
+#define DEBUG_PRINT
 
 #ifdef DEBUG_PRINT
 #include "Stopwatch.h"
-Stopwatch sw("Render", 1000);
+Stopwatch sw("Render", 6000);
 #define swStart() sw.intervalStart()
 #define swEnd() sw.intervalEnd()
 #else
@@ -205,18 +205,22 @@ void CaptureLoop::_fillProcessBuffer() {
 	}
 
 	//Was silence before but is now playing.
+	//Make sure that capture and render always starts in sync.
 	if (_silence) {
 		_silence = false;
+
+		assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
+
 		//First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
 		if (_firstCapture) {
 			_firstCapture = false;
-			assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
 			_pCaptureDevice->flushCaptureBuffer();
-			return;
 		}
+
+		return;
 	}
 
-	//During start of playback this flag may come up. Just flush and re-sync.
+	//During playback this flag may come up if buffers drift out of sync due to taking to long time. Just flush to re-sync.
 	if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
 #ifdef DEBUG_PRINT
 		printf("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", captureAvailable);

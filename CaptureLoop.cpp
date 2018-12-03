@@ -209,15 +209,14 @@ void CaptureLoop::_fillProcessBuffer() {
 	if (_silence) {
 		_silence = false;
 
-		assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
-
 		//First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
 		if (_firstCapture) {
 			_firstCapture = false;
+			assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
 			_pCaptureDevice->flushCaptureBuffer();
+			return;
 		}
 
-		return;
 	}
 
 	//During playback this flag may come up if buffers drift out of sync due to taking to long time. Just flush to re-sync.

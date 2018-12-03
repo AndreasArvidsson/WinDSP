@@ -1,7 +1,7 @@
 #include "CaptureLoop.h"
 #include "AsioDevice.h"
 
-#define DEBUG_PRINT
+//#define DEBUG_PRINT
 
 #ifdef DEBUG_PRINT
 #include "Stopwatch.h"

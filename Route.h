@@ -38,13 +38,14 @@ public:
 	}
 
 	inline void evalConditions() {
-		_valid = true;
+		bool valid = true;
 		for (const Condition &cond : conditions) {
 			if (!cond.eval()) {
-				_valid = false;
-				return;
+				valid = false;
+				break;
 			}
 		}
+		_valid = valid;
 	}
 
 	inline void reset() const {

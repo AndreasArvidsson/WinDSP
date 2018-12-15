@@ -5,6 +5,12 @@ BiquadFilter::BiquadFilter(const uint32_t sampleRate) {
 	_sampleRate = sampleRate;
 }
 
+void BiquadFilter::reset() {
+	for (Biquad &biquad : _biquads) {
+		biquad.reset();
+	}
+}
+
 const size_t BiquadFilter::size() const {
 	return _biquads.size();
 }
@@ -25,12 +31,12 @@ void BiquadFilter::add(const double b0, const double b1, const double b2, const 
 	_biquads.push_back(biquad);
 }
 
-void BiquadFilter::addCrossover(const bool isLowPass, const double frequency, const uint8_t order, const std::vector<double> &qValues) {
+void BiquadFilter::addCrossover(const bool isLowPass, const double frequency, const std::vector<double> &qValues) {
 	if (isLowPass) {
-		addLowPass(frequency, order, qValues);
+		addLowPass(frequency, qValues);
 	}
 	else {
-		addHighPass(frequency, order, qValues);
+		addHighPass(frequency, qValues);
 	}
 }
 
@@ -43,44 +49,40 @@ void BiquadFilter::addCrossover(const bool isLowPass, const double frequency, co
 	}
 }
 
-void BiquadFilter::addLowPass(const double frequency, uint8_t order, const std::vector<double> qValues) {
-	for (int i = 0; order > 0; ++i) {
+void BiquadFilter::addLowPass(const double frequency, const std::vector<double> qValues) {
+	for (double q : qValues) {
 		Biquad biquad;
 		//First order biquad
-		if (qValues[i] < 0) {
+		if (q < 0) {
 			biquad.initLowPass(_sampleRate, frequency);
-			order -= 1;
 		}
 		//Second order biquad
 		else {
-			biquad.initLowPass(_sampleRate, frequency, qValues[i]);
-			order -= 2;
+			biquad.initLowPass(_sampleRate, frequency, q);
 		}
 		_biquads.push_back(biquad);
 	}
 }
 
 void BiquadFilter::addLowPass(const double frequency, const uint8_t order, const CrossoverType type) {
-	addLowPass(frequency, order, CrossoverTypes::getQValues(type, order));
+	addLowPass(frequency, CrossoverTypes::getQValues(type, order));
 }
 
-void BiquadFilter::addHighPass(const double frequency, uint8_t order, const std::vector<double> qValues) {
-	for (int i = 0; order > 0; ++i) {
+void BiquadFilter::addHighPass(const double frequency, const std::vector<double> qValues) {
+	for (double q : qValues) {
 		Biquad biquad;
-		if (qValues[i] < 0) {
+		if (q < 0) {
 			biquad.initHighPass(_sampleRate, frequency);
-			order -= 1;
 		}
 		else {
-			biquad.initHighPass(_sampleRate, frequency, qValues[i]);
-			order -= 2;
+			biquad.initHighPass(_sampleRate, frequency, q);
 		}
 		_biquads.push_back(biquad);
 	}
 }
 
 void BiquadFilter::addHighPass(const double frequency, const uint8_t order, const CrossoverType type) {
-	addHighPass(frequency, order, CrossoverTypes::getQValues(type, order));
+	addHighPass(frequency, CrossoverTypes::getQValues(type, order));
 }
 
 void BiquadFilter::addShelf(const bool isLowShelf, const double frequency, const double gain, const double slope) {
@@ -126,4 +128,13 @@ void BiquadFilter::addLinkwitzTransform(const double F0, const double Q0, const 
 	Biquad biquad;
 	biquad.initLinkwitzTransform(_sampleRate, F0, Q0, Fp, Qp);
 	_biquads.push_back(biquad);
+}
+
+void BiquadFilter::printCoefficients(const bool miniDSPFormat) const {
+	int index = 1;
+	for (const Biquad &biquad : _biquads) {
+		printf("biquad%d,\n", index++);
+		biquad.printCoefficients(miniDSPFormat);
+	}
+	printf("\n");
 }

@@ -8,20 +8,22 @@ class BiquadFilter : public Filter {
 public:
 
 	BiquadFilter(const uint32_t sampleRate);
-
+	void reset() override;
+	
 	const size_t size() const;
 	const bool isEmpty() const;
+	void printCoefficients(const bool miniDSPFormat = false) const;
 
 	void add(const double b0, const double b1, const double b2, const double a1, const double a2);
 	void add(const double b0, const double b1, const double b2, const double a0, const double a1, const double a2);
 	
-	void addCrossover(const bool isLowPass, const double frequency, const uint8_t order, const std::vector<double> &qValues);
+	void addCrossover(const bool isLowPass, const double frequency, const std::vector<double> &qValues);
 	void addCrossover(const bool isLowPass, const double frequency, const uint8_t order, const CrossoverType type);
 
-	void addLowPass(const double frequency, uint8_t order, const std::vector<double> qValues);
+	void addLowPass(const double frequency, const std::vector<double> qValues);
 	void addLowPass(const double frequency, const uint8_t order, const CrossoverType type);
 	
-	void addHighPass(const double frequency, uint8_t order, const std::vector<double> qValues);
+	void addHighPass(const double frequency, const std::vector<double> qValues);
 	void addHighPass(const double frequency, const uint8_t order, const CrossoverType type);
 	
 	void addShelf(const bool isLowShelf, const double frequency, const double gain, const double slope = 1);
@@ -38,12 +40,6 @@ public:
 			data = biquad.process(data);
 		}
 		return data;
-	}
-
-	inline void reset() override {
-		for (Biquad &biquad : _biquads) {
-			biquad.reset();
-		}
 	}
 
 private:

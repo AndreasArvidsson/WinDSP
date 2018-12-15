@@ -453,7 +453,7 @@ void Config::parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, c
 		if (calculatedOrder != order) {
 			throw Error("Config(%s) - CROSSOVER.CUSTOM: Q values list doesn't match order. Expected(%d), Found(%d)", path.c_str(), order, calculatedOrder);
 		}
-		pBiquadFilter->addCrossover(isLowPass, freq, order, qValues);
+		pBiquadFilter->addCrossover(isLowPass, freq, qValues);
 		break;
 	}
 	default:

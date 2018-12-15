@@ -25,6 +25,10 @@ void Biquad::init(const double b0, const double b1, const double b2, const doubl
 	reset();
 }
 
+void Biquad::reset() {
+	z1 = z2 = 0;
+}
+
 void Biquad::initLowPass(const uint32_t sampleRate, const double frequency, const double q) {
 	double w0 = getOmega(sampleRate, frequency);
 	double alpha = getAlpha(w0, q);
@@ -178,3 +182,10 @@ void Biquad::normalize() {
 	reset();
 }
 
+void Biquad::printCoefficients(const bool miniDSPFormat) const {
+	printf("b0=%.15g,\n", b0);
+	printf("b1=%.15g,\n", b1);
+	printf("b2=%.15g,\n", b2);
+	printf("a1=%.15g,\n", miniDSPFormat ? -a1 : a1);
+	printf("a2=%.15g,\n", miniDSPFormat ? -a2 : a2);
+}

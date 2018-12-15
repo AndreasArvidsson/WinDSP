@@ -8,8 +8,7 @@
 
 #pragma once
 #include <vector>
-#include <algorithm>
-#include <cstdlib>
+#include <algorithm> //std::max
 #include "OutputFork.h"
 
 class Output {
@@ -59,6 +58,5 @@ public:
 private:
 	std::string _name;
 	std::vector<OutputFork*> _forks;
-	
 
 };

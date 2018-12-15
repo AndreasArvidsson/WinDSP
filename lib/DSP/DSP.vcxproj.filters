@@ -54,5 +54,11 @@
     <ClInclude Include="WaveHeader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="SineSweepGenerator.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SineGenerator.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -81,6 +81,8 @@
     <ClInclude Include="FirFilter.h" />
     <ClInclude Include="GainFilter.h" />
     <ClInclude Include="InvertPolarityFilter.h" />
+    <ClInclude Include="SineGenerator.h" />
+    <ClInclude Include="SineSweepGenerator.h" />
     <ClInclude Include="ToneGenerator.h" />
     <ClInclude Include="WaveHeader.h" />
   </ItemGroup>

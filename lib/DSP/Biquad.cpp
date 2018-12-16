@@ -70,12 +70,12 @@ void Biquad::initHighPass(const uint32_t sampleRate, const double frequency) {
 	normalize();
 }
 
-void Biquad::initLowShelf(const uint32_t sampleRate, const double frequency, const double gain, const double slope) {
+void Biquad::initLowShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q) {
 	const double w0 = getOmega(sampleRate, frequency);
 	const double A = std::pow(10, gain / 40);
-	const double cs = std::cos(w0);
-	const double alpha = cs / 2 * std::sqrt((A + 1 / A) * (1 / slope - 1) + 2);
+	const double alpha = getAlpha(w0, q);
 	const double sqa = std::sqrt(A) * alpha;
+	const double cs = std::cos(w0);
 	b0 = A*((A + 1) - (A - 1) * cs + 2 * sqa);
 	b1 = 2 * A*((A - 1) - (A + 1) * cs);
 	b2 = A*((A + 1) - (A - 1) * cs - 2 * sqa);
@@ -85,12 +85,12 @@ void Biquad::initLowShelf(const uint32_t sampleRate, const double frequency, con
 	normalize();
 }
 
-void Biquad::initHighShelf(const uint32_t sampleRate, const double frequency, const double gain, const double slope) {
+void Biquad::initHighShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q) {
 	const double w0 = getOmega(sampleRate, frequency);
 	const double A = std::pow(10, gain / 40);
-	const double cs = std::cos(w0);
-	const double alpha = cs / 2 * std::sqrt((A + 1 / A)*(1 / slope - 1) + 2);
+	const double alpha = getAlpha(w0, q);
 	const double sqa = std::sqrt(A) * alpha;
+	const double cs = std::cos(w0);
 	b0 = A*((A + 1) + (A - 1) * cs + 2 * sqa);
 	b1 = -2 * A*((A - 1) + (A + 1) * cs);
 	b2 = A*((A + 1) + (A - 1) * cs - 2 * sqa);
@@ -115,9 +115,10 @@ void Biquad::initPEQ(const uint32_t sampleRate, const double frequency, const do
 	normalize();
 }
 
-void Biquad::initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain) {
+void Biquad::initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, double gain) {
 	const double w0 = getOmega(sampleRate, frequency);
 	const double alpha = std::sin(w0) * std::sinh(M_LN2 / 2 * bandwidth * w0 / std::sin(w0));
+	gain = std::pow(10, gain / 20);
 	b0 = gain * alpha;
 	b1 = 0;
 	b2 = -gain * alpha;

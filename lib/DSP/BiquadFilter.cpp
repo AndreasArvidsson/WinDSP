@@ -144,7 +144,7 @@ const std::vector<std::vector<double>> BiquadFilter::getFrequencyResponse(const 
 	for (const Biquad &biquad : _biquads) {
 		const std::vector<std::vector<double>> data = biquad.getFrequencyResponse(_sampleRate, nPoints, fMin, fMax);
 		for (uint32_t i = 0; i < nPoints; ++i) {
-			//First to for this index/Hz. Use entire pair
+			//First use of this index/Hz. Use entire Hz/dB pair.
 			if (result[i].size() == 0) {
 				result[i] = data[i];
 			}

@@ -19,6 +19,10 @@ const bool BiquadFilter::isEmpty() const {
 	return _biquads.size() == 0;
 }
 
+const uint32_t BiquadFilter::getSampleRate() const {
+	return _sampleRate;
+}
+
 void BiquadFilter::add(const double b0, const double b1, const double b2, const double a1, const double a2) {
 	Biquad biquad;
 	biquad.init(b0, b1, b2, a1, a2);
@@ -85,24 +89,24 @@ void BiquadFilter::addHighPass(const double frequency, const uint8_t order, cons
 	addHighPass(frequency, CrossoverTypes::getQValues(type, order));
 }
 
-void BiquadFilter::addShelf(const bool isLowShelf, const double frequency, const double gain, const double slope) {
+void BiquadFilter::addShelf(const bool isLowShelf, const double frequency, const double gain, const double q) {
 	if (isLowShelf) {
-		addLowShelf(frequency, gain, slope);
+		addLowShelf(frequency, gain, q);
 	}
 	else {
-		addHighShelf(frequency, gain, slope);
+		addHighShelf(frequency, gain, q);
 	}
 }
 
-void BiquadFilter::addLowShelf(const double frequency, const double gain, const double slope) {
+void BiquadFilter::addLowShelf(const double frequency, const double gain, const double q) {
 	Biquad biquad;
-	biquad.initLowShelf(_sampleRate, frequency, gain, slope);
+	biquad.initLowShelf(_sampleRate, frequency, gain, q);
 	_biquads.push_back(biquad);
 }
 
-void BiquadFilter::addHighShelf(const double frequency, const double gain, const double slope) {
+void BiquadFilter::addHighShelf(const double frequency, const double gain, const double q) {
 	Biquad biquad;
-	biquad.initHighShelf(_sampleRate, frequency,  gain, slope);
+	biquad.initHighShelf(_sampleRate, frequency,  gain, q);
 	_biquads.push_back(biquad);
 }
 
@@ -124,9 +128,9 @@ void BiquadFilter::addNotch(const double frequency, const double bandwidth) {
 	_biquads.push_back(biquad);
 }
 
-void BiquadFilter::addLinkwitzTransform(const double F0, const double Q0, const double Fp, const double Qp) {
+void BiquadFilter::addLinkwitzTransform(const double f0, const double q0, const double fp, const double qp) {
 	Biquad biquad;
-	biquad.initLinkwitzTransform(_sampleRate, F0, Q0, Fp, Qp);
+	biquad.initLinkwitzTransform(_sampleRate, f0, q0, fp, qp);
 	_biquads.push_back(biquad);
 }
 

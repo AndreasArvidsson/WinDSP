@@ -12,6 +12,7 @@ public:
 	
 	const size_t size() const;
 	const bool isEmpty() const;
+	const uint32_t getSampleRate() const;
 
 	void add(const double b0, const double b1, const double b2, const double a1, const double a2);
 	void add(const double b0, const double b1, const double b2, const double a0, const double a1, const double a2);
@@ -25,14 +26,14 @@ public:
 	void addHighPass(const double frequency, const std::vector<double> qValues);
 	void addHighPass(const double frequency, const uint8_t order, const CrossoverType type);
 	
-	void addShelf(const bool isLowShelf, const double frequency, const double gain, const double slope = 1);
-	void addLowShelf(const double frequency, const double gain, const double slope = 1);
-	void addHighShelf(const double frequency, const double gain, const double slope = 1);
+	void addShelf(const bool isLowShelf, const double frequency, const double gain, const double q = 1.0);
+	void addLowShelf(const double frequency, const double gain, const double q = 1.0);
+	void addHighShelf(const double frequency, const double gain, const double q = 1.0);
 	
 	void addPEQ(const double frequency, const double q, const double gain);
 	void addBandPass(const double frequency, const double bandwidth, const double gain = 1.0);
 	void addNotch(const double frequency, const double bandwidth);
-	void addLinkwitzTransform(const double F0, const double Q0, const double Fp, const double Qp);
+	void addLinkwitzTransform(const double f0, const double q0, const double fp, const double qp);
 	
 	void printCoefficients(const bool miniDSPFormat = false) const;
 	const std::vector<std::vector<double>> getFrequencyResponse(const uint32_t nPoints, const double fMin, const double fMax) const;

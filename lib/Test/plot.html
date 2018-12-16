@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <title>Plot</title>
+        <meta charset="UTF-8"> 
+    </head>
+    <body>
+        <div id="container"></div>
+        <script src="https://code.highcharts.com/highcharts.js"></script>
+        <script src="plotData.js"></script>
+        <script>
+            var container = document.getElementById("container");
+            for (var i in plotData) {
+                var graphDiv = document.createElement("div");
+                container.append(graphDiv);
+                Highcharts.chart(graphDiv, {
+                    chart: {
+                        zoomType: 'xy',
+                        width: 1000},
+                    title: {text: plotData[i].name},
+                    xAxis: {
+                        type: 'logarithmic',
+                        title: {text: 'Hz'}
+                    },
+                    yAxis: {
+                        title: {text: 'dB'},
+                        tickPixelInterval: 25,
+                        floor: -50,
+                        ceiling: 50
+                    },
+                    plotOptions: {
+                        series: {marker: {enabled: false}},
+                        line: {animation: false}
+                    },
+                    legend: {
+                        align: 'right',
+                        verticalAlign: 'top',
+                        layout: 'vertical',
+                        x: 0,
+                        y: 100
+                    },
+                    series: plotData[i].series,
+                    credits: {enabled: false}
+                });
+            }
+        </script>
+
+    </body>
+</html>

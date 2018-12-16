@@ -13,10 +13,10 @@ public:
 	void initLowPass(const uint32_t sampleRate, const double frequency);
 	void initHighPass(const uint32_t sampleRate, const double frequency, const double q);
 	void initHighPass(const uint32_t sampleRate, const double frequency);
-	void initLowShelf(const uint32_t sampleRate, const double frequency, const double gain, const double slope = 1);
-	void initHighShelf(const uint32_t sampleRate, const double frequency, const double gain, const double slope = 1);
+	void initLowShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q = 1);
+	void initHighShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q = 1);
 	void initPEQ(const uint32_t sampleRate, const double frequency, const double q, const double gain);
-	void initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain = 1);
+	void initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain = 0);
 	void initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth);
 	void initLinkwitzTransform(const uint32_t sampleRate, const double F0, const double Q0, const double Fp, const double Qp);
 	void reset();

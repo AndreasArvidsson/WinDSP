@@ -6,7 +6,7 @@
 class SineSweepGenerator {
 public:
 
-    SineSweepGenerator(const double sampleRate, const double frequencyStart, const double frequencyEnd, const double duration, const double amplitudeDb = 0) {
+    SineSweepGenerator(const size_t sampleRate, const double frequencyStart, const double frequencyEnd, const double duration, const double amplitudeDb = 0) {
         _sampleRate = sampleRate;
 		_frequencyStart = frequencyStart;
         _amplitude = dbToApmplitude(amplitudeDb);
@@ -45,8 +45,8 @@ public:
 	}
 
 private:
-    double _sampleRate, _phase, _frequencyStart, _frequency, _phaseDelta, _freqDelta, _amplitude;
-	size_t _index, _numSamples;
+    double _phase, _frequencyStart, _frequency, _phaseDelta, _freqDelta, _amplitude;
+	size_t _index, _numSamples, _sampleRate;
 
 	const double dbToApmplitude(const double db) const {
 		return std::pow(10, db / 20);

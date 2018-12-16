@@ -138,3 +138,21 @@ void BiquadFilter::printCoefficients(const bool miniDSPFormat) const {
 	}
 	printf("\n");
 }
+
+const std::vector<std::vector<double>> BiquadFilter::getFrequencyResponse(const uint32_t nPoints, const double fMin, const double fMax) const {
+	std::vector<std::vector<double>> result(nPoints);
+	for (const Biquad &biquad : _biquads) {
+		const std::vector<std::vector<double>> data = biquad.getFrequencyResponse(_sampleRate, nPoints, fMin, fMax);
+		for (uint32_t i = 0; i < nPoints; ++i) {
+			//First to for this index/Hz. Use entire pair
+			if (result[i].size() == 0) {
+				result[i] = data[i];
+			}
+			//Index/Hz already exists. Just add level/dB.
+			else {
+				result[i][1] += data[i][1];
+			}
+		}
+	}
+	return result;
+}

@@ -12,7 +12,6 @@ public:
 	
 	const size_t size() const;
 	const bool isEmpty() const;
-	void printCoefficients(const bool miniDSPFormat = false) const;
 
 	void add(const double b0, const double b1, const double b2, const double a1, const double a2);
 	void add(const double b0, const double b1, const double b2, const double a0, const double a1, const double a2);
@@ -34,6 +33,9 @@ public:
 	void addBandPass(const double frequency, const double bandwidth, const double gain = 1.0);
 	void addNotch(const double frequency, const double bandwidth);
 	void addLinkwitzTransform(const double F0, const double Q0, const double Fp, const double Qp);
+	
+	void printCoefficients(const bool miniDSPFormat = false) const;
+	const std::vector<std::vector<double>> getFrequencyResponse(const uint32_t nPoints, const double fMin, const double fMax) const;
 
 	inline const double process(double data) override {
 		for (Biquad &biquad : _biquads) {

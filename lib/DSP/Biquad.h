@@ -1,9 +1,7 @@
 #pragma once
 #include "stdint.h"
-
 #define _USE_MATH_DEFINES
 #include <vector>
-#include <complex>
 
 class Biquad {
 public:
@@ -11,7 +9,6 @@ public:
 
 	void init(const double b0, const double b1, const double b2, const double a0, const double a1, const double a2);
 	void init(const double b0, const double b1, const double b2, const double a1, const double a2);
-	void reset();
 	void initLowPass(const uint32_t sampleRate, const double frequency, const double q);
 	void initLowPass(const uint32_t sampleRate, const double frequency);
 	void initHighPass(const uint32_t sampleRate, const double frequency, const double q);
@@ -22,7 +19,9 @@ public:
 	void initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain = 1);
 	void initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth);
 	void initLinkwitzTransform(const uint32_t sampleRate, const double F0, const double Q0, const double Fp, const double Qp);
+	void reset();
 	void printCoefficients(const bool miniDSPFormat = false) const;
+	const std::vector<std::vector<double>> getFrequencyResponse(const uint32_t sampleRate, const uint32_t nPoints, const double fMin, const double fMax) const;
 
 	//Transposed direct form II 
 	inline const double process(const double data) {

@@ -31,7 +31,7 @@ public:
 	void addHighShelf(const double frequency, const double gain, const double q = 1.0);
 	
 	void addPEQ(const double frequency, const double q, const double gain);
-	void addBandPass(const double frequency, const double bandwidth, const double gain = 1.0);
+	void addBandPass(const double frequency, const double bandwidth, const double gain = 0.0);
 	void addNotch(const double frequency, const double bandwidth);
 	void addLinkwitzTransform(const double f0, const double q0, const double fp, const double qp);
 	

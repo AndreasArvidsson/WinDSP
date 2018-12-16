@@ -122,9 +122,9 @@ void BiquadFilter::addBandPass(const double frequency, const double bandwidth, c
 	_biquads.push_back(biquad);
 }
 
-void BiquadFilter::addNotch(const double frequency, const double bandwidth) {
+void BiquadFilter::addNotch(const double frequency, const double bandwidth, const double gain) {
 	Biquad biquad;
-	biquad.initNotch(_sampleRate, frequency, bandwidth);
+	biquad.initNotch(_sampleRate, frequency, bandwidth, gain);
 	_biquads.push_back(biquad);
 }
 

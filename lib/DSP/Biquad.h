@@ -17,7 +17,7 @@ public:
 	void initHighShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q = 1);
 	void initPEQ(const uint32_t sampleRate, const double frequency, const double q, const double gain);
 	void initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain = 0);
-	void initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth);
+	void initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain = 0);
 	void initLinkwitzTransform(const uint32_t sampleRate, const double F0, const double Q0, const double Fp, const double Qp);
 	void reset();
 	void printCoefficients(const bool miniDSPFormat = false) const;

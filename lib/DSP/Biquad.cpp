@@ -128,13 +128,14 @@ void Biquad::initBandPass(const uint32_t sampleRate, const double frequency, con
 	normalize();
 }
 
-void Biquad::initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth) {
+void Biquad::initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth, double gain) {
 	const double w0 = getOmega(sampleRate, frequency);
 	const double alpha = std::sin(w0) * std::sinh(M_LN2 / 2 * bandwidth * w0 / std::sin(w0));
 	const double cs = std::cos(w0);
-	b0 = 1;
-	b1 = -2 * cs;
-	b2 = 1;
+	gain = std::pow(10, gain / 20);
+	b0 = gain;
+	b1 = -2 * cs * gain;
+	b2 = gain;
 	a0 = 1 + alpha;
 	a1 = -2 * cs;
 	a2 = 1 - alpha;

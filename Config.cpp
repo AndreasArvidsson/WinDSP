@@ -513,7 +513,7 @@ void Config::parseLinkwitzTransform(BiquadFilter *pBiquadFilter, const JsonNode 
 }
 
 void Config::parseBiquad(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
-	const JsonNode *pValues = getField(pFilterNode, "file", path);
+	const JsonNode *pValues = getField(pFilterNode, "values", path);
 	for (size_t i = 0; i < pValues->size(); ++i) {
 		const JsonNode *pValueNode = pValues->get(i);
 		double b0 = doubleValue(pValueNode->path("b0"), path);

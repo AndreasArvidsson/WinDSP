@@ -99,9 +99,9 @@ void saveJsGraphData(std::vector<GraphData*> &graphs) {
 void addCrossover(std::vector<GraphData*> &graphs, const uint32_t fs, const bool isLowPass, const double frequency, const CrossoverType type, std::vector<int> orders) {
 	//"Highpass Bessel 100Hz",
 	std::string name = (isLowPass ? "Lowpass " : "Highpass ");
-	if (type == CrossoverType::Butterworth) { 
+	if (type == CrossoverType::Butterworth) {
 		name += "Butterworth ";
-	} 
+	}
 	else if (type == CrossoverType::Linkwitz_Riley) {
 		name += "Linkwitz-Riley ";
 	}
@@ -185,6 +185,20 @@ void addPEQ(std::vector<GraphData*> &graphs, const uint32_t fs, const double fre
 	graphs.push_back(graphData);
 }
 
+void addBiquad(std::vector<GraphData*> &graphs, const std::string name, const uint32_t fs, std::vector<std::vector<double>> biquad) {
+	GraphData *graphData = new GraphData(name);
+	BiquadFilter *pFilterSum = new BiquadFilter(fs);
+	int stage = 1;;
+	for (const std::vector<double> &coeffs : biquad) {
+		BiquadFilter *pFilter = new BiquadFilter(fs);
+		pFilter->add(coeffs[0], coeffs[1], coeffs[2], coeffs[3], coeffs[4]);
+		pFilterSum->add(coeffs[0], coeffs[1], coeffs[2], coeffs[3], coeffs[4]);
+		graphData->add(toString(stage++), pFilter);
+	}
+	graphData->add("Sum", pFilterSum);
+	graphs.push_back(graphData);
+}
+
 int main(int argc, char **argv) {
 	const uint32_t fs = 96000;
 
@@ -193,41 +207,25 @@ int main(int argc, char **argv) {
 	addCrossover(graphs, fs, false, 200, CrossoverType::Butterworth, { 1, 2, 3, 4, 5, 6, 7, 8 });
 	addCrossover(graphs, fs, true, 300, CrossoverType::Linkwitz_Riley, { 2, 4, 8 });
 	addCrossover(graphs, fs, false, 400, CrossoverType::Linkwitz_Riley, { 2, 4, 8 });
-	addCrossover(graphs, fs, true, 500, CrossoverType::Bessel, {  2, 3, 4, 5, 6, 7, 8 });
+	addCrossover(graphs, fs, true, 500, CrossoverType::Bessel, { 2, 3, 4, 5, 6, 7, 8 });
 	addCrossover(graphs, fs, false, 600, CrossoverType::Bessel, { 2, 3, 4, 5, 6, 7, 8 });
-	addShelf(graphs, fs, true, 100, 10, {0.5, 0.707, 1, 2});
+	addShelf(graphs, fs, true, 100, 10, { 0.5, 0.707, 1, 2 });
 	addShelf(graphs, fs, false, 200, 3, { 0.5, 0.707, 1, 2 });
-	addBandPass(graphs, fs, 500, -3, {0.25, 0.5, 1, 2, 4, 6, 8, 10});
-	addNotch(graphs, fs, 500, 3, {0.25, 0.5, 1, 2, 4, 6, 8, 10});
-	addPEQ(graphs, fs, 100, -6, {0.5, 1, 2, 5, 10});
+	addBandPass(graphs, fs, 500, -3, { 0.25, 0.5, 1, 2, 4, 6, 8, 10 });
+	addNotch(graphs, fs, 500, 3, { 0.25, 0.5, 1, 2, 4, 6, 8, 10 });
+	addPEQ(graphs, fs, 100, -6, { 0.5, 1, 2, 5, 10 });
 	addPEQ(graphs, fs, 500, 3, { 0.5, 1, 2, 5, 10 });
 	addLT(graphs, fs, { 0.25, 0.5, 0.707 });
+	addBiquad(graphs, "Custom biquad 100Hz 4th order BW", fs, {
+		{ 0.993978831854144, -1.98795766370829,	0.993978831854144, -1.98793637410783, 0.987978953308752	},
+		{ 0.997490827915119, -1.99498165583024, 0.997490827915119, -1.99496029100786, 0.995003020652617 }
+		});
 	saveJsGraphData(graphs);
-	
+
 	BiquadFilter *pFilter = new BiquadFilter(fs);
 	pFilter->addHighPass(100, 4, CrossoverType::Butterworth);
 	printMaxVal(pFilter);
 	pFilter->printCoefficients(true);
 
-	//printf("\n");
-	//system("PAUSE");
-	//exit(EXIT_FAILURE);
 	return 0;
 }
-
-//#include "SineSweepGenerator.h"
-//SineSweepGenerator sine(44100, 2000, 10000, 5, 0);
-//
-//void CaptureLoop::_fillProcessBuffer() {
-//	memset(_pProcessBuffer, 0, _renderBufferByteSize);
-//	for (size_t sampleIndex = 0; sampleIndex < _renderBufferCapacity; ++sampleIndex) {
-//		const double value = sine.next();
-//		if (abs(value) > 1.0) {
-//			printf("value clipping %f\n", value);
-//		}
-//		for (size_t channelIndex = 0; channelIndex < _nChannelsIn; ++channelIndex) {
-//			(*_pInputs)[channelIndex]->route(value, _pProcessBuffer + sampleIndex * _nChannelsOut);
-//		}
-//	}
-//}
-

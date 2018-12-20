@@ -26,13 +26,14 @@ public:
 	void addHighPass(const double frequency, const std::vector<double> qValues);
 	void addHighPass(const double frequency, const uint8_t order, const CrossoverType type);
 	
-	void addShelf(const bool isLowShelf, const double frequency, const double gain, const double q = 1);
-	void addLowShelf(const double frequency, const double gain, const double q = 1);
-	void addHighShelf(const double frequency, const double gain, const double q = 1);
+	void addShelf(const bool isLowShelf, const double frequency, const double gain, const double q = 0.707);
+	void addLowShelf(const double frequency, const double gain, const double q = 0.707);
+	void addHighShelf(const double frequency, const double gain, const double q = 0.707);
 	
-	void addPEQ(const double frequency, const double q, const double gain);
 	void addBandPass(const double frequency, const double bandwidth, const double gain = 0);
 	void addNotch(const double frequency, const double bandwidth, const double gain = 0);
+
+	void addPEQ(const double frequency, const double q, const double gain);
 	void addLinkwitzTransform(const double f0, const double q0, const double fp, const double qp);
 	
 	void printCoefficients(const bool miniDSPFormat = false) const;

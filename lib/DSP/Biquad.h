@@ -9,16 +9,21 @@ public:
 
 	void init(const double b0, const double b1, const double b2, const double a0, const double a1, const double a2);
 	void init(const double b0, const double b1, const double b2, const double a1, const double a2);
+	
 	void initLowPass(const uint32_t sampleRate, const double frequency, const double q);
 	void initLowPass(const uint32_t sampleRate, const double frequency);
 	void initHighPass(const uint32_t sampleRate, const double frequency, const double q);
 	void initHighPass(const uint32_t sampleRate, const double frequency);
-	void initLowShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q = 1);
-	void initHighShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q = 1);
-	void initPEQ(const uint32_t sampleRate, const double frequency, const double q, const double gain);
+	
+	void initLowShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q = 0.707);
+	void initHighShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q = 0.707);
+	
 	void initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain = 0);
 	void initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain = 0);
+	
+	void initPEQ(const uint32_t sampleRate, const double frequency, const double q, const double gain);
 	void initLinkwitzTransform(const uint32_t sampleRate, const double F0, const double Q0, const double Fp, const double Qp);
+	
 	void reset();
 	void printCoefficients(const bool miniDSPFormat = false) const;
 	const std::vector<std::vector<double>> getFrequencyResponse(const uint32_t sampleRate, const uint32_t nPoints, const double fMin, const double fMax) const;

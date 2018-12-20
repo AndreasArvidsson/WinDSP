@@ -195,8 +195,8 @@ int main(int argc, char **argv) {
 	addCrossover(graphs, fs, false, 400, CrossoverType::Linkwitz_Riley, { 2, 4, 8 });
 	addCrossover(graphs, fs, true, 500, CrossoverType::Bessel, {  2, 3, 4, 5, 6, 7, 8 });
 	addCrossover(graphs, fs, false, 600, CrossoverType::Bessel, { 2, 3, 4, 5, 6, 7, 8 });
-	addShelf(graphs, fs, true, 100, 10, {0.5, 1, 2});
-	addShelf(graphs, fs, false, 200, 3, { 0.5, 1, 2 });
+	addShelf(graphs, fs, true, 100, 10, {0.5, 0.707, 1, 2});
+	addShelf(graphs, fs, false, 200, 3, { 0.5, 0.707, 1, 2 });
 	addBandPass(graphs, fs, 500, -3, {0.25, 0.5, 1, 2, 4, 6, 8, 10});
 	addNotch(graphs, fs, 500, 3, {0.25, 0.5, 1, 2, 4, 6, 8, 10});
 	addPEQ(graphs, fs, 100, -6, {0.5, 1, 2, 5, 10});

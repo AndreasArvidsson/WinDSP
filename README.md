@@ -260,7 +260,7 @@ or
 **Shelf**    
 * Type: LOW_SHELF or HIGH_SHELF    
 * Requires: type, freq, gain    
-* Q-value defaults to 1.0
+* Q-value defaults to 0.707
 ```json
 {
     "type": "LOW_SHELF",

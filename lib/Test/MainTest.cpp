@@ -188,7 +188,7 @@ void addPEQ(std::vector<GraphData*> &graphs, const uint32_t fs, const double fre
 void addBiquad(std::vector<GraphData*> &graphs, const std::string name, const uint32_t fs, std::vector<std::vector<double>> biquad) {
 	GraphData *graphData = new GraphData(name);
 	BiquadFilter *pFilterSum = new BiquadFilter(fs);
-	int stage = 1;;
+	int stage = 1;
 	for (const std::vector<double> &coeffs : biquad) {
 		BiquadFilter *pFilter = new BiquadFilter(fs);
 		pFilter->add(coeffs[0], coeffs[1], coeffs[2], coeffs[3], coeffs[4]);

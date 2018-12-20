@@ -104,7 +104,6 @@ void Biquad::initPEQ(const uint32_t sampleRate, const double frequency, const do
 	const double w0 = getOmega(sampleRate, frequency);
 	const double alpha = getAlpha(w0, q);
 	const double A = std::pow(10, gain / 40);
-	const double sn = std::sin(w0);
 	const double cs = std::cos(w0);
 	b0 = 1 + alpha * A;
 	b1 = -2 * cs;

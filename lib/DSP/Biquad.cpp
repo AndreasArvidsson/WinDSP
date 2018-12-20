@@ -11,7 +11,7 @@ void Biquad::init(const double b0, const double b1, const double b2, const doubl
 	this->a0 = a0;
 	this->a1 = a1;
 	this->a2 = a2;
-	reset();
+	normalize();
 }
 
 void Biquad::init(const double b0, const double b1, const double b2, const double a1, const double a2) {

@@ -103,7 +103,7 @@ void Biquad::initHighShelf(const uint32_t sampleRate, const double frequency, co
 void Biquad::initPEQ(const uint32_t sampleRate, const double frequency, const double q, const double gain) {
 	const double w0 = getOmega(sampleRate, frequency);
 	const double alpha = getAlpha(w0, q);
-	const double A = std::sqrt(std::pow(10, gain / 20));
+	const double A = std::pow(10, gain / 40);
 	const double sn = std::sin(w0);
 	const double cs = std::cos(w0);
 	b0 = 1 + alpha * A;

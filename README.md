@@ -260,19 +260,19 @@ or
 **Shelf**    
 * Type: LOW_SHELF or HIGH_SHELF    
 * Requires: type, freq, gain    
-* Slope defaults to 1.0
+* Q-value defaults to 1.0
 ```json
 {
     "type": "LOW_SHELF",
     "freq": 100.0,
-    "gain": -10.0,
-    "slope": 0.5
+    "gain": -6.0,
+    "q": 0.5
 }
 ```
 
 **Band pass**    
 * Requires: type, freq, bandwidth    
-* Gain defaults to 1.0
+* Gain defaults to 0dB
 ```json
 {
     "type": "BAND_PASS",
@@ -284,11 +284,13 @@ or
 
 **Notch**    
 * Requires: type, freq, bandwidth    
+* Gain defaults to 0dB
 ```json
 {
     "type": "NOTCH",
     "freq": 100.0,
-    "bandwidth": 3.5
+    "bandwidth": 3.5,
+    "gain": 1.5
 }
 ```
 

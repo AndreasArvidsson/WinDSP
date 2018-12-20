@@ -464,11 +464,13 @@ void Config::parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, c
 void Config::parseShelf(const bool isLowShelf, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
 	double freq = doubleValue(pFilterNode, "freq", path);
 	double gain = doubleValue(pFilterNode, "gain", path);
-	double slope = 1.0;
-	if (pFilterNode->has("slope")) {
-		double slope = doubleValue(pFilterNode, "slope", path);
+	if (pFilterNode->has("q")) {
+		double q = doubleValue(pFilterNode, "q", path);
+		pBiquadFilter->addShelf(isLowShelf, freq, gain, q);
 	}
-	pBiquadFilter->addShelf(isLowShelf, freq, gain, slope);
+	else {
+		pBiquadFilter->addShelf(isLowShelf, freq, gain);
+	}
 }
 
 void Config::parsePEQ(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
@@ -493,7 +495,13 @@ void Config::parseBandPass(BiquadFilter *pBiquadFilter, const JsonNode *pFilterN
 void Config::parseNotch(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
 	double freq = doubleValue(pFilterNode, "freq", path);
 	double bandwidth = doubleValue(pFilterNode, "bandwidth", path);
-	pBiquadFilter->addNotch(freq, bandwidth);
+	if (pFilterNode->has("gain")) {
+		double gain = doubleValue(pFilterNode, "gain", path);
+		pBiquadFilter->addNotch(freq, bandwidth, gain);
+	}
+	else {
+		pBiquadFilter->addNotch(freq, bandwidth);
+	}
 }
 
 void Config::parseLinkwitzTransform(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {

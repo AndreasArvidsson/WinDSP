@@ -115,27 +115,27 @@ void Biquad::initPEQ(const uint32_t sampleRate, const double frequency, const do
 	normalize();
 }
 
-void Biquad::initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, double gain) {
+void Biquad::initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain) {
 	const double w0 = getOmega(sampleRate, frequency);
 	const double alpha = std::sin(w0) * std::sinh(M_LN2 / 2 * bandwidth * w0 / std::sin(w0));
-	gain = std::pow(10, gain / 20);
-	b0 = gain * alpha;
+	const double A = std::pow(10, gain / 20);
+	b0 = A * alpha;
 	b1 = 0;
-	b2 = -gain * alpha;
+	b2 = -A * alpha;
 	a0 = 1 + alpha;
 	a1 = -2 * std::cos(w0);
 	a2 = 1 - alpha;
 	normalize();
 }
 
-void Biquad::initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth, double gain) {
+void Biquad::initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain) {
 	const double w0 = getOmega(sampleRate, frequency);
 	const double alpha = std::sin(w0) * std::sinh(M_LN2 / 2 * bandwidth * w0 / std::sin(w0));
 	const double cs = std::cos(w0);
-	gain = std::pow(10, gain / 20);
-	b0 = gain;
-	b1 = -2 * cs * gain;
-	b2 = gain;
+	const double A = std::pow(10, gain / 20);
+	b0 = A;
+	b1 = -2 * cs * A;
+	b2 = A;
 	a0 = 1 + alpha;
 	a1 = -2 * cs;
 	a2 = 1 - alpha;

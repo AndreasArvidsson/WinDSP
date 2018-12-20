@@ -521,7 +521,13 @@ void Config::parseBiquad(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNod
 		double b2 = doubleValue(pValueNode->path("b2"), path);
 		double a1 = doubleValue(pValueNode->path("a1"), path);
 		double a2 = doubleValue(pValueNode->path("a2"), path);
-		pBiquadFilter->add(b0, b1, b2, a1, a2);
+		if (pValueNode->has("a0")) {
+			double a0 = doubleValue(pValueNode->path("a0"), path);
+			pBiquadFilter->add(b0, b1, b2, a0, a1, a2);
+		}
+		else {
+			pBiquadFilter->add(b0, b1, b2, a1, a2);
+		}
 	}
 }
 

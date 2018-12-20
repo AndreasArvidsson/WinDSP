@@ -339,9 +339,10 @@ or
 [Biquad](https://www.minidsp.com/applications/advanced-tools/advanced-biquad-programming)    
 * Create a custom biquad by giving the biquad coefficients    
 * Biquad filters are also known as IIR(Infinite Impulse Response)  
-* b0-b1 are the feedforward values in the numerator and a0-a1 are the feedback values in the denominator  
+* b0-b2 are the feedforward values in the numerator and a0-a2 are the feedback values in the denominator  
 * Multiple sets of coefficients can be given to create a cascading filter
 * Requires: type, values[b0, b1, b2, a1, a2]
+* a0 defaults to 1.0
 ```json
 {
     "type": "BIQUAD",
@@ -349,6 +350,7 @@ or
         "b0": 0.2513790015131591,
         "b1": 0.5027580030263182,
         "b2": 0.2513790015131591,
+		"a0": 1.0,
         "a1": -0.17124071441396285,
         "a2": 0.1767567204665992
     }]

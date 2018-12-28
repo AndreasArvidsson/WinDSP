@@ -44,7 +44,6 @@ void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, Audio
 	_renderBufferCapacity = _pCaptureDevice->getEngineBufferSize();
 	_renderBufferByteSize = _renderBufferCapacity * _nChannelsOut * sizeof(double);
 	_pProcessBuffer = new double[_renderBufferCapacity * _nChannelsOut];
-	memset(_pProcessBuffer, 0, _renderBufferByteSize);
 
 	//Initialize conditions
 	_pUsedChannels = new bool[_nChannelsIn];
@@ -133,7 +132,6 @@ void CaptureLoop::_asioRenderCallback(const long asioBufferIndex, const ASIOBool
 
 void CaptureLoop::_wasapiRenderLoop() {
 	float *pRenderBuffer;
-	size_t sampleIndex, channelIndex;
 	_pRenderDevice->flushRenderBuffer();
 	while (_run) {
 		//Wait for device callback
@@ -153,8 +151,8 @@ void CaptureLoop::_wasapiRenderLoop() {
 		assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, _renderBufferCapacity));
 
 		//Copy data from process buffer to render buffer.
-		for (sampleIndex = 0; sampleIndex < _renderBufferCapacity; ++sampleIndex) {
-			for (channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
+		for (size_t sampleIndex = 0; sampleIndex < _renderBufferCapacity; ++sampleIndex) {
+			for (size_t channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
 				//Apply output forks and filters.
 				pRenderBuffer[sampleIndex * _nChannelsOut + channelIndex] = (float)(*_pOutputs)[channelIndex]->process(_pProcessBuffer[sampleIndex * _nChannelsOut + channelIndex]);
 			}

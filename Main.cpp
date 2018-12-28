@@ -17,7 +17,7 @@
 #define PROFILE ""
 #endif
 
-#define VERSION "0.14.2b"
+#define VERSION "0.15.0b"
 #define TITLE_SIZE 64
 
 char configFileNumber = '0';

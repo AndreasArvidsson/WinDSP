@@ -26,7 +26,7 @@
             "type": "LOW_SHELF",
             "freq": 100,
             "gain": 5,
-            "slope": 0.55
+            "q": 0.55
         },
         "peq": {
             "type": "PEQ",

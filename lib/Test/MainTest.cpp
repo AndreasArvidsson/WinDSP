@@ -199,6 +199,21 @@ void addBiquad(std::vector<GraphData*> &graphs, const std::string name, const ui
 	graphs.push_back(graphData);
 }
 
+void compareLP(std::vector<GraphData*> &graphs, const uint32_t fs) {
+	double freq = 80;
+	GraphData *graphData = new GraphData("Compare LP");
+
+	BiquadFilter *pFilter = new BiquadFilter(fs);
+	pFilter->addLowPass(freq, 5, CrossoverType::Butterworth);
+	graphData->add("BW", pFilter);
+
+	pFilter = new BiquadFilter(fs);
+	pFilter->addLowPass(freq, { -1, 0.54118411083, 1.21578947368 });
+	graphData->add("Custom", pFilter);
+
+	graphs.push_back(graphData);
+}
+
 int main(int argc, char **argv) {
 	const uint32_t fs = 96000;
 
@@ -220,6 +235,7 @@ int main(int argc, char **argv) {
 		{ 0.993978831854144, -1.98795766370829,	0.993978831854144, -1.98793637410783, 0.987978953308752	},
 		{ 0.997490827915119, -1.99498165583024, 0.997490827915119, -1.99496029100786, 0.995003020652617 }
 		});
+	compareLP(graphs, fs);
 	saveJsGraphData(graphs);
 
 	BiquadFilter *pFilter = new BiquadFilter(fs);

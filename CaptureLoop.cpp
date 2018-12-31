@@ -310,14 +310,16 @@ void CaptureLoop::_checkClippingChannels() {
 }
 
 void CaptureLoop::_updateConditionalRouting() {
-	//Get current is playing status per channel.
-	for (size_t i = 0; i < _nChannelsIn; ++i) {
-		_pUsedChannels[i] = (*_pInputs)[i]->resetIsPlaying();
-	}
+	if (_pConfig->useConditionalRouting()) {
+		//Get current is playing status per channel.
+		for (size_t i = 0; i < _nChannelsIn; ++i) {
+			_pUsedChannels[i] = (*_pInputs)[i]->resetIsPlaying();
+		}
 
-	//Update conditional routing.
-	for (const Input *pInut : *_pInputs) {
-		pInut->evalConditions();
+		//Update conditional routing.
+		for (const Input *pInut : *_pInputs) {
+			pInut->evalConditions();
+		}
 	}
 }
 

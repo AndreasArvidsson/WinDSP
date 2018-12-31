@@ -8,8 +8,15 @@
 #include "OS.h"
 #include "AsioDevice.h"
 
-Config::Config() {
-	_pJsonNode = nullptr;
+Config::Config(const std::string &path) {
+	//_pJsonNode = nullptr;
+	_configFile = path;
+	_hide = _minimize = _useConditionalRouting = _useAsioRenderer = _startWithOS = false;
+	_sampleRate = _numChannelsIn = _numChannelsOut = _numChannelsRender = 0;
+	_lastModified = 0;
+	load();
+	parseMisc();
+	parseDevices();
 }
 
 Config::~Config() {
@@ -26,16 +33,6 @@ Config::~Config() {
 	}
 	delete _pJsonNode;
 	_pJsonNode = nullptr;
-}
-
-void Config::init(const std::string &path) {
-	_configFile = path;
-	_hide = _minimize = _useConditionalRouting = _useAsioRenderer = _startWithOS = false;
-	_sampleRate = _numChannelsIn = _numChannelsOut = _numChannelsRender = 0;
-	_lastModified = 0;
-	load();
-	parseMisc();
-	parseDevices();
 }
 
 void Config::init(const uint32_t sampleRate, const uint32_t numChannelsIn, const uint32_t numChannelsOut) {

@@ -106,8 +106,7 @@ void run() {
 	const std::string configPath = OS::getExeDirPath() + getConfigFileName();
 
 	//Load config file
-	pConfig = new Config();
-	pConfig->init(configPath);
+	pConfig = new Config(configPath);
 
 	//Update start with OS.
 	updateStartWithOS();

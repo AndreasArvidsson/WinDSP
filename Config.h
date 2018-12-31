@@ -20,9 +20,9 @@ enum FilterType;
 class Config {
 public:
 
-	Config();
+	Config(const std::string &path);
 	~Config();
-	void init(const std::string &path);
+
 	void init(const uint32_t sampleRate, const uint32_t numChannelsIn, const uint32_t numChannelsOut);
 
 	const std::string getCaptureDeviceName() const;

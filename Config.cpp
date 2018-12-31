@@ -856,3 +856,11 @@ void Config::save() {
 	JsonParser::toFile(_configFile, *_pJsonNode);
 	_lastModified = _configFile.getLastModifiedTime();
 }
+
+const std::string Config : getDescription() const {
+	return textValue(_pJsonNode, "description", "");
+}
+
+const bool Config : hasDescription() const {
+	return _pJsonNode->has("description");
+}

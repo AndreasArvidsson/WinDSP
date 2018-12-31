@@ -35,6 +35,8 @@ public:
 	const bool startWithOS() const;
 	const std::string getChannelName(const size_t channelIndex) const;
 	const uint32_t getNumChannelsRender(const uint32_t capacity) const;
+	const std::string getDescription() const;
+	const bool hasDescription() const;
 
 	inline const bool Config::hasChanged() const {
 		return _lastModified != _configFile.getLastModifiedTime();

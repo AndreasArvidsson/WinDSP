@@ -55,6 +55,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 **Config layout**    
 ```json
 {
+	"description": "Default config",
     "startWithOS": false,
     "minimize":  false,
     "hide":  false,
@@ -89,6 +90,11 @@ If you don't have a spare soundcard in your computer to use for the capture devi
     }
 }
 ```
+
+**Description**
+* Description of the config file to be displayed at startup.
+* Optional. If not given no description will be shown
+* Useful when using multiple config files. eg: "Default", "Night mode", "Less bass"
 
 **Start WinDSP with Windows**
 * Set startWithOS to true and WinDSP will start with the OS/Windows

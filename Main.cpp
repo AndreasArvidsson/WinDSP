@@ -130,6 +130,9 @@ void run() {
 	else {
 		printf("Render(ASIO): %s\n", renderDeviceName.c_str());
 	}
+	if (pConfig->hasDescription()) {
+		printf("%s\n", pConfig->getDescription().c_str());
+	}
 	printf("----------------------------------------------\n\n");
 
 	/*

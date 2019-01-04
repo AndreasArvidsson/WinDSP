@@ -7,6 +7,7 @@ Windows based DSP(Digital Signal Processor)
 * Filters like crossovers, PEQ, shelf, custom biquad(IIR), FIR, delay, gain and more
 * Uses double-precision floating-points to calculate filters
 * Uses WASAPI(Windows Audio Session API) to capture and manipulate audio streams
+* Optional support for ASIO playback devices
 * JSON based configuration file to easy set up your DSP
 * User friendly error and warning messages. Warns you about digital clipping. Using missing channels and more.
 
@@ -39,6 +40,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 1. Download and install [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable/index.htm)
 1. Set Virtual Cable as your default audio playback device
 1. Configure Virtual Cabel to use the same sample rate as your render device (/properties/advanced)
+1. Configure Virtual Cabel to NOT allow applications to take exclusive control (/properties/advanced)
 1. Configure Virtual Cable to use 7.1 surround (/configure)
 1. Configure WinDSP.json configuration file
 1. Start WinDSP.exe

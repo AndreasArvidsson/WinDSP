@@ -57,7 +57,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 **Config layout**    
 ```json
 {
-	"description": "Default config",
+    "description": "Default config",
     "startWithOS": false,
     "minimize":  false,
     "hide":  false,

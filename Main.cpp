@@ -9,16 +9,17 @@
 #include "OS.h"
 #include "CaptureLoop.h"
 #include "AsioDevice.h"
-
-#ifdef DEBUG
-#include "MemoryManager.h"
-#define PROFILE " - DEBUG mode"
-#else
-#define PROFILE ""
-#endif
+#include "WinDSPLog.h"
 
 #define VERSION "0.16.0b"
 #define TITLE_SIZE 64
+
+#ifdef DEBUG
+#include "MemoryManager.h"
+#define PROFILE " - DEBUG profile"
+#else
+#define PROFILE ""
+#endif
 
 char configFileNumber = '0';
 Config *pConfig = nullptr;
@@ -56,9 +57,12 @@ void updateStartWithOS() {
 void setTitle() {
 	snprintf(title, TITLE_SIZE, "WinDSP %s%s", VERSION, PROFILE);
 	SetConsoleTitle(title);
-	printf("----------------------------------------------\n");
-	printf("\t%s\n", title);
-	printf("----------------------------------------------\n\n");
+	LOG_INFO("----------------------------------------------");
+	LOG_INFO("\t%s", title);
+#ifdef DEBUG_LOG
+	LOG_INFO("\tLog file: %s", LOG_FILE);
+#endif
+	LOG_INFO("----------------------------------------------\n");
 }
 
 const std::string getConfigFileName() {
@@ -73,7 +77,7 @@ const std::string getConfigFileName() {
 const bool checkInput(const char input) {
 	if (input) {
 		configFileNumber = input;
-		printf("Switching to config file '%s'\n\n", getConfigFileName().c_str());
+		LOG_INFO("Switching to config file '%s'\n", getConfigFileName().c_str());
 		return true;
 	}
 	return false;
@@ -96,7 +100,6 @@ void clearData() {
 	//Check for memory leaks
 	if (MemoryManager::getInstance()->hasLeak()) {
 		OS::showWindow();
-		printf("\n");
 		MemoryManager::getInstance()->assertNoLeak();
 	}
 #endif
@@ -121,19 +124,19 @@ void run() {
 	const std::string captureDeviceName = pConfig->getCaptureDeviceName();
 	const std::string renderDeviceName = pConfig->getRenderDeviceName();
 
-	printf("----------------------------------------------\n");
-	printf("Starting DSP service @ %s\n", Date::getLocalDateTimeString().c_str());
-	printf("Capture(WASAPI): %s\n", captureDeviceName.c_str());
+	LOG_INFO("----------------------------------------------");
+	LOG_INFO("Starting DSP service @ %s", Date::getLocalDateTimeString().c_str());
+	LOG_INFO("Capture(WASAPI): %s", captureDeviceName.c_str());
 	if (!pConfig->useAsioRenderer()) {
-		printf("Render(WASAPI): %s\n", renderDeviceName.c_str());
+		LOG_INFO("Render(WASAPI): %s", renderDeviceName.c_str());
 	}
 	else {
-		printf("Render(ASIO): %s\n", renderDeviceName.c_str());
+		LOG_INFO("Render(ASIO): %s", renderDeviceName.c_str());
 	}
 	if (pConfig->hasDescription()) {
-		printf("%s\n", pConfig->getDescription().c_str());
+		LOG_INFO("%s", pConfig->getDescription().c_str());
 	}
-	printf("----------------------------------------------\n\n");
+	LOG_INFO("----------------------------------------------\n");
 
 	/*
 	 * Create and initalize devices and validate device settings
@@ -191,6 +194,12 @@ void run() {
 }
 
 int main(int argc, char **argv) {
+#ifdef DEBUG_LOG
+	Log::logToPrint(false);
+	Log::logToFile(LOG_FILE);
+	Log::clearFile();
+#endif
+
 	setTitle();
 
 	//Very important for filter performance.
@@ -205,13 +214,13 @@ int main(int argc, char **argv) {
 		}
 		catch (const ConfigChangedException &e) {
 			if (!checkInput(e.input)) {
-				printf("Config file changed. Restarting...\n\n");
+				LOG_INFO("Config file changed. Restarting...\n");
 			}
 		}
 		//Keep trying for the service to come back
 		catch (const std::exception &e) {
 			OS::showWindow();
-			printf("ERROR: %s\n\n", e.what());
+			LOG_ERROR("ERROR: %s\n", e.what());
 
 			//Wait before trying again.
 			waiting = 20;

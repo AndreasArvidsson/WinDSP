@@ -2,6 +2,7 @@
 #include "asiosys.h"
 #include "ErrorMessages.h"
 #include "asiodrivers.h"
+#include "WinDSPLog.h"
 
 //External references
 extern AsioDrivers* asioDrivers;
@@ -133,18 +134,18 @@ const long AsioDevice::getNumOutputChannels() {
 }
 
 void AsioDevice::printInfo() {
-	printf("asioVersion: %d\n", _asioVersion);
-	printf("driverVersion: %d\n", _driverVersion);
-	printf("Name: %s\n", _pDriverName->c_str());
-	printf("ASIOGetChannels (inputs: %d, outputs: %d) - numChannels: %d\n", _numInputChannels, _numOutputChannels, _numChannels);
-	printf("ASIOGetBufferSize (min: %d, max: %d, preferred: %d, granularity: %d)\n", _minSize, _maxSize, _preferredSize, _granularity);
-	printf("ASIOGetSampleRate (sampleRate: %d)\n", (int)_sampleRate);
-	printf("ASIOGetLatencies (input: %d, output: %d)\n", _inputLatency, _outputLatency);
-	printf("ASIOOutputReady(); - %s\n", _outputReady ? "Supported" : "Not supported");
+	LOG_INFO("asioVersion: %d\n", _asioVersion);
+	LOG_INFO("driverVersion: %d\n", _driverVersion);
+	LOG_INFO("Name: %s\n", _pDriverName->c_str());
+	LOG_INFO("ASIOGetChannels (inputs: %d, outputs: %d) - numChannels: %d\n", _numInputChannels, _numOutputChannels, _numChannels);
+	LOG_INFO("ASIOGetBufferSize (min: %d, max: %d, preferred: %d, granularity: %d)\n", _minSize, _maxSize, _preferredSize, _granularity);
+	LOG_INFO("ASIOGetSampleRate (sampleRate: %d)\n", (int)_sampleRate);
+	LOG_INFO("ASIOGetLatencies (input: %d, output: %d)\n", _inputLatency, _outputLatency);
+	LOG_INFO("ASIOOutputReady(); - %s\n", _outputReady ? "Supported" : "Not supported");
 	if (_pChannelInfos) {
 		for (int i = 0; i < _numOutputChannels; ++i) {
 			const ASIOChannelInfo &c = _pChannelInfos[i];
-			printf("ASIOGetChannelInfo(channel: %d, name: %s, group: %d, isActive: %d, isInput: %d, type: %d)\n", c.channel, c.name, c.channelGroup, c.isActive, c.isInput, c.type);
+			LOG_INFO("ASIOGetChannelInfo(channel: %d, name: %s, group: %d, isActive: %d, isInput: %d, type: %d)\n", c.channel, c.name, c.channelGroup, c.isActive, c.isInput, c.type);
 		}
 	}
 }

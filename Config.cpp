@@ -7,6 +7,7 @@
 #include "Convert.h"
 #include "OS.h"
 #include "AsioDevice.h"
+#include "WinDSPLog.h"
 
 Config::Config(const std::string &path) {
 	//_pJsonNode = nullptr;
@@ -159,7 +160,7 @@ void Config::parseInputs() {
 void Config::parseInput(const JsonNode *pInputs, const std::string &channelName, std::string path) {
 	size_t channelIn = getChannelIndex(channelName, path);
 	if (channelIn >= (int)_numChannelsIn) {
-		printf("WARNING: Config(%s) - Capture device doesn't have channel '%s'\n", path.c_str(), channelName.c_str());
+		LOG_WARN("WARNING: Config(%s) - Capture device doesn't have channel '%s'\n", path.c_str(), channelName.c_str());
 		return;
 	}
 	const JsonNode *pChannelNode = getNode(pInputs, channelName, path);
@@ -179,7 +180,7 @@ void Config::parseRoute(std::vector<Route*> &routes, const JsonNode *pRoutes, co
 		std::string channelName = textValue(pRouteNode->get("out"), outPath);
 		size_t channelOut = getChannelIndex(channelName, outPath);
 		if (channelOut >= (int)_numChannelsOut) {
-			printf("WARNING: Config(%s) - Render device doesn't have channel '%s'\n", outPath.c_str(), channelName.c_str());
+			LOG_WARN("WARNING: Config(%s) - Render device doesn't have channel '%s'\n", outPath.c_str(), channelName.c_str());
 			return;
 		}
 		Route *pRoute = new Route(channelOut);
@@ -198,7 +199,7 @@ void Config::parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::str
 			pRoute->conditions.push_back(Condition(ConditionType::SILENT, (int)channel));
 		}
 		else {
-			printf("WARNING: Config(%s) - Unknown if condition", path.c_str());
+			LOG_WARN("WARNING: Config(%s) - Unknown if condition", path.c_str());
 			return;
 		}
 		_useConditionalRouting = true;
@@ -226,7 +227,7 @@ void Config::parseOutputs() {
 void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelName, std::string path) {
 	size_t channel = getChannelIndex(channelName, path);
 	if (channel >= (int)_numChannelsOut) {
-		printf("WARNING: Config(%s) - Render device doesn't have channel '%s'\n", path.c_str(), channelName.c_str());
+		LOG_WARN("WARNING: Config(%s) - Render device doesn't have channel '%s'\n", path.c_str(), channelName.c_str());
 		return;
 	}
 	const JsonNode *pChannelNode = getNode(pOutputs, channelName, path);
@@ -288,14 +289,14 @@ void Config::validateLevels(const std::string &path) const {
 		//Level is above 0dBFS. CLIPPING CAN OCCURE!!!
 		if (levels[i] > 1.0) {
 			if (first) {
-				printf("WARNING: Config(%s) - Sum of routed channel levels is above 0dBFS on output channel. CLIPPING CAN OCCUR!\n", path.c_str());
+				LOG_WARN("WARNING: Config(%s) - Sum of routed channel levels is above 0dBFS on output channel. CLIPPING CAN OCCUR!\n", path.c_str());
 				first = false;
 			}
-			printf("\t%s: +%.2f dBFS\n", getChannelName(i, path).c_str(), Convert::levelToDb(levels[i]));
+			LOG_WARN("\t%s: +%.2f dBFS\n", getChannelName(i, path).c_str(), Convert::levelToDb(levels[i]));
 		}
 	}
 	if (!first) {
-		printf("\n");
+		LOG_NL();
 	}
 }
 
@@ -368,7 +369,7 @@ void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, st
 			filters.push_back(new DelayFilter(_sampleRate, value, useUnitMeter));
 		}
 		else {
-			printf("WARNING: Config(%s) - Discarding delay filter with to low value. Can't delay less then one sample\n", path.c_str());
+			LOG_WARN("WARNING: Config(%s) - Discarding delay filter with to low value. Can't delay less then one sample\n", path.c_str());
 		}
 	}
 }
@@ -623,31 +624,31 @@ void Config::setDevices() {
 	size_t selectedIndex;
 	bool isOk;
 	do {
-		printf("Available capture devices:\n");
+		LOG_INFO("Available capture devices:\n");
 		for (size_t i = 0; i < wasapiDevices.size(); ++i) {
-			printf("%zu WASAPI: %s\n", i + 1, wasapiDevices[i].c_str());
+			LOG_INFO("%zu WASAPI: %s\n", i + 1, wasapiDevices[i].c_str());
 		}
 		//Make selection
 		selectedIndex = getSelection(1, wasapiDevices.size());
 		_captureDeviceName = wasapiDevices[selectedIndex - 1];
 
-		printf("\nAvailable render devices:\n");
+		LOG_INFO("\nAvailable render devices:\n");
 		size_t index = 1;
 		for (size_t i = 0; i < wasapiDevices.size(); ++i, ++index) {
 			//Cant reuse capture device.
 			if (index != selectedIndex) {
-				printf("%zu WASAPI: %s\n", index, wasapiDevices[i].c_str());
+				LOG_INFO("%zu WASAPI: %s\n", index, wasapiDevices[i].c_str());
 			}
 		}
 		for (size_t i = 0; i < asioDevices.size(); ++i, ++index) {
-			printf("%zu ASIO: %s\n", index, asioDevices[i].c_str());
+			LOG_INFO("%zu ASIO: %s\n", index, asioDevices[i].c_str());
 		}
 		//Make selection
 		selectedIndex = getSelection(1, wasapiDevices.size() + asioDevices.size(), selectedIndex);
 
 		//Query if selection is ok.
-		printf("\nSelected devices:\n");
-		printf("Capture(WASAPI): %s\n", _captureDeviceName.c_str());
+		LOG_INFO("\nSelected devices:\n");
+		LOG_INFO("Capture(WASAPI): %s\n", _captureDeviceName.c_str());
 		if (selectedIndex - 1 < wasapiDevices.size()) {
 			_renderDeviceName = wasapiDevices[selectedIndex - 1];
 			_useAsioRenderer = false;
@@ -656,10 +657,10 @@ void Config::setDevices() {
 			_renderDeviceName = asioDevices[selectedIndex - wasapiDevices.size() - 1];
 			_useAsioRenderer = true;
 		}
-		printf("Render(%s): %s\n", _useAsioRenderer ? "ASIO" : "WASAPI", _renderDeviceName.c_str());
-		printf("\nPress 1 to continue or 0 to re-select\n");
+		LOG_INFO("Render(%s): %s\n", _useAsioRenderer ? "ASIO" : "WASAPI", _renderDeviceName.c_str());
+		LOG_INFO("\nPress 1 to continue or 0 to re-select\n");
 		isOk = getSelection(0, 1) == 1;
-		printf("\n");
+		LOG_NL();
 	} while (!isOk);
 
 	//Update json

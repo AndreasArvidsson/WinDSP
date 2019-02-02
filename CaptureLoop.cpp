@@ -1,9 +1,10 @@
 #include "CaptureLoop.h"
 #include "AsioDevice.h"
+#include "WinDSPLog.h"
 
-//#define DEBUG_PRINT
+#define PERFORMANCE_LOG
 
-#ifdef DEBUG_PRINT
+#ifdef PERFORMANCE_LOG
 #include "Stopwatch.h"
 Stopwatch sw("Render", 6000);
 #define swStart() sw.intervalStart()
@@ -110,6 +111,7 @@ void CaptureLoop::run() {
 }
 
 void CaptureLoop::_asioRenderCallback(const long asioBufferIndex, const ASIOBool) {
+	swEnd();
 	swStart();
 
 	//Process data in capture buffer and fill the process buffer.
@@ -126,8 +128,6 @@ void CaptureLoop::_asioRenderCallback(const long asioBufferIndex, const ASIOBool
 
 	//If available this can reduce latency.
 	AsioDevice::outputReady();
-
-	swEnd();
 }
 
 void CaptureLoop::_wasapiRenderLoop() {
@@ -208,22 +208,24 @@ void CaptureLoop::_fillProcessBuffer() {
 		_silence = false;
 
 		//First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
+		//Need to flush buffer of bad data or we can get glitches.
 		if (_firstCapture) {
 			_firstCapture = false;
 			assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
 			_pCaptureDevice->flushCaptureBuffer();
 			return;
 		}
-
 	}
 
 	//During playback this flag may come up if buffers drift out of sync due to taking to long time. Just flush to re-sync.
 	if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-#ifdef DEBUG_PRINT
-		printf("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", captureAvailable);
+#ifdef PERFORMANCE_LOG
+		LOG_WARN("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", captureAvailable);
 #endif
 		assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
 		_pCaptureDevice->flushCaptureBuffer();
+		//Just ignore bad frames and try again.
+		_fillProcessBuffer();
 		return;
 	}
 
@@ -303,7 +305,7 @@ void CaptureLoop::_checkConfig() {
 void CaptureLoop::_checkClippingChannels() {
 	for (Output *pOutput : *_pOutputs) {
 		if (pOutput->clipping != 0.0) {
-			printf("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", pOutput->getName().c_str(), Convert::levelToDb(pOutput->clipping));
+			LOG_WARN("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", pOutput->getName().c_str(), Convert::levelToDb(pOutput->clipping));
 			pOutput->clipping = 0.0;
 		}
 	}
@@ -326,7 +328,7 @@ void CaptureLoop::_updateConditionalRouting() {
 //For debug purposes only.
 void CaptureLoop::_printUsedChannels() {
 	for (size_t i = 0; i < _nChannelsIn; ++i) {
-		printf("%s %d\n", (*_pInputs)[i]->getName().c_str(), _pUsedChannels[i]);
+		LOG_INFO("%s %d\n", (*_pInputs)[i]->getName().c_str(), _pUsedChannels[i]);
 	}
-	printf("\n");
+	LOG_NL();
 }

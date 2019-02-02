@@ -112,6 +112,7 @@
     <ClInclude Include="OutputFork.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />
+    <ClInclude Include="WinDSPLog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WinDSP.rc" />

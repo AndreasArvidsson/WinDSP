@@ -193,13 +193,16 @@ void run() {
 	CaptureLoop::run();
 }
 
-int main(int argc, char **argv) {
+void configureLogger() {
 #ifdef DEBUG_LOG
 	Log::logToPrint(false);
 	Log::logToFile(LOG_FILE);
 	Log::clearFile();
 #endif
+}
 
+int main(int argc, char **argv) {
+	configureLogger();
 	setTitle();
 
 	//Very important for filter performance.

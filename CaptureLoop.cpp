@@ -220,7 +220,7 @@ void CaptureLoop::_fillProcessBuffer() {
 	//During playback this flag may come up if buffers drift out of sync due to taking to long time. Just flush to re-sync.
 	if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
 #ifdef PERFORMANCE_LOG
-		LOG_WARN("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", captureAvailable);
+		LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", Date::getLocalDateTimeString().c_str(), captureAvailable);
 #endif
 		assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
 		_pCaptureDevice->flushCaptureBuffer();

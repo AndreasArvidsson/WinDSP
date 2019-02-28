@@ -31,7 +31,6 @@ public:
 	const std::vector<Output*>* getOutputs() const;
 	const bool hide() const;
 	const bool minimize() const;
-	const bool useAsioRenderer() const;
 	const bool startWithOS() const;
 	const std::string getChannelName(const size_t channelIndex) const;
 	const uint32_t getNumChannelsRender(const uint32_t capacity) const;
@@ -56,7 +55,7 @@ private:
 	std::string _captureDeviceName, _renderDeviceName;
 	uint32_t _sampleRate, _numChannelsIn, _numChannelsOut, _numChannelsRender;
 	time_t _lastModified;
-	bool _hide, _minimize, _useConditionalRouting, _useAsioRenderer, _startWithOS;
+	bool _hide, _minimize, _useConditionalRouting, _startWithOS;
 
 	void load();
 	void save();

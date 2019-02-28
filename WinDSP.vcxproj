@@ -23,6 +23,7 @@
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <CLRSupport>false</CLRSupport>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -30,6 +31,7 @@
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -55,6 +57,9 @@
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;DEBUG;DEBUG_MEMORY</PreprocessorDefinitions>
       <SupportJustMyCode>true</SupportJustMyCode>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(VCToolsInstallDir)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -73,6 +78,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(VCToolsInstallDir)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -82,15 +88,11 @@
     <ProjectReference Include="$(SolutionDir)\lib\DSP\DSP.vcxproj">
       <Project>{49c706ab-09b0-451e-a6d6-403a28a54ce5}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\AsioSDK\AsioSDK\AsioSDK.vcxproj">
-      <Project>{0ab9a655-ba2c-42cb-909f-b61ae395e2e8}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="WinDSP.json" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AsioDevice.cpp" />
     <ClCompile Include="AudioDevice.cpp" />
     <ClCompile Include="CaptureLoop.cpp" />
     <ClCompile Include="Condition.cpp" />
@@ -98,7 +100,6 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AsioDevice.h" />
     <ClInclude Include="AudioDevice.h" />
     <ClInclude Include="CaptureLoop.h" />
     <ClInclude Include="Condition.h" />
@@ -112,6 +113,7 @@
     <ClInclude Include="OutputFork.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />
+    <ClInclude Include="TrayIcon.h" />
     <ClInclude Include="WinDSPLog.h" />
   </ItemGroup>
   <ItemGroup>

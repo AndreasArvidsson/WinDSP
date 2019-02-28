@@ -6,13 +6,11 @@
 #include "JsonParser.h"
 #include "Convert.h"
 #include "OS.h"
-#include "AsioDevice.h"
 #include "WinDSPLog.h"
 
 Config::Config(const std::string &path) {
-	//_pJsonNode = nullptr;
 	_configFile = path;
-	_hide = _minimize = _useConditionalRouting = _useAsioRenderer = _startWithOS = false;
+	_hide = _minimize = _useConditionalRouting = _startWithOS = false;
 	_sampleRate = _numChannelsIn = _numChannelsOut = _numChannelsRender = 0;
 	_lastModified = 0;
 	load();
@@ -73,10 +71,6 @@ const bool Config::minimize() const {
 	return _minimize;
 }
 
-const bool Config::useAsioRenderer() const {
-	return _useAsioRenderer;
-}
-
 void Config::parseMisc() {
 	//Parse visibility options
 	_hide = _pJsonNode->has("hide") ? boolValue(_pJsonNode, "hide", "") : false;
@@ -123,13 +117,7 @@ void Config::parseDevices() {
 
 		path = "devices/render";
 		_renderDeviceName = textValue(pRenderNode->get("name"), path + "/name");
-		_useAsioRenderer = pRenderNode->has("asio") ? boolValue(pRenderNode->get("asio"), path + "/asio") : false;
-		if (_useAsioRenderer) {
-			_numChannelsRender = pRenderNode->has("numChannels") ? intValue(pRenderNode->get("numChannels"), path + "/numChannels") : 0;
-		}
-		else {
-			_numChannelsRender = 0;
-		}
+		_numChannelsRender = 0;
 	}
 }
 
@@ -619,14 +607,13 @@ void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, std::s
 void Config::setDevices() {
 	OS::showWindow();
 	std::vector<std::string> wasapiDevices = AudioDevice::getDeviceNames();
-	std::vector<std::string> asioDevices = AsioDevice::getDeviceNames();
 
 	size_t selectedIndex;
 	bool isOk;
 	do {
 		LOG_INFO("Available capture devices:\n");
 		for (size_t i = 0; i < wasapiDevices.size(); ++i) {
-			LOG_INFO("%zu WASAPI: %s\n", i + 1, wasapiDevices[i].c_str());
+			LOG_INFO("%zu: %s\n", i + 1, wasapiDevices[i].c_str());
 		}
 		//Make selection
 		selectedIndex = getSelection(1, wasapiDevices.size());
@@ -637,27 +624,17 @@ void Config::setDevices() {
 		for (size_t i = 0; i < wasapiDevices.size(); ++i, ++index) {
 			//Cant reuse capture device.
 			if (index != selectedIndex) {
-				LOG_INFO("%zu WASAPI: %s\n", index, wasapiDevices[i].c_str());
+				LOG_INFO("%zu: %s\n", index, wasapiDevices[i].c_str());
 			}
 		}
-		for (size_t i = 0; i < asioDevices.size(); ++i, ++index) {
-			LOG_INFO("%zu ASIO: %s\n", index, asioDevices[i].c_str());
-		}
 		//Make selection
-		selectedIndex = getSelection(1, wasapiDevices.size() + asioDevices.size(), selectedIndex);
+		selectedIndex = getSelection(1, wasapiDevices.size(), selectedIndex);
 
 		//Query if selection is ok.
 		LOG_INFO("\nSelected devices:\n");
-		LOG_INFO("Capture(WASAPI): %s\n", _captureDeviceName.c_str());
-		if (selectedIndex - 1 < wasapiDevices.size()) {
-			_renderDeviceName = wasapiDevices[selectedIndex - 1];
-			_useAsioRenderer = false;
-		}
-		else {
-			_renderDeviceName = asioDevices[selectedIndex - wasapiDevices.size() - 1];
-			_useAsioRenderer = true;
-		}
-		LOG_INFO("Render(%s): %s\n", _useAsioRenderer ? "ASIO" : "WASAPI", _renderDeviceName.c_str());
+		LOG_INFO("Capture: %s\n", _captureDeviceName.c_str());
+		_renderDeviceName = wasapiDevices[selectedIndex - 1];
+		LOG_INFO("Render: %s\n", _renderDeviceName.c_str());
 		LOG_INFO("\nPress 1 to continue or 0 to re-select\n");
 		isOk = getSelection(0, 1) == 1;
 		LOG_NL();
@@ -682,13 +659,6 @@ void Config::setDevices() {
 
 	pCaptureNode->put("name", _captureDeviceName);
 	pRenderNode->put("name", _renderDeviceName);
-	if (_useAsioRenderer) {
-		pRenderNode->put("asio", true);
-	}
-	//Only for asio. Remove othervise
-	else {
-		pRenderNode->remove("asio");
-	}
 	save();
 }
 

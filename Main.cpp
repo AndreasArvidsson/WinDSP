@@ -8,10 +8,13 @@
 
 #include "OS.h"
 #include "CaptureLoop.h"
-#include "AsioDevice.h"
 #include "WinDSPLog.h"
+#include "Keyboard.h"
+#include "Date.h"
+#include "ConfigChangedException.h"
+#include "Config.h"
 
-#define VERSION "0.16.0b"
+#define VERSION "0.16.1b"
 #define TITLE_SIZE 64
 
 #ifdef DEBUG
@@ -92,7 +95,6 @@ void clearData() {
 	pConfig = nullptr;
 	pCaptureDevice = nullptr;
 	pRenderDevice = nullptr;
-	AsioDevice::destroy();
 	AudioDevice::destroyStatic();
 	JsonNode::destroyStatic();
 
@@ -117,6 +119,7 @@ void run() {
 	//Show or hide window
 	setVisibility();
 
+
 	/*
 	* Get capture and render devices
 	*/
@@ -126,13 +129,8 @@ void run() {
 
 	LOG_INFO("----------------------------------------------");
 	LOG_INFO("Starting DSP service @ %s", Date::getLocalDateTimeString().c_str());
-	LOG_INFO("Capture(WASAPI): %s", captureDeviceName.c_str());
-	if (!pConfig->useAsioRenderer()) {
-		LOG_INFO("Render(WASAPI): %s", renderDeviceName.c_str());
-	}
-	else {
-		LOG_INFO("Render(ASIO): %s", renderDeviceName.c_str());
-	}
+	LOG_INFO("Capture: %s", captureDeviceName.c_str());
+	LOG_INFO("Render: %s", renderDeviceName.c_str());
 	if (pConfig->hasDescription()) {
 		LOG_INFO("%s", pConfig->getDescription().c_str());
 	}
@@ -147,28 +145,21 @@ void run() {
 	const WAVEFORMATEX *pCaptureFormat = pCaptureDevice->getFormat();
 	uint32_t rendererSampleRate, renderNumChannels;
 
-	if (pConfig->useAsioRenderer()) {
-		AsioDevice::init(renderDeviceName, FindWindow(NULL, title));
-		rendererSampleRate = AsioDevice::getSampleRate();
-		renderNumChannels = pConfig->getNumChannelsRender(AsioDevice::getNumOutputChannels());
-	}
-	else {
-		pRenderDevice = AudioDevice::initDevice(renderDeviceName);
-		pRenderDevice->initRenderService();
-		const WAVEFORMATEX *pRenderFormat = pRenderDevice->getFormat();
-		rendererSampleRate = pRenderFormat->nSamplesPerSec;
-		renderNumChannels = pRenderFormat->nChannels;
+	pRenderDevice = AudioDevice::initDevice(renderDeviceName);
+	pRenderDevice->initRenderService();
+	const WAVEFORMATEX *pRenderFormat = pRenderDevice->getFormat();
+	rendererSampleRate = pRenderFormat->nSamplesPerSec;
+	renderNumChannels = pRenderFormat->nChannels;
 
-		if (pCaptureFormat->wBitsPerSample != pRenderFormat->wBitsPerSample) {
-			throw Error("Bit depth missmatch: Capture(%d), Render(%d)", pCaptureFormat->wBitsPerSample, pRenderFormat->wBitsPerSample);
-		}
-		//Sample buffers must contains a 32bit float. All code depends on it.
-		if (pCaptureFormat->wBitsPerSample != 32) {
-			throw Error("Bit depth doesnt match float(32), Found(%d)", pCaptureFormat->wBitsPerSample);
-		}
-		if (pCaptureFormat->wFormatTag != pRenderFormat->wFormatTag) {
-			throw Error("Format tag missmatch: Capture(%d), Render(%d)", pCaptureFormat->wFormatTag, pRenderFormat->wFormatTag);
-		}
+	if (pCaptureFormat->wBitsPerSample != pRenderFormat->wBitsPerSample) {
+		throw Error("Bit depth missmatch: Capture(%d), Render(%d)", pCaptureFormat->wBitsPerSample, pRenderFormat->wBitsPerSample);
+	}
+	//Sample buffers must contains a 32bit float. All code depends on it.
+	if (pCaptureFormat->wBitsPerSample != 32) {
+		throw Error("Bit depth doesnt match float(32), Found(%d)", pCaptureFormat->wBitsPerSample);
+	}
+	if (pCaptureFormat->wFormatTag != pRenderFormat->wFormatTag) {
+		throw Error("Format tag missmatch: Capture(%d), Render(%d)", pCaptureFormat->wFormatTag, pRenderFormat->wFormatTag);
 	}
 
 	//The application have no resampler. Sample rate and bit depth must be a match.

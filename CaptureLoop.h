@@ -12,11 +12,12 @@
 #pragma once
 #include <vector>
 #include <atomic>
-#include "Config.h"
-#include "ConfigChangedException.h"
-#include "Date.h"
-#include "Convert.h"
-#include "Keyboard.h"
+#include <thread>
+
+class Config;
+class AudioDevice;
+class Input;
+class Output;
 
 namespace CaptureLoop {
 	
@@ -32,23 +33,16 @@ namespace CaptureLoop {
 	extern const std::vector<Output*> *_pOutputs;
 	extern AudioDevice *_pCaptureDevice;
 	extern AudioDevice *_pRenderDevice;
-	extern size_t _nChannelsIn, _nChannelsOut, _renderBufferByteSize;
-	extern UINT32 _renderBufferCapacity;
-	extern std::thread _wasapiRenderThread;
-	extern std::atomic<bool> _run, _throwError;
-	extern bool _silence, _firstCapture;
+	extern size_t _nChannelsIn, _nChannelsOut;
+	extern std::thread _wasapiCaptureThread;
+	extern std::atomic<bool> _run;
 	extern bool *_pUsedChannels;
-	extern double *_pProcessBuffer;
-	extern Error _error;
 
-	void _wasapiRenderLoop();
-	void _asioRenderCallback(const long bufferIndex, const ASIOBool);
+	void _wasapiCaptureLoop();
 	void _resetFilters();
 	void _checkConfig();
 	void _checkClippingChannels();
 	void _updateConditionalRouting();
 	void _printUsedChannels();
-	void _fillProcessBuffer();
-	long _asioMessage(const long selector, const long value, void* const message, double* const opt);
 
 }

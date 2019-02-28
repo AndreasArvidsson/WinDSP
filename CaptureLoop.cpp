@@ -1,20 +1,22 @@
 #include "CaptureLoop.h"
-#include "AsioDevice.h"
 #include "WinDSPLog.h"
+#include "Keyboard.h"
+#include "Date.h"
+#include "Convert.h"
+#include "ConfigChangedException.h"
+#include "Config.h"
 
-#define PERFORMANCE_LOG
+//#define PERFORMANCE_LOG
 
 #ifdef PERFORMANCE_LOG
 #include "Stopwatch.h"
-Stopwatch sw("Render", 6000);
+Stopwatch sw("Render", 1000);
 #define swStart() sw.intervalStart()
 #define swEnd() sw.intervalEnd()
 #else
 #define swStart() (void)0
 #define swEnd() (void)0
 #endif
-
-constexpr double MAX_INT32 = 2147483648.0;
 
 const Config *CaptureLoop::_pConfig;
 const std::vector<Input*> *CaptureLoop::_pInputs = nullptr;
@@ -23,16 +25,9 @@ AudioDevice *CaptureLoop::_pCaptureDevice = nullptr;
 AudioDevice *CaptureLoop::_pRenderDevice = nullptr;
 size_t CaptureLoop::_nChannelsIn = 0;
 size_t CaptureLoop::_nChannelsOut = 0;
-size_t CaptureLoop::_renderBufferByteSize = 0;
-UINT32 CaptureLoop::_renderBufferCapacity = 0;
-std::thread CaptureLoop::_wasapiRenderThread;
+std::thread CaptureLoop::_wasapiCaptureThread;
 std::atomic<bool> CaptureLoop::_run = false;
-std::atomic<bool> CaptureLoop::_throwError = false;
-bool CaptureLoop::_silence = false;
-bool CaptureLoop::_firstCapture = false;
-double *CaptureLoop::_pProcessBuffer;
 bool *CaptureLoop::_pUsedChannels;
-Error CaptureLoop::_error;
 
 void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice) {
 	_pConfig = pConfig;
@@ -42,9 +37,6 @@ void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, Audio
 	_pRenderDevice = pRenderDevice;
 	_nChannelsIn = _pInputs->size();
 	_nChannelsOut = _pOutputs->size();
-	_renderBufferCapacity = _pCaptureDevice->getEngineBufferSize();
-	_renderBufferByteSize = _renderBufferCapacity * _nChannelsOut * sizeof(double);
-	_pProcessBuffer = new double[_renderBufferCapacity * _nChannelsOut];
 
 	//Initialize conditions
 	_pUsedChannels = new bool[_nChannelsIn];
@@ -53,50 +45,32 @@ void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, Audio
 }
 
 void CaptureLoop::destroy() {
-	delete[] _pProcessBuffer;
 	delete[] _pUsedChannels;
-	_pProcessBuffer = nullptr;
 	_pUsedChannels = nullptr;
 	_pInputs = nullptr;
 	_pOutputs = nullptr;
 }
 
 void CaptureLoop::run() {
-	_run = _silence = _firstCapture = true;
-	_throwError = false;
+	_run = true;
 
 	//Start wasapi capture device.
 	_pCaptureDevice->startService();
+	//Start wasapi render device.
+	_pRenderDevice->startService();
 
-	//Asio render device.
-	if (_pConfig->useAsioRenderer()) {
-		ASIOCallbacks callbacks{ 0 };
-		callbacks.asioMessage = &_asioMessage;
-		callbacks.bufferSwitch = &_asioRenderCallback;
-		//Asio driver automatically starts in new thread
-		AsioDevice::startRenderService(&callbacks, (long)_renderBufferCapacity, (long)_nChannelsOut);
-	}
-	//Wasapi render device.
-	else {
-		_pRenderDevice->startService();
-		//Start rendering in a new thread.
-		_wasapiRenderThread = std::thread(_wasapiRenderLoop);
-	}
+	//Start capturing in a new thread.
+	_wasapiCaptureThread = std::thread(_wasapiCaptureLoop);
 
 	size_t count = 0;
-	for (;;) {
-		//Asio renderer operates in its on thread context and cant directly throw exceptions.
-		if (_throwError) {
-			throw _error;
-		}
-
+	while (_run) {
 		//Short sleep just to not busy wait all resources.
 		Date::sleepMillis(100);
 
 		//Check if config file has changed
 		_checkConfig();
 
-		//Dont do as often. Every 5seconds or so.
+		//Dont do as often. Every 5second or so.
 		if (count == 50) {
 			count = 0;
 
@@ -110,173 +84,105 @@ void CaptureLoop::run() {
 	}
 }
 
-void CaptureLoop::_asioRenderCallback(const long asioBufferIndex, const ASIOBool) {
-	swEnd();
-	swStart();
+void CaptureLoop::_wasapiCaptureLoop() {
+	//Used to temporarily store sample(for all out channels) while they are being processed.
+	double renderBlockBuffer[16];
+	//The size of all sample frames for all channels with the same sample index/timestamp
+	const size_t renderBlockSize = sizeof(double) * _nChannelsOut;
+	UINT32 channelIndex, sampleIndex, captureAvailable;
+	DWORD flags;
+	float *pCaptureBuffer, *pRenderBuffer;
+	bool silent = true;
+	bool first = true;
 
-	//Process data in capture buffer and fill the process buffer.
-	_fillProcessBuffer();
-
-	//Copy data from process buffer to render buffer.
-	for (size_t channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
-		int *pRenderBuffer = AsioDevice::getBuffer(channelIndex, asioBufferIndex);
-		for (size_t sampleIndex = 0; sampleIndex < _renderBufferCapacity; ++sampleIndex) {
-			//Apply output forks and filters.
-			pRenderBuffer[sampleIndex] = (int)(MAX_INT32 * (*_pOutputs)[channelIndex]->process(_pProcessBuffer[sampleIndex * _nChannelsOut + channelIndex]));
-		}
-	}
-
-	//If available this can reduce latency.
-	AsioDevice::outputReady();
-}
-
-void CaptureLoop::_wasapiRenderLoop() {
-	float *pRenderBuffer;
-	_pRenderDevice->flushRenderBuffer();
 	while (_run) {
-		//Wait for device callback
-		assertWait(WaitForSingleObjectEx(_pRenderDevice->getEventHandle(), INFINITE, false));
+		//Check for samples in capture buffer.
+		assert(_pCaptureDevice->getNextPacketSize(&captureAvailable));
 
-		swStart();
+		while (captureAvailable != 0) {
+			//Get capture buffer pointer and number of available frames.
+			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &captureAvailable, &flags));
 
-		//Process data in capture buffer and fill the process buffer.
-		_fillProcessBuffer();
-
-		//Wait for the render buffer to be ready.
-		while (_pRenderDevice->getBufferFrameCountAvailable() < _renderBufferCapacity) {
-			Date::sleepMicros(100);
-		}
-
-		//Get render buffer.
-		assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, _renderBufferCapacity));
-
-		//Copy data from process buffer to render buffer.
-		for (size_t sampleIndex = 0; sampleIndex < _renderBufferCapacity; ++sampleIndex) {
-			for (size_t channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
-				//Apply output forks and filters.
-				pRenderBuffer[sampleIndex * _nChannelsOut + channelIndex] = (float)(*_pOutputs)[channelIndex]->process(_pProcessBuffer[sampleIndex * _nChannelsOut + channelIndex]);
+			if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
+				//Was playing audio before. Reset filter states.
+				if (!silent) {
+					silent = true;
+					_resetFilters();
+				}
+				assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
+				continue;
 			}
-		}
+		
+			//Was silent before.
+			if (silent) {
+				silent = false;
+				//First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
+				//Need to flush buffer of bad data or we can get glitches.
+				if (first) {
+					first = false;
+					assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
+					_pCaptureDevice->flushCaptureBuffer();
+					break;
+				}
+			}
 
-		//Release/flush render buffer.
-		assert(_pRenderDevice->releaseRenderBuffer(_renderBufferCapacity));
+			if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+				LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", Date::getLocalDateTimeString().c_str(), captureAvailable);
+			}
 
-		swEnd();
-	}
-}
+			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
+			while (captureAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
+				//Short sleep just to not busy wait all resources.
+				Date::sleepMicros(1);
+			}
 
-void CaptureLoop::_fillProcessBuffer() {
-	//Set default value to 0 so we can add/mix values to it later
-	memset(_pProcessBuffer, 0, _renderBufferByteSize);
+			//Get render buffer
+			assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, captureAvailable));
+		
+			swStart();
 
-	//Check for samples in capture buffer.
-	UINT32 captureAvailable;
-	assert(_pCaptureDevice->getNextPacketSize(&captureAvailable));
+			//Iterate all capture frames
+			for (sampleIndex = 0; sampleIndex < captureAvailable; ++sampleIndex) {
+				//Set buffer default value to 0 so we can add/mix values to it later
+				memset(renderBlockBuffer, 0, renderBlockSize);
 
-	//No data available.
-	if (captureAvailable == 0) {
-		//In silence 'mode'. Fill buffer with silence and be done.
-		if (_silence) {
-			return;
-		}
-		//Just waiting for data during playback.
-		while (captureAvailable == 0) {
-			Date::sleepMicros(100);
+				//Iterate inputs and route samples to outputs
+				for (channelIndex = 0; channelIndex < _nChannelsIn; ++channelIndex) {
+					(*_pInputs)[channelIndex]->route(pCaptureBuffer[channelIndex], renderBlockBuffer);
+				}
+
+				//Iterate outputs and apply output forks and filters
+				for (channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
+					pRenderBuffer[channelIndex] = (float)(*_pOutputs)[channelIndex]->process(renderBlockBuffer[channelIndex]);
+				}
+
+				//Move buffers to next sample
+				pCaptureBuffer += _nChannelsIn;
+				pRenderBuffer += _nChannelsOut;
+			}
+
+			swEnd();
+
+			//Release render buffer.
+			assert(_pRenderDevice->releaseRenderBuffer(captureAvailable));
+
+			//Release capture buffer.
+			assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
+
+			//Check for more samples in capture buffer.
 			assert(_pCaptureDevice->getNextPacketSize(&captureAvailable));
 		}
+
+		//No available samples. Short sleep just to not busy wait all resources.
+		Date::sleepMicros(1);
 	}
-
-	//Get capture buffer pointer and number of available frames.
-	float *pCaptureBuffer;
-	DWORD flags;
-	assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &captureAvailable, &flags));
-
-	//Silence flag set. 
-	if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
-		//Was playing audio before. Reset filter states.
-		if (!_silence) {
-			_silence = true;
-			_resetFilters();
-		}
-		assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
-		return;
-	}
-
-	//Was silence before but is now playing.
-	//Make sure that capture and render always starts in sync.
-	if (_silence) {
-		_silence = false;
-
-		//First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
-		//Need to flush buffer of bad data or we can get glitches.
-		if (_firstCapture) {
-			_firstCapture = false;
-			assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
-			_pCaptureDevice->flushCaptureBuffer();
-			return;
-		}
-	}
-
-	//During playback this flag may come up if buffers drift out of sync due to taking to long time. Just flush to re-sync.
-	if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-#ifdef PERFORMANCE_LOG
-		LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", Date::getLocalDateTimeString().c_str(), captureAvailable);
-#endif
-		assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
-		_pCaptureDevice->flushCaptureBuffer();
-		//Just ignore bad frames and try again.
-		_fillProcessBuffer();
-		return;
-	}
-
-	//Iterate inputs and route samples from input to process buffer.
-	for (size_t sampleIndex = 0; sampleIndex < _renderBufferCapacity; ++sampleIndex) {
-		for (size_t channelIndex = 0; channelIndex < _nChannelsIn; ++channelIndex) {
-			(*_pInputs)[channelIndex]->route(pCaptureBuffer[sampleIndex * _nChannelsIn + channelIndex], _pProcessBuffer + sampleIndex * _nChannelsOut);
-		}
-	}
-
-	//Release capture buffer.
-	assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
-}
-
-long CaptureLoop::_asioMessage(const long selector, const long value, void* const message, double* const opt) {
-	switch (selector) {
-	case kAsioSelectorSupported:
-		switch (value) {
-		case kAsioResetRequest:
-		case kAsioResyncRequest:
-			return 1L;
-		}
-		break;
-		//Ask the host application for its ASIO implementation. Host ASIO implementation version, 2 or higher 
-	case kAsioEngineVersion:
-		return 2L;
-		//Requests a driver reset. Return value is always 1L.
-	case kAsioResetRequest:
-		_error = Error("ASIO hardware is not available or has been reset.");
-		_throwError = true;
-		return 1L;
-		//The driver went out of sync, such that the timestamp is no longer valid.This is a request to re -start the engine and slave devices(sequencer). 1L if request is accepted or 0 otherwise.
-	case kAsioResyncRequest:
-		_error = Error("ASIO driver went out of sync.");
-		_throwError = true;
-		return 1L;
-	}
-	return 0L;
 }
 
 void CaptureLoop::stop() {
 	if (_run) {
 		_run = false;
-		if (_pConfig->useAsioRenderer()) {
-			//Stop asio render thread.
-			AsioDevice::stopRenderService();
-		}
-		else {
-			//Stop and wait for wasapi render thread to finish.
-			_wasapiRenderThread.join();
-		}
+		//Stop and wait for wasapi thread to finish.
+		_wasapiCaptureThread.join();
 	}
 }
 
@@ -317,7 +223,6 @@ void CaptureLoop::_updateConditionalRouting() {
 		for (size_t i = 0; i < _nChannelsIn; ++i) {
 			_pUsedChannels[i] = (*_pInputs)[i]->resetIsPlaying();
 		}
-
 		//Update conditional routing.
 		for (const Input *pInut : *_pInputs) {
 			pInut->evalConditions();

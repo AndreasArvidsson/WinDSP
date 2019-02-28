@@ -13,6 +13,8 @@
 #include "Date.h"
 #include "ConfigChangedException.h"
 #include "Config.h"
+#include "TrayIcon.h"
+#include "resource.h"
 
 #define VERSION "0.16.1b"
 #define TITLE_SIZE 64
@@ -33,13 +35,25 @@ char title[TITLE_SIZE];
 void setVisibility() {
 	if (pConfig->hide()) {
 		OS::hideWindow();
+		TrayIcon::show();
 	}
 	else if (pConfig->minimize()) {
 		OS::minimizeWindow();
+		TrayIcon::hide();
 	}
 	else {
 		OS::showWindow();
+		TrayIcon::hide();
 	}
+}
+
+LONG_PTR CALLBACK trayIconCallback(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
+	if (iMsg == TRAY_ICON_MSG && lParam == WM_LBUTTONDBLCLK) {
+		OS::showWindow();
+		TrayIcon::hide();
+		return 0; 
+	}
+	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }
 
 void updateStartWithOS() {
@@ -195,6 +209,7 @@ void configureLogger() {
 int main(int argc, char **argv) {
 	configureLogger();
 	setTitle();
+	TrayIcon::init(trayIconCallback, IDI_ICON1, "WinDSP");
 
 	//Very important for filter performance.
 	OS::flushDenormalizedZero();

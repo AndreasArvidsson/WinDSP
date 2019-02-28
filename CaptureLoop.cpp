@@ -5,6 +5,7 @@
 #include "Convert.h"
 #include "ConfigChangedException.h"
 #include "Config.h"
+#include "TrayIcon.h"
 
 //#define PERFORMANCE_LOG
 
@@ -67,8 +68,11 @@ void CaptureLoop::run() {
 		//Short sleep just to not busy wait all resources.
 		Date::sleepMillis(100);
 
-		//Check if config file has changed
+		//Check if config file has changed.
 		_checkConfig();
+
+		//Check if tray icon is clicked.
+		TrayIcon::handleQueue();
 
 		//Dont do as often. Every 5second or so.
 		if (count == 50) {

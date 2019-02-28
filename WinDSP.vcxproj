@@ -59,6 +59,8 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(VCToolsInstallDir)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EmbedManagedResourceFile>
+      </EmbedManagedResourceFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -79,6 +81,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(VCToolsInstallDir)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EmbedManagedResourceFile>
+      </EmbedManagedResourceFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -98,6 +102,7 @@
     <ClCompile Include="Condition.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="TrayIcon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioDevice.h" />
@@ -111,6 +116,7 @@
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="OutputFork.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />
     <ClInclude Include="TrayIcon.h" />

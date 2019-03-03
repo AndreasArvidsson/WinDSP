@@ -182,7 +182,7 @@ void run() {
 
 	//The application have no resampler. Sample rate and bit depth must be a match.
 	if (pCaptureFormat->nSamplesPerSec != rendererSampleRate) {
-		throw Error("Sample rate missmatch: Capture(%d), Render(%d))", pCaptureFormat->nSamplesPerSec, rendererSampleRate);
+		throw Error("Sample rate missmatch: Capture(%d), Render(%d)", pCaptureFormat->nSamplesPerSec, rendererSampleRate);
 	}
 
 

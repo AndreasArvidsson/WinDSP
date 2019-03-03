@@ -17,7 +17,6 @@
 #include "resource.h"
 
 #define VERSION "0.17.0b"
-#define TITLE_SIZE 64
 
 #ifdef DEBUG
 #include "MemoryManager.h"
@@ -30,7 +29,11 @@ char configFileNumber = '0';
 Config *pConfig = nullptr;
 AudioDevice *pCaptureDevice = nullptr;
 AudioDevice *pRenderDevice = nullptr;
-char title[TITLE_SIZE];
+
+void showWindow() {
+	OS::showWindow();
+	TrayIcon::hide();
+}
 
 void setVisibility() {
 	if (pConfig->hide()) {
@@ -42,15 +45,13 @@ void setVisibility() {
 		TrayIcon::hide();
 	}
 	else {
-		OS::showWindow();
-		TrayIcon::hide();
+		showWindow();
 	}
 }
 
 LONG_PTR CALLBACK trayIconCallback(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 	if (iMsg == TRAY_ICON_MSG && lParam == WM_LBUTTONDBLCLK) {
-		OS::showWindow();
-		TrayIcon::hide();
+		showWindow();
 		return 0; 
 	}
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
@@ -72,7 +73,8 @@ void updateStartWithOS() {
 }
 
 void setTitle() {
-	snprintf(title, TITLE_SIZE, "WinDSP %s%s", VERSION, PROFILE);
+	char title[64];
+	snprintf(title, sizeof(title), "WinDSP %s%s", VERSION, PROFILE);
 	SetConsoleTitle(title);
 	LOG_INFO("----------------------------------------------");
 	LOG_INFO("\t%s", title);
@@ -80,6 +82,7 @@ void setTitle() {
 	LOG_INFO("\tLog file: %s", LOG_FILE);
 #endif
 	LOG_INFO("----------------------------------------------\n");
+	TrayIcon::init(trayIconCallback, IDI_ICON1, title);
 }
 
 const std::string getConfigFileName() {
@@ -115,7 +118,7 @@ void clearData() {
 #ifdef DEBUG_MEMORY
 	//Check for memory leaks
 	if (MemoryManager::getInstance()->hasLeak()) {
-		OS::showWindow();
+		showWindow();
 		MemoryManager::getInstance()->assertNoLeak();
 	}
 #endif
@@ -210,7 +213,6 @@ void configureLogger() {
 int main(int argc, char **argv) {
 	configureLogger();
 	setTitle();
-	TrayIcon::init(trayIconCallback, IDI_ICON1, title);
 
 	//Very important for filter performance.
 	OS::flushDenormalizedZero();
@@ -229,7 +231,7 @@ int main(int argc, char **argv) {
 		}
 		//Keep trying for the service to come back
 		catch (const std::exception &e) {
-			OS::showWindow();
+			showWindow();
 			LOG_ERROR("ERROR: %s\n", e.what());
 
 			//Wait before trying again.
@@ -253,9 +255,3 @@ int main(int argc, char **argv) {
 
 	return EXIT_SUCCESS;
 }
-
-
-
-
-
-

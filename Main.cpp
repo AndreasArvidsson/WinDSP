@@ -16,7 +16,7 @@
 #include "TrayIcon.h"
 #include "resource.h"
 
-#define VERSION "0.16.1b"
+#define VERSION "0.17.0b"
 #define TITLE_SIZE 64
 
 #ifdef DEBUG
@@ -150,6 +150,7 @@ void run() {
 	}
 	LOG_INFO("----------------------------------------------\n");
 
+
 	/*
 	 * Create and initalize devices and validate device settings
 	 */
@@ -209,7 +210,7 @@ void configureLogger() {
 int main(int argc, char **argv) {
 	configureLogger();
 	setTitle();
-	TrayIcon::init(trayIconCallback, IDI_ICON1, "WinDSP");
+	TrayIcon::init(trayIconCallback, IDI_ICON1, title);
 
 	//Very important for filter performance.
 	OS::flushDenormalizedZero();

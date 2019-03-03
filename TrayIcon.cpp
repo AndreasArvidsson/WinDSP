@@ -20,8 +20,8 @@ void TrayIcon::init(WNDPROC wndProc, const int iconResourceId, const std::string
 	if (!RegisterClassEx(&wnd)) {
 		FatalAppExit(0, TEXT("Couldn't register window class!"));
 	}
-
-	_hWnd = CreateWindowEx(0, CLASS_NAME, CLASS_NAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, 0, 0, hInstance, 0);
+	
+	_hWnd = CreateWindowEx(0, CLASS_NAME, CLASS_NAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, nullptr, nullptr, hInstance, 0);
 
 	memset(&_iconData, 0, sizeof(NOTIFYICONDATA));
 	_iconData.cbSize = sizeof(NOTIFYICONDATA);
@@ -30,17 +30,15 @@ void TrayIcon::init(WNDPROC wndProc, const int iconResourceId, const std::string
 	_iconData.uVersion = NOTIFYICON_VERSION;
 	_iconData.uCallbackMessage = TRAY_ICON_MSG;
 	_iconData.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE; //Icon, tooltip and WndProc message
-	_iconData.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(103), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE);
+	_iconData.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(iconResourceId), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE);
 	std::strcpy(_iconData.szTip, tooltip.c_str());
 }
 
 void TrayIcon::handleQueue() {
-	if (_shown) {
-		MSG msg;
-		while (PeekMessage(&msg, _hWnd, 0, 0, PM_REMOVE)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+	MSG msg;
+	while (PeekMessage(&msg, _hWnd, 0, 0, PM_REMOVE)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 	}
 }
 
@@ -56,4 +54,8 @@ void TrayIcon::hide() {
 		Shell_NotifyIcon(NIM_DELETE, &_iconData);
 		_shown = false;
 	}
+}
+
+const bool TrayIcon::isShown() {
+	return _shown;
 }

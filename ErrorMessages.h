@@ -8,7 +8,6 @@
 
 #pragma once
 #include <string>
-#include "asio.h"
 #include "Audioclient.h"
 #include "Error.h"
 
@@ -102,32 +101,6 @@ public:
 		}
 	}
 
-	//Convert ASIOError to text explanation.
-	static const std::string asioResult(const ASIOError error) {
-		switch (error) {
-		case ASE_OK:
-			return "This value will be returned whenever the call succeeded";
-		case ASE_SUCCESS:
-			return "Unique success return value for ASIOFuture calls";
-		case ASE_NotPresent:
-			return "Hardware input or output is not present or available";
-		case ASE_HWMalfunction:
-			return "Hardware is malfunctioning (can be returned by any ASIO function)";
-		case ASE_InvalidParameter:
-			return "Input parameter invalid";
-		case ASE_InvalidMode:
-			return "Hardware is in a bad mode or used in a bad mode";
-		case ASE_SPNotAdvancing:
-			return "Hardware is not running when sample position is inquired";
-		case ASE_NoClock:
-			return "Sample clock or rate cannot be determined or is not present";
-		case ASE_NoMemory:
-			return "Not enough memory for completing the request";
-		default:
-			return "Unknown error";
-		}
-	}
-
 	static const std::string waitResult(const DWORD error) {
 		switch (error) {
 		case WAIT_ABANDONED:
@@ -145,31 +118,24 @@ public:
 		}
 	}
 
-	static const std::string asioSampleType(const ASIOSampleType type) {
-		switch (type) {
-		case ASIOSTInt16MSB: return "Int16MSB";
-		case ASIOSTInt24MSB: return "Int24MSB";
-		case ASIOSTInt32MSB: return "Int32MSB";
-		case ASIOSTFloat32MSB: return "Float32MSB";
-		case ASIOSTFloat64MSB: return "Float64MSB";
-		case ASIOSTInt32MSB16: return "Int32MSB16";
-		case ASIOSTInt32MSB18: return "Int32MSB18";
-		case ASIOSTInt32MSB20: return "Int32MSB20";
-		case ASIOSTInt32MSB24: return "Int32MSB24";
-		case ASIOSTInt16LSB: return "Int16LSB";
-		case ASIOSTInt24LSB: return "Int24LSB";
-		case ASIOSTInt32LSB: return "Int32LSB";
-		case ASIOSTFloat32LSB: return "Float32LSB";
-		case ASIOSTFloat64LSB: return "Float64LSB";
-		case ASIOSTInt32LSB16: return "Int32LSB16";
-		case ASIOSTInt32LSB18: return "Int32LSB18";
-		case ASIOSTInt32LSB20: return "Int32LSB20";
-		case ASIOSTInt32LSB24: return "Int32LSB24";
-		case ASIOSTDSDInt8LSB1: return "DSDInt8LSB1";
-		case ASIOSTDSDInt8MSB1: return "DSDInt8MSB1";
-		case ASIOSTDSDInt8NER8: return "DSDInt8NER8";
-		default: return std::to_string(type);
+	static const std::string getLastError() {
+		//Get the error message, if any.
+		const DWORD errorMessageID = ::GetLastError();
+
+		if (errorMessageID == 0) {
+			return std::string(); //No error message has been recorded
 		}
+
+		LPSTR messageBuffer = nullptr;
+		size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+		std::string message(messageBuffer, size);
+
+		//Free the buffer.
+		LocalFree(messageBuffer);
+
+		return message;
 	}
 
 };
@@ -180,21 +146,9 @@ inline void assert(const HRESULT hr) {
 	}
 }
 
-inline void assertAsio(const ASIOError value) {
-	if (value != ASE_OK) {
-		throw Error("ASIO (0x%08x) %s", value, ErrorMessages::asioResult(value).c_str());
-	}
-}
-
 inline void assertWait(const DWORD value) {
 	if (value != WAIT_OBJECT_0) {
 		throw Error("WAIT (0x%08x) %s", value, ErrorMessages::waitResult(value).c_str());
-	}
-}
-
-inline void assertSampleType(const ASIOSampleType type) {
-	if (type != ASIOSTInt32LSB) {
-		throw new Error("ASIO: Unhandled sample type %s", ErrorMessages::asioSampleType(type));
 	}
 }
 

@@ -6,6 +6,7 @@
 #include "ConfigChangedException.h"
 #include "Config.h"
 #include "TrayIcon.h"
+#include "OS.h"
 
 //#define PERFORMANCE_LOG
 
@@ -65,14 +66,20 @@ void CaptureLoop::run() {
 
 	size_t count = 0;
 	while (_run) {
-		//Short sleep just to not busy wait all resources.
-		Date::sleepMillis(100);
-
 		//Check if config file has changed.
 		_checkConfig();
 
-		//Check if tray icon is clicked.
-		TrayIcon::handleQueue();
+		if (TrayIcon::isShown()) {
+			//Check if tray icon is clicked.
+			TrayIcon::handleQueue();
+		}
+		else {
+			//If hide is enabled and the window is minimize hide it and show tray icon instead.
+			if (_pConfig->hide() && OS::isWindowMinimized()) {
+				OS::hideWindow();
+				TrayIcon::show();
+			}
+		}
 
 		//Dont do as often. Every 5second or so.
 		if (count == 50) {
@@ -85,6 +92,9 @@ void CaptureLoop::run() {
 			_updateConditionalRouting();
 		}
 		++count;
+
+		//Short sleep just to not busy wait all resources.
+		Date::sleepMillis(100);
 	}
 }
 

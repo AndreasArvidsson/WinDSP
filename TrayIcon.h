@@ -11,6 +11,7 @@ public:
 	static void handleQueue();
 	static void show();
 	static void hide();
+	static const bool isShown();
 
 private:
 	static NOTIFYICONDATA _iconData;

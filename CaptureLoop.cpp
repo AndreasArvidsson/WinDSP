@@ -25,9 +25,7 @@ const std::vector<Input*> *CaptureLoop::_pInputs = nullptr;
 const std::vector<Output*> *CaptureLoop::_pOutputs = nullptr;
 AudioDevice *CaptureLoop::_pCaptureDevice = nullptr;
 AudioDevice *CaptureLoop::_pRenderDevice = nullptr;
-size_t CaptureLoop::_nChannelsIn = 0;
-size_t CaptureLoop::_nChannelsOut = 0;
-std::thread CaptureLoop::_wasapiCaptureThread;
+std::thread CaptureLoop::_captureThread;
 std::atomic<bool> CaptureLoop::_run = false;
 bool *CaptureLoop::_pUsedChannels;
 
@@ -37,12 +35,10 @@ void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, Audio
 	_pOutputs = pConfig->getOutputs();
 	_pCaptureDevice = pCaptureDevice;
 	_pRenderDevice = pRenderDevice;
-	_nChannelsIn = _pInputs->size();
-	_nChannelsOut = _pOutputs->size();
 
 	//Initialize conditions
-	_pUsedChannels = new bool[_nChannelsIn];
-	memset(_pUsedChannels, 0, _nChannelsIn * sizeof(bool));
+	_pUsedChannels = new bool[_pInputs->size()];
+	memset(_pUsedChannels, 0, _pInputs->size() * sizeof(bool));
 	Condition::init(_pUsedChannels);
 }
 
@@ -62,7 +58,7 @@ void CaptureLoop::run() {
 	_pRenderDevice->startService();
 
 	//Start capturing in a new thread.
-	_wasapiCaptureThread = std::thread(_wasapiCaptureLoop);
+	_captureThread = std::thread(_captureLoop);
 
 	size_t count = 0;
 	while (_run) {
@@ -98,12 +94,14 @@ void CaptureLoop::run() {
 	}
 }
 
-void CaptureLoop::_wasapiCaptureLoop() {
+void CaptureLoop::_captureLoop() {
 	//Used to temporarily store sample(for all out channels) while they are being processed.
 	double renderBlockBuffer[16];
+	const size_t nChannelsIn = _pInputs->size();
+	const size_t nChannelsOut = _pOutputs->size();
 	//The size of all sample frames for all channels with the same sample index/timestamp
-	const size_t renderBlockSize = sizeof(double) * _nChannelsOut;
-	UINT32 channelIndex, sampleIndex, captureAvailable;
+	const size_t renderBlockSize = sizeof(double) * nChannelsOut;
+	UINT32 channelIndex, sampleIndex, samplesAvailable;
 	DWORD flags;
 	float *pCaptureBuffer, *pRenderBuffer;
 	bool silent = true;
@@ -111,11 +109,11 @@ void CaptureLoop::_wasapiCaptureLoop() {
 
 	while (_run) {
 		//Check for samples in capture buffer.
-		assert(_pCaptureDevice->getNextPacketSize(&captureAvailable));
+		assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
 
-		while (captureAvailable != 0) {
+		while (samplesAvailable != 0) {
 			//Get capture buffer pointer and number of available frames.
-			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &captureAvailable, &flags));
+			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &samplesAvailable, &flags));
 
 			if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
 				//Was playing audio before. Reset filter states.
@@ -123,7 +121,7 @@ void CaptureLoop::_wasapiCaptureLoop() {
 					silent = true;
 					_resetFilters();
 				}
-				assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
+				assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
 				continue;
 			}
 		
@@ -134,57 +132,57 @@ void CaptureLoop::_wasapiCaptureLoop() {
 				//Need to flush buffer of bad data or we can get glitches.
 				if (first) {
 					first = false;
-					assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
+					assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
 					_pCaptureDevice->flushCaptureBuffer();
 					break;
 				}
 			}
 
 			if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-				LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", Date::getLocalDateTimeString().c_str(), captureAvailable);
+				LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", Date::getLocalDateTimeString().c_str(), samplesAvailable);
 			}
 
 			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
-			while (captureAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
+			while (samplesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
 				//Short sleep just to not busy wait all resources.
 				Date::sleepMicros(1);
 			}
 
 			//Get render buffer
-			assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, captureAvailable));
+			assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, samplesAvailable));
 		
 			swStart();
 
 			//Iterate all capture frames
-			for (sampleIndex = 0; sampleIndex < captureAvailable; ++sampleIndex) {
+			for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
 				//Set buffer default value to 0 so we can add/mix values to it later
 				memset(renderBlockBuffer, 0, renderBlockSize);
 
 				//Iterate inputs and route samples to outputs
-				for (channelIndex = 0; channelIndex < _nChannelsIn; ++channelIndex) {
+				for (channelIndex = 0; channelIndex < nChannelsIn; ++channelIndex) {
 					(*_pInputs)[channelIndex]->route(pCaptureBuffer[channelIndex], renderBlockBuffer);
 				}
 
 				//Iterate outputs and apply output forks and filters
-				for (channelIndex = 0; channelIndex < _nChannelsOut; ++channelIndex) {
+				for (channelIndex = 0; channelIndex < nChannelsOut; ++channelIndex) {
 					pRenderBuffer[channelIndex] = (float)(*_pOutputs)[channelIndex]->process(renderBlockBuffer[channelIndex]);
 				}
 
 				//Move buffers to next sample
-				pCaptureBuffer += _nChannelsIn;
-				pRenderBuffer += _nChannelsOut;
+				pCaptureBuffer += nChannelsIn;
+				pRenderBuffer += nChannelsOut;
 			}
 
 			swEnd();
 
 			//Release render buffer.
-			assert(_pRenderDevice->releaseRenderBuffer(captureAvailable));
+			assert(_pRenderDevice->releaseRenderBuffer(samplesAvailable));
 
 			//Release capture buffer.
-			assert(_pCaptureDevice->releaseCaptureBuffer(captureAvailable));
+			assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
 
 			//Check for more samples in capture buffer.
-			assert(_pCaptureDevice->getNextPacketSize(&captureAvailable));
+			assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
 		}
 
 		//No available samples. Short sleep just to not busy wait all resources.
@@ -196,7 +194,7 @@ void CaptureLoop::stop() {
 	if (_run) {
 		_run = false;
 		//Stop and wait for wasapi thread to finish.
-		_wasapiCaptureThread.join();
+		_captureThread.join();
 	}
 }
 
@@ -234,7 +232,7 @@ void CaptureLoop::_checkClippingChannels() {
 void CaptureLoop::_updateConditionalRouting() {
 	if (_pConfig->useConditionalRouting()) {
 		//Get current is playing status per channel.
-		for (size_t i = 0; i < _nChannelsIn; ++i) {
+		for (size_t i = 0; i < _pInputs->size(); ++i) {
 			_pUsedChannels[i] = (*_pInputs)[i]->resetIsPlaying();
 		}
 		//Update conditional routing.
@@ -246,7 +244,7 @@ void CaptureLoop::_updateConditionalRouting() {
 
 //For debug purposes only.
 void CaptureLoop::_printUsedChannels() {
-	for (size_t i = 0; i < _nChannelsIn; ++i) {
+	for (size_t i = 0; i < _pInputs->size(); ++i) {
 		LOG_INFO("%s %d\n", (*_pInputs)[i]->getName().c_str(), _pUsedChannels[i]);
 	}
 	LOG_NL();

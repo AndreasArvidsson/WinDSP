@@ -33,12 +33,11 @@ namespace CaptureLoop {
 	extern const std::vector<Output*> *_pOutputs;
 	extern AudioDevice *_pCaptureDevice;
 	extern AudioDevice *_pRenderDevice;
-	extern size_t _nChannelsIn, _nChannelsOut;
-	extern std::thread _wasapiCaptureThread;
+	extern std::thread _captureThread;
 	extern std::atomic<bool> _run;
 	extern bool *_pUsedChannels;
 
-	void _wasapiCaptureLoop();
+	void _captureLoop();
 	void _resetFilters();
 	void _checkConfig();
 	void _checkClippingChannels();

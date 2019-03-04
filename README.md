@@ -103,7 +103,7 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
 * Set startWithOS to true and WinDSP will start with the OS/Windows
 
 **Hide and minimize**    
-* Set hide to true to hide window on startup and show tray icon.
+* Set hide to true to hide window on startup and show tray icon
 * Set minimize to true to minimize window on startup
 * Hide supersedes minimize
 * Errors will show the window again, but not warnings

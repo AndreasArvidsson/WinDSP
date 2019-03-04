@@ -7,7 +7,6 @@ Windows based DSP(Digital Signal Processor)
 * Filters like crossovers, PEQ, shelf, custom biquad(IIR), FIR, delay, gain and more
 * Uses double-precision floating-points to calculate filters
 * Uses WASAPI(Windows Audio Session API) to capture and manipulate audio streams
-* Optional support for ASIO playback devices
 * JSON based configuration file to easy set up your DSP
 * User friendly error and warning messages. Warns you about digital clipping. Using missing channels and more.
 
@@ -24,7 +23,10 @@ This requires two devices: one capture device and one render/playback device
 * Have audio equipment/speakers attached
 
 **Virtual Cable**    
-If you don't have a spare soundcard in your computer to use for the capture device I can recommendend [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable/index.htm) which gives you a virtual audio device to use as the capture device.
+If you don't have a spare soundcard in your computer to use for the capture device I can recommendend [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable) which gives you a virtual audio device to use as the capture device.
+
+**ASIO support**    
+WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-audio.com/Cable) can be used to playback through an ASIO soundcard.
 
 ## Prerequisites(To run application)
 * Capture and render audio devices
@@ -33,7 +35,6 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 
 ## Prerequisites(To compile source code)
 * [CoreLib](https://github.com/AndreasArvidsson/CoreLib)
-* [ASIO SDK](https://www.steinberg.net/en/company/developers.html)
 
 ## Install
 1. Download and install [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
@@ -102,11 +103,12 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 * Set startWithOS to true and WinDSP will start with the OS/Windows
 
 **Hide and minimize**    
-* Set hide to true to hide window on startup.
+* Set hide to true to hide window on startup and show tray icon.
 * Set minimize to true to minimize window on startup
 * Hide supersedes minimize
-* Errors will show the window again, but not warning
-* To manually show the window again: just update the config file
+* Errors will show the window again, but not warnings
+* Double click tray icon to manually show hidden window again
+* Minimizing the window when hide is set to true will instead hide it
 
 **Channels**   
 * Different devices may have different order on their channels. You can specify this order. 
@@ -125,12 +127,6 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 **Devices**
 * Devices contains the capture and render device names
 * If devices are not set the user will be queried from a list of available devices. Do **NOT** write these names yourself
-
-**ASIO devices**
-* Experimental support for ASIO devices.
-* Only works for render devices. Capture devices still use WASAPI.
-* For now only supports devices using 32bit integer format defined as: ASIOSTInt32LSB
-* Optional parameter 'numChannels' can be given to the ASIO device to restrict number of output channels. Saves on CPU cycles. 
 
 **Inputs**
 * Inputs contains the routes. i.e. the mapping between inputs and outputs

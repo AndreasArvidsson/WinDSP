@@ -122,7 +122,7 @@ void CaptureLoop::_captureLoop() {
 					_resetFilters();
 				}
 				assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
-				continue;
+				break;
 			}
 		
 			//Was silent before.

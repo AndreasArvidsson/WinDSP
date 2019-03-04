@@ -7,6 +7,9 @@
 #include "Config.h"
 #include "TrayIcon.h"
 #include "OS.h"
+#include "AudioDevice.h"
+#include "Input.h"
+#include "Output.h"
 
 //#define PERFORMANCE_LOG
 
@@ -222,9 +225,9 @@ void CaptureLoop::_checkConfig() {
 
 void CaptureLoop::_checkClippingChannels() {
 	for (Output *pOutput : *_pOutputs) {
-		if (pOutput->clipping != 0.0) {
-			LOG_WARN("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", pOutput->getName().c_str(), Convert::levelToDb(pOutput->clipping));
-			pOutput->clipping = 0.0;
+		const double clipping = pOutput->resetClipping();
+		if (clipping != 0.0) {
+			LOG_WARN("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", pOutput->getName().c_str(), Convert::levelToDb(clipping));
 		}
 	}
 }

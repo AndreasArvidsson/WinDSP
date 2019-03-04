@@ -13,48 +13,32 @@
 
 class Route {
 public:
-	size_t out;
-	std::vector<Filter*> filters;
-	std::vector<Condition> conditions;
 
-	Route(const size_t out) {
-		this->out = out;
-		_valid = true;
-	}
+	Route(const size_t channelIndex);
+	~Route();
 
-	~Route() {
-		for (Filter *p : filters) {
-			delete p;
-		}
-	}
+	void addFilters(const std::vector<Filter*> &filters);
+	void addCondition(const Condition &condition);
+	const size_t getChannelIndex() const;
+	const bool hasConditions() const;
+	const std::vector<Filter*>& getFilters() const;
 
-	inline void process(double data, double *pRenderBuffer) const {
+	void evalConditions();
+	void reset() const;
+
+	inline void process(double data, double * const pRenderBuffer) const {
 		if (_valid) {
-			for (Filter *p : filters) {
-				data = p->process(data);
+			for (Filter * const pFilter : _filters) {
+				data = pFilter->process(data);
 			}
-			pRenderBuffer[out] += data;
-		}
-	}
-
-	inline void evalConditions() {
-		bool valid = true;
-		for (const Condition &cond : conditions) {
-			if (!cond.eval()) {
-				valid = false;
-				break;
-			}
-		}
-		_valid = valid;
-	}
-
-	inline void reset() const {
-		for (Filter *p : filters) {
-			 p->reset();
+			pRenderBuffer[_channelIndex] += data;
 		}
 	}
 
 private:
+	std::vector<Filter*> _filters;
+	std::vector<Condition> _conditions;
 	bool _valid;
-
+	size_t _channelIndex;
+	
 };

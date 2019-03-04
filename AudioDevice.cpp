@@ -1,4 +1,5 @@
 #include "AudioDevice.h"
+#include "Mmdeviceapi.h"
 #include "Functiondiscoverykeys_devpkey.h" //PKEY_Device_FriendlyName
 #include "WinDSPLog.h"
 

@@ -6,7 +6,7 @@ NOTIFYICONDATA TrayIcon::_iconData;
 HWND TrayIcon::_hWnd;
 bool TrayIcon::_shown = false;
 
-void TrayIcon::init(WNDPROC wndProc, const int iconResourceId, const std::string &tooltip) {
+void TrayIcon::init(const WNDPROC wndProc, const int iconResourceId, const std::string &tooltip) {
 	_shown = false;
 
 	HINSTANCE hInstance = GetModuleHandle(nullptr);

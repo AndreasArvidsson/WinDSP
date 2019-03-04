@@ -1,12 +1,18 @@
 #include "Config.h"
 #include <iostream> //cin
+#include <algorithm> //std::min
 #include "Error.h"
 #include "FilterType.h"
 #include "SubType.h"
+#include "JsonNode.h"
 #include "JsonParser.h"
 #include "Convert.h"
 #include "OS.h"
 #include "WinDSPLog.h"
+#include "AudioDevice.h"
+#include "Input.h"
+#include "Output.h"
+#include "DSP.h"
 
 Config::Config(const std::string &path) {
 	_configFile = path;
@@ -156,11 +162,11 @@ void Config::parseInput(const JsonNode *pInputs, const std::string &channelName,
 	JsonNode *pRoutes = pChannelNode->path("routes");
 	path = path + "/" + "routes";
 	for (size_t i = 0; i < pRoutes->size(); ++i) {
-		parseRoute(_inputs[channelIn]->routes, pRoutes, i, path);
+		parseRoute(_inputs[channelIn], pRoutes, i, path);
 	}
 }
 
-void Config::parseRoute(std::vector<Route*> &routes, const JsonNode *pRoutes, const size_t index, std::string path) {
+void Config::parseRoute(Input *pInput, const JsonNode *pRoutes, const size_t index, std::string path) {
 	const JsonNode *pRouteNode = getNode(pRoutes, index, path);
 	//If route have no out channel it's the same thing as no route at all.
 	if (pRouteNode->has("out")) {
@@ -172,9 +178,9 @@ void Config::parseRoute(std::vector<Route*> &routes, const JsonNode *pRoutes, co
 			return;
 		}
 		Route *pRoute = new Route(channelOut);
-		routes.push_back(pRoute);
-		parseFilters(pRoute->filters, pRouteNode, path);
+		pRoute->addFilters(parseFilters(pRouteNode, path));
 		parseConditions(pRoute, pRouteNode, path);
+		pInput->addRoute(pRoute);
 	}
 }
 
@@ -184,7 +190,7 @@ void Config::parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::str
 		if (pIfNode->has("silent")) {
 			std::string channelName = textValue(pIfNode, "silent", path);
 			size_t channel = getChannelIndex(channelName, path + "/silent");
-			pRoute->conditions.push_back(Condition(ConditionType::SILENT, (int)channel));
+			pRoute->addCondition(Condition(ConditionType::SILENT, (int)channel));
 		}
 		else {
 			LOG_WARN("WARNING: Config(%s) - Unknown if condition", path.c_str());
@@ -232,7 +238,8 @@ void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelNam
 		if (pChannelNode->size() == 0) {
 			pOutput->add(new OutputFork());
 		}
-	}//Object. Parse single fork
+	}
+	//Object. Parse single fork
 	else {
 		parseOutputFork(pOutput, pChannelNode, path);
 	}
@@ -243,8 +250,8 @@ void Config::parseOutputFork(Output *pOutput, const JsonNode *pForkNode, std::st
 	//Muted output is the same as no fork at all
 	if (!mute) {
 		OutputFork *pFork = new OutputFork();
+		pFork->addFilters(parseFilters(pForkNode, path));
 		pOutput->add(pFork);
-		parseFilters(pFork->filters, pForkNode, path);
 	}
 }
 
@@ -256,10 +263,10 @@ void Config::validateLevels(const std::string &path) const {
 	}
 	//Apply input/route levels
 	for (const Input *pInput : _inputs) {
-		for (const Route *pRoute : pInput->routes) {
+		for (const Route * const pRoute : pInput->getRoutes()) {
 			//Conditional routing is not always applied at the same time as other route. Eg if silent.
-			if (pRoute->conditions.size() == 0) {
-				levels[pRoute->out] += getFilterGainSum(pRoute->filters);
+			if (!pRoute->hasConditions()) {
+				levels[pRoute->getChannelIndex()] += getFilterGainSum(pRoute->getFilters());
 			}
 		}
 	}
@@ -267,7 +274,7 @@ void Config::validateLevels(const std::string &path) const {
 	for (size_t i = 0; i < _outputs.size(); ++i) {
 		double level = 0;
 		for (const OutputFork *pFork : _outputs[i]->getForks()) {
-			level += getFilterGainSum(pFork->filters, levels[i]);
+			level += getFilterGainSum(pFork->getFilters(), levels[i]);
 		}
 		levels[i] = level;
 	}
@@ -298,7 +305,8 @@ const double Config::getFilterGainSum(const std::vector<Filter*> &filters, doubl
 	return startLevel;
 }
 
-void Config::parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) {
+const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, std::string path) {
+	std::vector<Filter*> filters;
 	//Parse single instance simple filters
 	parseGain(filters, pNode, path);
 	parseDelay(filters, pNode, path);
@@ -318,6 +326,7 @@ void Config::parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, 
 	else {
 		filters.push_back(pBiquadFilter);
 	}
+	return filters;
 }
 
 void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) {
@@ -808,7 +817,7 @@ const uint32_t Config::getNumChannelsRender(const uint32_t capacity) const {
 	if (_numChannelsRender > 0) {
 		return _numChannelsRender;
 	}
-	return (uint32_t)min(_channelNames.size(), capacity);
+	return (uint32_t)std::min((uint32_t)_channelNames.size(), capacity);
 }
 
 const std::string Config::getChannelName(const size_t channelIndex) const {

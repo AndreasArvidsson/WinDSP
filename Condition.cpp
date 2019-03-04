@@ -1,4 +1,5 @@
 #include "Condition.h"
+#include "Error.h"
 
 const bool* Condition::_pUsedChannels = nullptr;
 

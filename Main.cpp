@@ -15,6 +15,8 @@
 #include "Config.h"
 #include "TrayIcon.h"
 #include "resource.h"
+#include "JsonNode.h"
+#include "AudioDevice.h"
 
 #define VERSION "0.17.0b"
 

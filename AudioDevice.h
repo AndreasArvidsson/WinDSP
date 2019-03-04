@@ -10,9 +10,11 @@
 
 #pragma once
 #include <vector>
-#include "Mmdeviceapi.h"
 #include "Audioclient.h"
 #include "ErrorMessages.h"
+
+struct IMMDevice;
+struct IMMDeviceEnumerator;
 
 class AudioDevice {
 public:

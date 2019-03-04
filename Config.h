@@ -8,14 +8,14 @@
 
 #pragma once
 #include <vector>
-#include "DSP.h"
-#include "Input.h"
-#include "Output.h"
-#include "AudioDevice.h"
 #include "File.h"
-#include "JsonNode.h"
 
-enum FilterType;
+class Input;
+class Output;
+class Route;
+class Filter;
+class BiquadFilter;
+class JsonNode;
 
 class Config {
 public:
@@ -64,7 +64,7 @@ private:
 	void parseMisc();
 	void parseInputs();
 	void parseInput(const JsonNode *pInputs, const std::string &channelName, std::string path);
-	void parseRoute(std::vector<Route*> &routes, const JsonNode *pRoutes, const size_t index, std::string path);
+	void parseRoute(Input *pInput, const JsonNode *pRoutes, const size_t index, std::string path);
 	void parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::string path);
 	void parseOutputs();
 	void parseOutput(const JsonNode *pOutputs, const std::string &channelName, std::string path);
@@ -80,7 +80,7 @@ private:
 	const size_t getChannelIndex(const std::string &channelName, const std::string &path) const;
 	const std::string getChannelName(const size_t channelIndex, const std::string &path) const;
 
-	void parseFilters(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string path);
+	const std::vector<Filter*> parseFilters(const JsonNode *pNode, const std::string path);
 	void parseFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
 	void parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
 	void parseShelf(const bool isLowShelf, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;

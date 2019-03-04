@@ -7,7 +7,6 @@
 */
 
 #pragma once
-#include "Error.h"
 
 enum class ConditionType {
 	SILENT

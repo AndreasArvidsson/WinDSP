@@ -11,59 +11,30 @@
 
 class Input {
 public:
-	std::vector<Route*> routes;
 
-	Input(const std::string &name) {
-		_name = name;
-		_isPlaying = false;
-	}
+	Input(const std::string &name);
+	Input(const std::string &name, const size_t out);
+	~Input();
 
-	Input(const std::string &name, const size_t out) {
-		_name = name;
-		_isPlaying = false;
-		routes.push_back(new Route(out));
-	}
+	const std::vector<Route*>& getRoutes() const;
+	void addRoute(Route * const pRoute);
+	const std::string getName() const;
 
-	~Input() {
-		for (Route *p : routes) {
-			delete p;
-		}
-	}
+	void evalConditions() const;
+	void reset();
+	const bool resetIsPlaying();
 
-	inline void route(const double data, double *pRenderBuffer) {
+	inline void route(const double data, double * const pRenderBuffer) {
 		if (data != 0.0) {
 			_isPlaying = true;
 		}
-		for (const Route *p : routes) {
-			p->process(data, pRenderBuffer);
+		for (const Route * const pRoute : _routes) {
+			pRoute->process(data, pRenderBuffer);
 		}
-	}
-
-	inline void evalConditions() const {
-		for (Route *pRoute : routes) {
-			pRoute->evalConditions();
-		}
-	}
-
-	inline void reset() {
-		for (const Route *pRoute : routes) {
-			pRoute->reset();
-		}
-	}
-
-	const std::string getName() const {
-		return _name;
-	}
-
-	const bool resetIsPlaying() {
-		if (_isPlaying) {
-			_isPlaying = false;
-			return true;
-		}
-		return false;
 	}
 
 private:
+	std::vector<Route*> _routes;
 	std::string _name;
 	bool _isPlaying;
 

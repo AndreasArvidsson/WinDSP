@@ -8,7 +8,6 @@
 
 #pragma once
 #include <string>
-#include "Audioclient.h"
 #include "Error.h"
 
 class ErrorMessages {
@@ -101,23 +100,6 @@ public:
 		}
 	}
 
-	static const std::string waitResult(const DWORD error) {
-		switch (error) {
-		case WAIT_ABANDONED:
-			return "WAIT_ABANDONED: The specified object is a mutex object that was not released by the thread that owned the mutex object before the owning thread terminated. Ownership of the mutex object is granted to the calling thread and the mutex is set to nonsignaled. If the mutex was protecting persistent state information, you should check it for consistency.";
-		case WAIT_IO_COMPLETION:
-			return "WAIT_IO_COMPLETION: The wait was ended by one or more user-mode asynchronous procedure calls (APC) queued to the thread.";
-		case WAIT_OBJECT_0:
-			return "WAIT_OBJECT_0: The state of the specified object is signaled.";
-		case WAIT_TIMEOUT:
-			return "WAIT_TIMEOUT: The time-out interval elapsed, and the object's state is nonsignaled.";
-		case WAIT_FAILED:
-			return "WAIT_FAILED: The function has failed. To get extended error information, call GetLastError.";
-		default:
-			return "Unknown error";
-		}
-	}
-
 	static const std::string getLastError() {
 		//Get the error message, if any.
 		const DWORD errorMessageID = ::GetLastError();
@@ -143,18 +125,6 @@ public:
 inline void assert(const HRESULT hr) {
 	if (FAILED(hr)) {
 		throw Error("WASAPI (0x%08x) %s", hr, ErrorMessages::hresult(hr).c_str());
-	}
-}
-
-inline void assertWait(const DWORD value) {
-	if (value != WAIT_OBJECT_0) {
-		throw Error("WAIT (0x%08x) %s", value, ErrorMessages::waitResult(value).c_str());
-	}
-}
-
-inline void assertTrue(const bool value, const std::string &msg) {
-	if (!value) {
-		throw Error(msg.c_str());
 	}
 }
 

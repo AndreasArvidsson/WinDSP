@@ -13,26 +13,16 @@
 
 class Output {
 public:
-	double clipping;
 
-	Output(const std::string &name) {
-		_name = name;
-		clipping = 0.0;
-	}
+	Output(const std::string &name);
+	~Output();
 
-	~Output() {
-		for (OutputFork *pFork : _forks) {
-			delete pFork;
-		}
-	}
+	void add(OutputFork * const pFork);
+	const std::vector<OutputFork*>& getForks() const;
+	const std::string getName() const;
 
-	void add(OutputFork* pFork) {
-		_forks.push_back(pFork);
-	}
-
-	const std::vector<OutputFork*>& getForks() const {
-		return _forks;
-	}
+	void reset();
+	const double resetClipping();
 
 	inline const double process(const double data) {
 		double out = 0.0;
@@ -41,25 +31,16 @@ public:
 		}
 		if (std::abs(out) > 1.0) {
 			//Record clipping level so it can be shown in error message.
-			clipping = std::max(clipping, std::abs(out));
+			_clipping = std::max(_clipping, std::abs(out));
 			//Clamp/limit to max value to avoid damaging equipment.
-			return out > 1.0 ? 1.0 : -1.0;
+			return out > 0.0 ? 1.0 : -1.0;
 		}
 		return out;
-	}
-
-	inline void reset() {
-		for (const OutputFork *pFork : _forks) {
-			pFork->reset();
-		}
-	}
-
-	const std::string getName() const {
-		return _name;
 	}
 
 private:
 	std::string _name;
 	std::vector<OutputFork*> _forks;
+	double _clipping;
 
 };

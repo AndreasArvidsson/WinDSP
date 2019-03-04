@@ -1,4 +1,5 @@
 #pragma once
+#define NOMINMAX
 #include <windows.h> //GetConsoleWindow
 #include <string>
 
@@ -7,7 +8,7 @@
 class TrayIcon {
 public:
 
-	static void init(WNDPROC wndProc, const int iconResourceId, const std::string &tooltip);
+	static void init(const WNDPROC wndProc, const int iconResourceId, const std::string &tooltip);
 	static void handleQueue();
 	static void show();
 	static void hide();

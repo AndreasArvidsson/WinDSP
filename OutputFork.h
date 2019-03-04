@@ -12,25 +12,35 @@
 
 class OutputFork {
 public:
-	std::vector<Filter*> filters;
 
 	~OutputFork() {
-		for (Filter *pFilter : filters) {
+		for (Filter * const pFilter : _filters) {
 			delete pFilter;
 		}
 	}
 
+	void addFilters(const std::vector<Filter*> &filters) {
+		_filters.insert(_filters.end(), filters.begin(), filters.end());
+	}
+
+	const std::vector<Filter*>& getFilters() const {
+		return _filters;
+	}
+
 	inline const double process(double data) const {
-		for (Filter *pFilter : filters) {
+		for (Filter * const pFilter : _filters) {
 			data = pFilter->process(data);
 		}
 		return data;
 	}
 
-	inline void reset() const {
-		for (Filter *pFilter : filters) {
+	void reset() const {
+		for (Filter * const pFilter : _filters) {
 			pFilter->reset();
 		}
 	}
+
+private:
+	std::vector<Filter*> _filters;
 
 };

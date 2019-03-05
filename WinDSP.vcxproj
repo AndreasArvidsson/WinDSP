@@ -117,7 +117,6 @@
     <ClInclude Include="FilterType.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Output.h" />
-    <ClInclude Include="OutputFork.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />

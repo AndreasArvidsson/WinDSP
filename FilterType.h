@@ -11,7 +11,7 @@
 #include "Error.h"
 
 enum FilterType {
-	LOW_PASS, HIGH_PASS, LOW_SHELF, HIGH_SHELF, PEQ, BAND_PASS, NOTCH, LINKWITZ_TRANSFORM, BIQUAD, FIR
+	LOW_PASS, HIGH_PASS, LOW_SHELF, HIGH_SHELF, PEQ, BAND_PASS, NOTCH, LINKWITZ_TRANSFORM, BIQUAD, FIR, CANCELLATION
 };
 
 class FilterTypes {
@@ -48,6 +48,9 @@ public:
 		else if (str.compare("FIR") == 0) {
 			return FilterType::FIR;
 		}
+		else if (str.compare("CANCELLATION") == 0) {
+			return FilterType::CANCELLATION;
+		}
 		throw Error("Unknown filter type '%s'", str.c_str());
 	}
 
@@ -73,6 +76,8 @@ public:
 			return "BIQUAD";
 		case FilterType::FIR:
 			return "FIR";
+		case FilterType::CANCELLATION:
+			return "CANCELLATION";
 		default:
 			throw Error("Unknown filter type %d", filterType);
 		}

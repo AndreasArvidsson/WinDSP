@@ -1,27 +1,38 @@
 #include "Output.h"
 
-Output::Output(const std::string &name) {
+Output::Output(const std::string &name, const bool mute) {
 	_name = name;
+	_mute = mute;
 	_clipping = 0.0;
+	_usePostFilters = false;
 }
 
 Output::~Output() {
-	for (const OutputFork * const pFork : _forks) {
-		delete pFork;
+	for (Filter * const pFilter : _filters) {
+		delete pFilter;
 	}
 }
 
-void Output::add(OutputFork * const pFork) {
-	_forks.push_back(pFork);
+void Output::addFilters(const std::vector<Filter*> &filters) {
+	for (Filter * const pFilter : filters) {
+		_filters.push_back(pFilter);
+	}
 }
 
-const std::vector<OutputFork*>& Output::getForks() const {
-	return _forks;
+void Output::addPostFilters(const std::vector<Filter*> &filters) {
+	for (Filter * const pFilter : filters) {
+		_postFilters.push_back(pFilter);
+	}
+	_usePostFilters = _postFilters.size() > 0;
+}
+
+const std::vector<Filter*>& Output::getFilters() const {
+	return _filters;
 }
 
 void Output::reset() {
-	for (const OutputFork * const pFork : _forks) {
-		pFork->reset();
+	for (Filter * const pFilter : _filters) {
+		pFilter->reset();
 	}
 }
 

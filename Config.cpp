@@ -212,7 +212,6 @@ void Config::parseOutputs() {
 	for (size_t i = 0; i < _outputs.size(); ++i) {
 		if (!_outputs[i]) {
 			_outputs[i] = new Output(getChannelName(i));
-			_outputs[i]->add(new OutputFork());
 		}
 	}
 	validateLevels(path);
@@ -225,34 +224,11 @@ void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelNam
 		return;
 	}
 	const JsonNode *pChannelNode = getNode(pOutputs, channelName, path);
-	Output *pOutput = new Output(channelName);
+	const bool mute = pChannelNode->path("mute")->boolValue();
+	Output *pOutput = new Output(channelName, mute);
+	pOutput->addFilters(parseFilters(pChannelNode, path));
+	pOutput->addPostFilters(parsePostFilters(pChannelNode, path));
 	_outputs[channel] = pOutput;
-	//Array parse each fork.
-	if (pChannelNode->isArray()) {
-		for (size_t i = 0; i < pChannelNode->size(); ++i) {
-			std::string tmpPath = path;
-			const JsonNode *pForkNode = getNode(pChannelNode, i, tmpPath);
-			parseOutputFork(pOutput, pForkNode, tmpPath);
-		}
-		//Empty array. Add default empty fork
-		if (pChannelNode->size() == 0) {
-			pOutput->add(new OutputFork());
-		}
-	}
-	//Object. Parse single fork
-	else {
-		parseOutputFork(pOutput, pChannelNode, path);
-	}
-}
-
-void Config::parseOutputFork(Output *pOutput, const JsonNode *pForkNode, std::string path) {
-	bool mute = pForkNode->path("mute")->boolValue();
-	//Muted output is the same as no fork at all
-	if (!mute) {
-		OutputFork *pFork = new OutputFork();
-		pFork->addFilters(parseFilters(pForkNode, path));
-		pOutput->add(pFork);
-	}
 }
 
 void Config::validateLevels(const std::string &path) const {
@@ -272,11 +248,7 @@ void Config::validateLevels(const std::string &path) const {
 	}
 	//Apply output gain
 	for (size_t i = 0; i < _outputs.size(); ++i) {
-		double level = 0;
-		for (const OutputFork *pFork : _outputs[i]->getForks()) {
-			level += getFilterGainSum(pFork->getFilters(), levels[i]);
-		}
-		levels[i] = level;
+		levels[i] = getFilterGainSum(_outputs[i]->getFilters(), levels[i]);
 	}
 	//Eval output channel levels
 	bool first = true;
@@ -296,10 +268,11 @@ void Config::validateLevels(const std::string &path) const {
 }
 
 const double Config::getFilterGainSum(const std::vector<Filter*> &filters, double startLevel) const {
-	for (Filter *pFilter : filters) {
+	for (const Filter * const pFilter : filters) {
 		//If filter is gain: Apply gain
 		if (typeid (*pFilter) == typeid (GainFilter)) {
-			startLevel = pFilter->process(startLevel);
+			const GainFilter *pGainFilter = (GainFilter*)pFilter;
+			startLevel *= pGainFilter->getMultiplierNoInvert();
 		}
 	}
 	return startLevel;
@@ -310,7 +283,6 @@ const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, std::stri
 	//Parse single instance simple filters
 	parseGain(filters, pNode, path);
 	parseDelay(filters, pNode, path);
-	parseInvertPolarity(filters, pNode, path);
 	//Parse filters list
 	BiquadFilter *pBiquadFilter = new BiquadFilter(_sampleRate);
 	JsonNode *pFiltersNode = pNode->path("filters");
@@ -322,21 +294,44 @@ const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, std::stri
 	//No biquads added. Don't use biquad filter.
 	if (pBiquadFilter->isEmpty()) {
 		delete pBiquadFilter;
-	}//Use  biquad filter
+	}
+	//Use  biquad filter
 	else {
 		filters.push_back(pBiquadFilter);
 	}
 	return filters;
 }
 
-void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) {
-	pNode = getNode(pNode, "gain", path);
-	if (!pNode->isMissingNode()) {
-		const double value = doubleValue(pNode, path);
-		//No use in adding zero gain.
-		if (value != 0) {
-			filters.push_back(new GainFilter(value));
+const std::vector<Filter*> Config::parsePostFilters(const JsonNode *pNode, std::string path) {
+	std::vector<Filter*> filters;
+	parseCancellation(filters, pNode, path);
+	return filters;
+}
+
+void Config::parseCancellation(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const {
+	if (pNode->has("cancellation")) {
+		const JsonNode *pFilterNode = pNode->path("cancellation");
+		const double delay = doubleValue(pFilterNode, "delay", path);
+		bool unitMeter = false;
+		if (pFilterNode->has("unitMeter")) {
+			unitMeter = boolValue(pFilterNode, "unitMeter", path);
 		}
+		filters.push_back(new CancellationFilter(_sampleRate, delay, unitMeter));
+	}
+}
+
+void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) {
+	double value = 0.0;
+	bool invert = false;
+	if (pNode->has("gain")) {
+		value = doubleValue(pNode, "gain", path);
+	}
+	if (pNode->has("invert")) {
+		invert = boolValue(pNode, "invert", path);
+	}
+	//No use in adding zero gain.
+	if (value != 0.0 || invert) {
+		filters.push_back(new GainFilter(value, invert));
 	}
 }
 
@@ -371,14 +366,6 @@ void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, st
 	}
 }
 
-void Config::parseInvertPolarity(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const {
-	if (pNode->has("invert")) {
-		if (boolValue(pNode, "invert", path)) {
-			filters.push_back(new InvertPolarityFilter());
-		}
-	}
-}
-
 void Config::parseFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
 	//Is array. Iterate and parse each filter.
 	if (pFilterNode->isArray()) {
@@ -388,7 +375,7 @@ void Config::parseFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFil
 		return;
 	}
 	const std::string typeStr = textValue(pFilterNode, "type", path);
-	FilterType type = FilterTypes::fromString(typeStr);
+	const FilterType type = FilterTypes::fromString(typeStr);
 	switch (type) {
 	case FilterType::LOW_PASS:
 	case FilterType::HIGH_PASS:

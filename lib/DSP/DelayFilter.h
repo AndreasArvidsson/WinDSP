@@ -4,16 +4,21 @@
 class DelayFilter : public Filter {
 public:
 
-	static const int getSampleDelay(const uint32_t sampleRate, double value, const bool useUnitMeter = false) {
+	static const int getSampleDelay(const uint32_t sampleRate, double delay, const bool useUnitMeter = false) {
 		//Value is in meter. Convert to milliseconds
 		if (useUnitMeter) {
-			value = 1000 * value / 343;
+			delay = 1000 * delay / 343.0;
 		}
-		return std::lround(sampleRate * value / 1000);
+		return std::lround(sampleRate * delay / 1000);
 	}
 
-	DelayFilter(const uint32_t sampleRate, const double value, const bool useUnitMeter = false) {
-		init(getSampleDelay(sampleRate, value, useUnitMeter));
+	DelayFilter() {
+		_size = _index = 0;
+		_pBuffer = nullptr;
+	}
+
+	DelayFilter(const uint32_t sampleRate, const double delay, const bool useUnitMeter = false) {
+		init(getSampleDelay(sampleRate, delay, useUnitMeter));
 	}
 
 	DelayFilter(const int sampleDelay) {
@@ -22,6 +27,13 @@ public:
 
 	~DelayFilter() {
 		delete[] _pBuffer;
+	}
+
+	void init(const int sampleDelay) {
+		_size = sampleDelay;
+		_index = 0;
+		_pBuffer = new double[_size];
+		reset();
 	}
 
 	inline const double process(double value) override {
@@ -40,12 +52,5 @@ public:
 private:
 	uint32_t _size, _index;
 	double *_pBuffer;
-
-	void init(const int sampleDelay) {
-		_size = sampleDelay;
-		_index = 0;
-		_pBuffer = new double[_size];
-		reset();
-	}
 
 };

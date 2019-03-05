@@ -68,7 +68,6 @@ private:
 	void parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::string path);
 	void parseOutputs();
 	void parseOutput(const JsonNode *pOutputs, const std::string &channelName, std::string path);
-	void parseOutputFork(Output *pOutput, const JsonNode *pForkNode, std::string path);
 
 	void validateLevels(const std::string &path) const;
 	const double getFilterGainSum(const std::vector<Filter*> &filters, double startLevel = 1.0) const;
@@ -81,7 +80,9 @@ private:
 	const std::string getChannelName(const size_t channelIndex, const std::string &path) const;
 
 	const std::vector<Filter*> parseFilters(const JsonNode *pNode, const std::string path);
+	const std::vector<Filter*> parsePostFilters(const JsonNode *pNode, const std::string path);
 	void parseFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
+	void parsePostFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
 	void parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
 	void parseShelf(const bool isLowShelf, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
 	void parsePEQ(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
@@ -91,7 +92,7 @@ private:
 	void parseBiquad(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
 	void parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path);
 	void parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path);
-	void parseInvertPolarity(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
+	void parseCancellation(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
 	void parseFir(std::vector<Filter*> &filters, const JsonNode *pFilterNode, std::string path) const;
 	void parseFirTxt(std::vector<Filter*> &filters, const File &file, std::string path) const;
 	void parseFirWav(std::vector<Filter*> &filters, const File &file, std::string path) const;

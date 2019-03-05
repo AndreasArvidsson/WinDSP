@@ -76,6 +76,7 @@
     <ClInclude Include="Biquad.h" />
     <ClInclude Include="BiquadFilter.h" />
     <ClInclude Include="CancellationFilter.h" />
+    <ClInclude Include="Constants.h" />
     <ClInclude Include="Convert.h" />
     <ClInclude Include="DelayFilter.h" />
     <ClInclude Include="DSP.h" />

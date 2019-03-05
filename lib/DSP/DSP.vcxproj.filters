@@ -60,5 +60,8 @@
     <ClInclude Include="CancellationFilter.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Constants.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

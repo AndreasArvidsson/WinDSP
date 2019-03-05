@@ -1,5 +1,6 @@
 #pragma once
 #include "Filter.h"
+#include "Constants.h"
 
 class DelayFilter : public Filter {
 public:
@@ -7,9 +8,9 @@ public:
 	static const int getSampleDelay(const uint32_t sampleRate, double delay, const bool useUnitMeter = false) {
 		//Value is in meter. Convert to milliseconds
 		if (useUnitMeter) {
-			delay = 1000 * delay / 343.0;
+			delay = 1000.0 * delay / SPEED_OF_SOUND;
 		}
-		return std::lround(sampleRate * delay / 1000);
+		return std::lround(sampleRate * delay / 1000.0);
 	}
 
 	DelayFilter() {

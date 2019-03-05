@@ -13,6 +13,7 @@
 #include "Input.h"
 #include "Output.h"
 #include "DSP.h"
+#include "TrayIcon.h"
 
 Config::Config(const std::string &path) {
 	_configFile = path;
@@ -311,12 +312,8 @@ const std::vector<Filter*> Config::parsePostFilters(const JsonNode *pNode, std::
 void Config::parseCancellation(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const {
 	if (pNode->has("cancellation")) {
 		const JsonNode *pFilterNode = pNode->path("cancellation");
-		const double delay = doubleValue(pFilterNode, "delay", path);
-		bool unitMeter = false;
-		if (pFilterNode->has("unitMeter")) {
-			unitMeter = boolValue(pFilterNode, "unitMeter", path);
-		}
-		filters.push_back(new CancellationFilter(_sampleRate, delay, unitMeter));
+		const double freq = doubleValue(pFilterNode, "freq", path); 
+		filters.push_back(new CancellationFilter(_sampleRate, freq));
 	}
 }
 
@@ -356,9 +353,9 @@ void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, st
 	}
 	//No use in adding zero delay.
 	if (value != 0) {
-		int sampleDelay = DelayFilter::getSampleDelay(_sampleRate, value, useUnitMeter);
+		const int sampleDelay = DelayFilter::getSampleDelay(_sampleRate, value, useUnitMeter);
 		if (sampleDelay > 0) {
-			filters.push_back(new DelayFilter(_sampleRate, value, useUnitMeter));
+			filters.push_back(new DelayFilter(sampleDelay));
 		}
 		else {
 			LOG_WARN("WARNING: Config(%s) - Discarding delay filter with to low value. Can't delay less then one sample\n", path.c_str());
@@ -410,7 +407,7 @@ void Config::parseFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFil
 
 void Config::parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
 	SubType subType = SubTypes::fromString(getField(pFilterNode, "subType", path)->textValue());
-	double freq = doubleValue(pFilterNode, "freq", path);
+	const double freq = doubleValue(pFilterNode, "freq", path);
 	int order = getField(pFilterNode, "order", path)->intValue();
 	switch (subType) {
 	case SubType::BUTTERWORTH:
@@ -444,10 +441,10 @@ void Config::parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, c
 }
 
 void Config::parseShelf(const bool isLowShelf, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
-	double freq = doubleValue(pFilterNode, "freq", path);
-	double gain = doubleValue(pFilterNode, "gain", path);
+	const double freq = doubleValue(pFilterNode, "freq", path);
+	const double gain = doubleValue(pFilterNode, "gain", path);
 	if (pFilterNode->has("q")) {
-		double q = doubleValue(pFilterNode, "q", path);
+		const double q = doubleValue(pFilterNode, "q", path);
 		pBiquadFilter->addShelf(isLowShelf, freq, gain, q);
 	}
 	else {
@@ -456,17 +453,17 @@ void Config::parseShelf(const bool isLowShelf, BiquadFilter *pBiquadFilter, cons
 }
 
 void Config::parsePEQ(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
-	double freq = doubleValue(pFilterNode, "freq", path);
-	double q = doubleValue(pFilterNode, "q", path);
-	double gain = doubleValue(pFilterNode, "gain", path);
+	const double freq = doubleValue(pFilterNode, "freq", path);
+	const double q = doubleValue(pFilterNode, "q", path);
+	const double gain = doubleValue(pFilterNode, "gain", path);
 	pBiquadFilter->addPEQ(freq, q, gain);
 }
 
 void Config::parseBandPass(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
-	double freq = doubleValue(pFilterNode, "freq", path);
-	double bandwidth = doubleValue(pFilterNode, "bandwidth", path);
+	const double freq = doubleValue(pFilterNode, "freq", path);
+	const double bandwidth = doubleValue(pFilterNode, "bandwidth", path);
 	if (pFilterNode->has("gain")) {
-		double gain = doubleValue(pFilterNode, "gain", path);
+		const double gain = doubleValue(pFilterNode, "gain", path);
 		pBiquadFilter->addBandPass(freq, bandwidth, gain);
 	}
 	else {
@@ -475,10 +472,10 @@ void Config::parseBandPass(BiquadFilter *pBiquadFilter, const JsonNode *pFilterN
 }
 
 void Config::parseNotch(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
-	double freq = doubleValue(pFilterNode, "freq", path);
-	double bandwidth = doubleValue(pFilterNode, "bandwidth", path);
+	const double freq = doubleValue(pFilterNode, "freq", path);
+	const double bandwidth = doubleValue(pFilterNode, "bandwidth", path);
 	if (pFilterNode->has("gain")) {
-		double gain = doubleValue(pFilterNode, "gain", path);
+		const double gain = doubleValue(pFilterNode, "gain", path);
 		pBiquadFilter->addNotch(freq, bandwidth, gain);
 	}
 	else {
@@ -487,10 +484,10 @@ void Config::parseNotch(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode
 }
 
 void Config::parseLinkwitzTransform(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const {
-	double f0 = doubleValue(pFilterNode, "f0", path);
-	double q0 = doubleValue(pFilterNode, "q0", path);
-	double fp = doubleValue(pFilterNode, "fp", path);
-	double qp = doubleValue(pFilterNode, "qp", path);
+	const double f0 = doubleValue(pFilterNode, "f0", path);
+	const double q0 = doubleValue(pFilterNode, "q0", path);
+	const double fp = doubleValue(pFilterNode, "fp", path);
+	const double qp = doubleValue(pFilterNode, "qp", path);
 	pBiquadFilter->addLinkwitzTransform(f0, q0, fp, qp);
 }
 
@@ -498,13 +495,13 @@ void Config::parseBiquad(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNod
 	const JsonNode *pValues = getField(pFilterNode, "values", path);
 	for (size_t i = 0; i < pValues->size(); ++i) {
 		const JsonNode *pValueNode = pValues->get(i);
-		double b0 = doubleValue(pValueNode->path("b0"), path);
-		double b1 = doubleValue(pValueNode->path("b1"), path);
-		double b2 = doubleValue(pValueNode->path("b2"), path);
-		double a1 = doubleValue(pValueNode->path("a1"), path);
-		double a2 = doubleValue(pValueNode->path("a2"), path);
+		const double b0 = doubleValue(pValueNode->path("b0"), path);
+		const double b1 = doubleValue(pValueNode->path("b1"), path);
+		const double b2 = doubleValue(pValueNode->path("b2"), path);
+		const double a1 = doubleValue(pValueNode->path("a1"), path);
+		const double a2 = doubleValue(pValueNode->path("a2"), path);
 		if (pValueNode->has("a0")) {
-			double a0 = doubleValue(pValueNode->path("a0"), path);
+			const double a0 = doubleValue(pValueNode->path("a0"), path);
 			pBiquadFilter->add(b0, b1, b2, a0, a1, a2);
 		}
 		else {
@@ -548,7 +545,7 @@ void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, std::s
 	char *pBuffer = nullptr;
 	try {
 		//Get data
-		size_t bufferSize = file.getData(&pBuffer);
+		const size_t bufferSize = file.getData(&pBuffer);
 		WaveHeader header;
 		memcpy(&header, pBuffer, sizeof(header));
 		const char *pData = pBuffer + sizeof(header);
@@ -602,7 +599,8 @@ void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, std::s
 
 void Config::setDevices() {
 	OS::showWindow();
-	std::vector<std::string> wasapiDevices = AudioDevice::getDeviceNames();
+	TrayIcon::hide();
+	const std::vector<std::string> wasapiDevices = AudioDevice::getDeviceNames();
 
 	size_t selectedIndex;
 	bool isOk;
@@ -680,7 +678,7 @@ const JsonNode* Config::getNode(const JsonNode *pNode, const std::string &field,
 const JsonNode* Config::getNode(const JsonNode *pNode, const size_t index, std::string &path) {
 	const JsonNode *pResult = pNode->path(index);
 	path = path + "/" + std::to_string(index);
-	JsonNode *pRefNode = pResult->path("#ref");
+	const JsonNode *pRefNode = pResult->path("#ref");
 	if (!pRefNode->isMissingNode()) {
 		pResult = getReference(pRefNode, path);
 	}
@@ -696,11 +694,11 @@ const JsonNode* Config::getEnrichedReference(const JsonNode *pRefNode, const Jso
 	//Store in tmp list so destructor can take care of them.
 	_tmpJsonNodes.push_back(pCopy);
 	//First copy ref fields.
-	for (auto &pair : pRefNode->getFields()) {
+	for (const auto &pair : pRefNode->getFields()) {
 		pCopy->put(pair.first, pair.second);
 	}
 	//Then copy org fields. IE org fields have presedence in a conflict.
-	for (auto &pair : pOrgNode->getFields()) {
+	for (const auto &pair : pOrgNode->getFields()) {
 		if (pair.first.compare("#ref") != 0) {
 			pCopy->put(pair.first, pair.second);
 		}

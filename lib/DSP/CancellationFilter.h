@@ -4,8 +4,9 @@
 class CancellationFilter : public Filter {
 public:
 
-	CancellationFilter(const uint32_t sampleRate, double delay, const bool useUnitMeter = false) {
-		_delayFilter.init(DelayFilter::getSampleDelay(sampleRate, delay, useUnitMeter));
+	CancellationFilter(const uint32_t sampleRate, const double frequency) {
+		const double delayMs = 1000 / frequency;
+		_delayFilter.init(DelayFilter::getSampleDelay(sampleRate, delayMs));
 	}
 
 	inline const double process(double data) override {

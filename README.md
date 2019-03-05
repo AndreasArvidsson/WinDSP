@@ -140,7 +140,6 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
 * By default the output channels have no filters
 * An output can have multiple filters like gain, delay, crossovers, peq just like the input routes.
 * An output can be muted or inverted
-* An output can be forked. For more info read header "Forked outputs"
 
 **Filters**    
 * The program handles all audio manipulation as filters. A filter can be a something complex as a crossover or something simple like gain
@@ -212,25 +211,6 @@ A referenced node can redefine specific fields.
          }
       ]
    }
-}
-```
-
-**Forked outputs**
-* An output can be forked to produce multiple filters paths for the same signal
-* All forks for the same output receives the same input signal, i.e. the sum of all routes to that channel
-* The result of all forks are summarized together. That means that two forks increases that channels output gain by 6.02dB
-```json
-"outputs": {
-   "L" : [
-      {
-         "gain": -6.02,
-      },
-      {
-         "gain": -6.02,
-         "invert": true,
-         "delay": 5
-      }
-   ]
 }
 ```
 

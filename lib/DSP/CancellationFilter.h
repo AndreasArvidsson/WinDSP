@@ -5,7 +5,7 @@ class CancellationFilter : public Filter {
 public:
 
 	CancellationFilter(const uint32_t sampleRate, const double frequency) {
-		const double delayMs = 1000 / frequency;
+		const double delayMs = 1000.0 / frequency;
 		_delayFilter.init(DelayFilter::getSampleDelay(sampleRate, delayMs));
 	}
 

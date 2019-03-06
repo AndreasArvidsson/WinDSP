@@ -131,6 +131,9 @@ void CaptureLoop::_captureLoop() {
 			//Was silent before.
 			if (silent) {
 				silent = false;
+				//Need to flush render buffer or a glitch kind of sound can occour after silence.
+				_pRenderDevice->flushRenderBuffer();
+
 				//First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
 				//Need to flush buffer of bad data or we can get glitches.
 				if (first) {

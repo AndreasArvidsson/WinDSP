@@ -47,8 +47,8 @@ AudioDevice* AudioDevice::initDevice(const std::string &name) {
 	UINT count;
 	AudioDevice* result = nullptr;
 	assert(pCollection->GetCount(&count));
+	IMMDevice *pDevice;
 	for (ULONG i = 0; i < count; i++) {
-		IMMDevice *pDevice;
 		assert(pCollection->Item(i, &pDevice));
 		if (name.compare(getDeviceName(pDevice)) == 0) {
 			result = new AudioDevice(pDevice);

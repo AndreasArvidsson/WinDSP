@@ -8,8 +8,7 @@ class BiquadFilter : public Filter {
 public:
 
 	BiquadFilter(const uint32_t sampleRate);
-	void reset() override;
-	
+
 	const size_t size() const;
 	const bool isEmpty() const;
 	const uint32_t getSampleRate() const;
@@ -44,6 +43,12 @@ public:
 			data = biquad.process(data);
 		}
 		return data;
+	}
+
+	inline void reset() override {
+		for (Biquad &biquad : _biquads) {
+			biquad.reset();
+		}
 	}
 
 private:

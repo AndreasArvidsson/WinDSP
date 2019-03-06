@@ -5,12 +5,6 @@ BiquadFilter::BiquadFilter(const uint32_t sampleRate) {
 	_sampleRate = sampleRate;
 }
 
-void BiquadFilter::reset() {
-	for (Biquad &biquad : _biquads) {
-		biquad.reset();
-	}
-}
-
 const size_t BiquadFilter::size() const {
 	return _biquads.size();
 }

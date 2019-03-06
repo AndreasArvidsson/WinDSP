@@ -159,10 +159,6 @@ void Biquad::initLinkwitzTransform(const uint32_t sampleRate, const double F0, c
 	reset();
 }
 
-void Biquad::reset() {
-	z1 = z2 = 0;
-}
-
 double Biquad::getOmega(const uint32_t sampleRate, const double frequency) const {
 	return 2 * M_PI * frequency / sampleRate;
 }

@@ -88,7 +88,7 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
             "delay": 4.5,
             "invert": true,
             "mute": true,
-			"cancellation": {
+            "cancellation": {
                 "freq": 28.0,
                 "gain":  -5
             },
@@ -384,7 +384,7 @@ These are filter only available on outputs and not on routes
 ```json
 "cancellation": {
     "freq": 28.0,
-    "gain":  -5
+    "gain": -5
 }
 ```
          

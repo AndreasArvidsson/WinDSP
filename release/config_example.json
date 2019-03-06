@@ -111,6 +111,10 @@
             },
             "mute": false,
             "invert": false,
+            "cancellation": {
+                "freq": 28.0,
+                "gain": -5
+            },
             "filters": [
                 {
                     "#ref": "filters/hp"

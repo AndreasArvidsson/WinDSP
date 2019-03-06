@@ -90,7 +90,7 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
             "mute": true,
             "cancellation": {
                 "freq": 28.0,
-                "gain":  -5
+                "gain": -5
             },
             "filters": [ ]
         }

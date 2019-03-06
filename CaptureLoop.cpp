@@ -141,9 +141,9 @@ void CaptureLoop::_captureLoop() {
 				}
 			}
 
-			if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-				LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", Date::getLocalDateTimeString().c_str(), samplesAvailable);
-			}
+			//if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+			//	LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+			//}
 
 			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
 			while (samplesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {

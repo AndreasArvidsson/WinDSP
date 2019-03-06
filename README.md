@@ -26,7 +26,7 @@ This requires two devices: one capture device and one render/playback device
 If you don't have a spare soundcard in your computer to use for the capture device I can recommendend [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable) which gives you a virtual audio device to use as the capture device.
 
 **ASIO support**    
-WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-audio.com/Cable) can be used to playback through an ASIO soundcard.
+WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-audio.com/Cable) can be used as render device to playback through an ASIO soundcard.
 
 ## Prerequisites(To run application)
 * Capture and render audio devices
@@ -384,7 +384,7 @@ These are filter only available on outputs and not on routes
 ```json
 "cancellation": {
     "freq": 28.0,
-	"gain":  -5
+    "gain":  -5
 }
 ```
          

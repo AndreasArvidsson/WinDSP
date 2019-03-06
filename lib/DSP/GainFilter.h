@@ -4,6 +4,10 @@
 class GainFilter : public Filter {
 public:
 
+	static const double getMultiplier(const double gain) {
+		return std::pow(10.0, gain / 20.0);
+	}
+
 	GainFilter(const double gain) {
 		init(gain, false);
 	}
@@ -42,7 +46,7 @@ private:
 	void init(const double gain, const bool invert) {
 		_gain = gain;
 		_invert = invert;
-		_multiplierNoInvert = std::pow(10.0, gain / 20.0);
+		_multiplierNoInvert = getMultiplier(gain);
 		_multiplier = invert ? _multiplierNoInvert * -1.0 : _multiplierNoInvert;
 	}
 

@@ -313,7 +313,13 @@ void Config::parseCancellation(std::vector<Filter*> &filters, const JsonNode *pN
 	if (pNode->has("cancellation")) {
 		const JsonNode *pFilterNode = pNode->path("cancellation");
 		const double freq = doubleValue(pFilterNode, "freq", path); 
-		filters.push_back(new CancellationFilter(_sampleRate, freq));
+		if (pFilterNode->has("gain")) {
+			const double gain = doubleValue(pFilterNode, "gain", path);
+			filters.push_back(new CancellationFilter(_sampleRate, freq, gain));
+		}
+		else {
+			filters.push_back(new CancellationFilter(_sampleRate, freq));
+		}
 	}
 }
 

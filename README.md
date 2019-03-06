@@ -88,6 +88,10 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
             "delay": 4.5,
             "invert": true,
             "mute": true,
+			"cancellation": {
+                "freq": 28.0,
+                "gain":  -5
+            },
             "filters": [ ]
         }
     }
@@ -370,6 +374,20 @@ or
 -0.000000000000000091367289519079492
 ```
 
+## Output filter parameters
+These are filter only available on outputs and not on routes
+
+**Cancellation**    
+* Creates an inverted and delayed signal cancel out on the specified frequency. This is another way to remove peaks.
+* Requires: freq    
+* Gain defaults to 0dB
+```json
+"cancellation": {
+    "freq": 28.0,
+	"gain":  -5
+}
+```
+         
 ## Errors and Warnings
 * An error is a problem serious enough that the program can't run. eg. missing devices, faulty config
 * An error will output a text message describing the problem and then restart the program. If the problem is corrected the program will start normally

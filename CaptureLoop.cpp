@@ -203,10 +203,10 @@ void CaptureLoop::stop() {
 
 void CaptureLoop::_resetFilters() {
 	//Reset i/o filter states.
-	for (Input *p : *_pInputs) {
+	for (Input * const p : *_pInputs) {
 		p->reset();
 	}
-	for (Output *p : *_pOutputs) {
+	for (Output * const p : *_pOutputs) {
 		p->reset();
 	}
 }
@@ -224,7 +224,7 @@ void CaptureLoop::_checkConfig() {
 }
 
 void CaptureLoop::_checkClippingChannels() {
-	for (Output *pOutput : *_pOutputs) {
+	for (Output * const pOutput : *_pOutputs) {
 		const double clipping = pOutput->resetClipping();
 		if (clipping != 0.0) {
 			LOG_WARN("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", pOutput->getName().c_str(), Convert::levelToDb(clipping));
@@ -239,7 +239,7 @@ void CaptureLoop::_updateConditionalRouting() {
 			_pUsedChannels[i] = (*_pInputs)[i]->resetIsPlaying();
 		}
 		//Update conditional routing.
-		for (const Input *pInut : *_pInputs) {
+		for (const Input * const pInut : *_pInputs) {
 			pInut->evalConditions();
 		}
 	}

@@ -18,7 +18,7 @@
 #include "JsonNode.h"
 #include "AudioDevice.h"
 
-#define VERSION "0.17.0b"
+#define VERSION "0.18.0b"
 
 #ifdef DEBUG
 #include "MemoryManager.h"

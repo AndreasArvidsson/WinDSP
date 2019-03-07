@@ -10,7 +10,7 @@ public:
 		_delayFilter.init(DelayFilter::getSampleDelay(sampleRate, delayMs));
 	}
 
-	inline const double process(double data) override {
+	inline const double process(const double data) override {
 		return _delayFilter.process(data) * _multiplier;
 	}
 

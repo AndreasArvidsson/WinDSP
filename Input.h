@@ -25,7 +25,7 @@ public:
 	const bool resetIsPlaying();
 
 	inline void route(const double data, double * const pRenderBuffer) {
-		if (data != 0.0) {
+		if (data) {
 			_isPlaying = true;
 		}
 		for (const Route * const pRoute : _routes) {

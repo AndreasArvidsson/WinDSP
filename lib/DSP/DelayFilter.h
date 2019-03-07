@@ -37,7 +37,7 @@ public:
 		reset();
 	}
 
-	inline const double process(double value) override {
+	inline const double process(const double value) override {
 		if (_index == _size) {
 			_index = 0;
 		}

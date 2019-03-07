@@ -104,9 +104,10 @@ void CaptureLoop::_captureLoop() {
 	const size_t nChannelsOut = _pOutputs->size();
 	//The size of all sample frames for all channels with the same sample index/timestamp
 	const size_t renderBlockSize = sizeof(double) * nChannelsOut;
-	UINT32 channelIndex, sampleIndex, samplesAvailable;
+	UINT32 sampleIndex, samplesAvailable;
 	DWORD flags;
 	float *pCaptureBuffer, *pRenderBuffer;
+	double *pRenderBlockBuffer;
 	bool silent = true;
 	bool first = true;
 
@@ -127,7 +128,7 @@ void CaptureLoop::_captureLoop() {
 				assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
 				break;
 			}
-		
+
 			//Was silent before.
 			if (silent) {
 				silent = false;
@@ -156,8 +157,12 @@ void CaptureLoop::_captureLoop() {
 
 			//Get render buffer
 			assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, samplesAvailable));
-		
+
 			swStart();
+
+			//Needed to get correct start for the ++pBuffer loop.
+			--pCaptureBuffer;
+			--pRenderBuffer;
 
 			//Iterate all capture frames
 			for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
@@ -165,18 +170,15 @@ void CaptureLoop::_captureLoop() {
 				memset(renderBlockBuffer, 0, renderBlockSize);
 
 				//Iterate inputs and route samples to outputs
-				for (channelIndex = 0; channelIndex < nChannelsIn; ++channelIndex) {
-					(*_pInputs)[channelIndex]->route(pCaptureBuffer[channelIndex], renderBlockBuffer);
+				for (Input * const pInput : *_pInputs) {
+					pInput->route(*++pCaptureBuffer, renderBlockBuffer);
 				}
 
 				//Iterate outputs and apply output forks and filters
-				for (channelIndex = 0; channelIndex < nChannelsOut; ++channelIndex) {
-					pRenderBuffer[channelIndex] = (float)(*_pOutputs)[channelIndex]->process(renderBlockBuffer[channelIndex]);
+                pRenderBlockBuffer = renderBlockBuffer - 1;
+				for (Output * const pOutput : *_pOutputs) {
+					*++pRenderBuffer = (float)pOutput->process(*++pRenderBlockBuffer);
 				}
-
-				//Move buffers to next sample
-				pCaptureBuffer += nChannelsIn;
-				pRenderBuffer += nChannelsOut;
 			}
 
 			swEnd();

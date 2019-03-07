@@ -16,7 +16,7 @@ public:
 		delete[] _pDelay;
 	}
 
-	inline const double process(double value) override {
+	inline const double process(const double value) override {
 		double result = value * _taps[0];
 		for (size_t i = _size - 1; i > 0; --i) {
 			_pDelay[i] = _pDelay[i - 1];

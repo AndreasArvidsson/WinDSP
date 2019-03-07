@@ -253,7 +253,7 @@ void CaptureLoop::_updateConditionalRouting() {
 //For debug purposes only.
 void CaptureLoop::_printUsedChannels() {
 	for (size_t i = 0; i < _pInputs->size(); ++i) {
-		LOG_INFO("%s %d\n", (*_pInputs)[i]->getName().c_str(), _pUsedChannels[i]);
+		LOG_INFO("%s %d", (*_pInputs)[i]->getName().c_str(), _pUsedChannels[i]);
 	}
 	LOG_NL();
 }

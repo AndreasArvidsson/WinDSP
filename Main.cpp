@@ -217,7 +217,6 @@ int main(int argc, char **argv) {
 	setTitle();
 
 	//Very important for filter performance.
-	OS::flushDenormalizedZero();
 	OS::setPriorityHigh();
 
 	size_t waiting = 0;

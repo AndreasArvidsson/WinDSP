@@ -24,7 +24,6 @@ public:
 	void initPEQ(const uint32_t sampleRate, const double frequency, const double q, const double gain);
 	void initLinkwitzTransform(const uint32_t sampleRate, const double F0, const double Q0, const double Fp, const double Qp);
 	
-	
 	void printCoefficients(const bool miniDSPFormat = false) const;
 	const std::vector<std::vector<double>> getFrequencyResponse(const uint32_t sampleRate, const uint32_t nPoints, const double fMin, const double fMax) const;
 

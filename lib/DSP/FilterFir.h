@@ -2,17 +2,17 @@
 #include "Filter.h"
 #include "vector"
 
-class FirFilter : public Filter {
+class FilterFir : public Filter {
 public:
 
-	FirFilter(const std::vector<double> &taps) {
+	FilterFir(const std::vector<double> &taps) {
 		_taps = taps;
 		_size = taps.size();
 		_pDelay = new double[_size];
 		reset();
 	}
 
-	~FirFilter() {
+	~FilterFir() {
 		delete[] _pDelay;
 	}
 

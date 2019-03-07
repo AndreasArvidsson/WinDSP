@@ -1,18 +1,18 @@
 #pragma once
 #include "Filter.h"
 
-class GainFilter : public Filter {
+class FilterGain : public Filter {
 public:
 
 	static const double getMultiplier(const double gain) {
 		return std::pow(10.0, gain / 20.0);
 	}
 
-	GainFilter(const double gain) {
+	FilterGain(const double gain) {
 		init(gain, false);
 	}
 
-	GainFilter(const double gain, const bool invert) {
+	FilterGain(const double gain, const bool invert) {
 		init(gain, invert);
 	}
 

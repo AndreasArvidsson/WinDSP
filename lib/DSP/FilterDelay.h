@@ -2,7 +2,7 @@
 #include "Filter.h"
 #include "Constants.h"
 
-class DelayFilter : public Filter {
+class FilterDelay : public Filter {
 public:
 
 	static const int getSampleDelay(const uint32_t sampleRate, double delay, const bool useUnitMeter = false) {
@@ -13,20 +13,20 @@ public:
 		return std::lround(sampleRate * delay / 1000.0);
 	}
 
-	DelayFilter() {
+	FilterDelay() {
 		_size = _index = 0;
 		_pBuffer = nullptr;
 	}
 
-	DelayFilter(const uint32_t sampleRate, const double delay, const bool useUnitMeter = false) {
+	FilterDelay(const uint32_t sampleRate, const double delay, const bool useUnitMeter = false) {
 		init(getSampleDelay(sampleRate, delay, useUnitMeter));
 	}
 
-	DelayFilter(const int sampleDelay) {
+	FilterDelay(const int sampleDelay) {
 		init(sampleDelay);
 	}
 
-	~DelayFilter() {
+	~FilterDelay() {
 		delete[] _pBuffer;
 	}
 

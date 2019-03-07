@@ -1,6 +1,6 @@
 ﻿#include "SineSweepGenerator.h"
 
-#include "BiquadFilter.h"
+#include "FilterBiquad.h"
 #include <algorithm>
 #include "Convert.h"
 #include <string>
@@ -20,7 +20,7 @@ public:
 	};
 	std::string name;
 	std::vector<SeriesData> series;
-	void add(std::string name, BiquadFilter *pFilter) {
+	void add(std::string name, FilterBiquad *pFilter) {
 		SeriesData serie;
 		serie.name = name;
 		serie.data = pFilter->getFrequencyResponse(1000, 10, 20000);
@@ -28,7 +28,7 @@ public:
 	}
 };
 
-void printMaxVal(BiquadFilter *pFilter) {
+void printMaxVal(FilterBiquad *pFilter) {
 	SineSweepGenerator sine(pFilter->getSampleRate(), 10, 20000, 5);
 	double maxVal = 0.0;
 	double maxFreq;
@@ -111,7 +111,7 @@ void addCrossover(std::vector<GraphData*> &graphs, const uint32_t fs, const bool
 	name += toString(frequency) + "Hz";
 	GraphData *graphData = new GraphData(name);
 	for (int order : orders) {
-		BiquadFilter *pFilter = new BiquadFilter(fs);
+		FilterBiquad *pFilter = new FilterBiquad(fs);
 		pFilter->addCrossover(isLowPass, frequency, order, type);
 		std::string name = toString(order);
 		name += " order";
@@ -124,7 +124,7 @@ void addShelf(std::vector<GraphData*> &graphs, const uint32_t fs, const bool isL
 	std::string name = (isLowShelf ? "Lowshelf " : "Highshelf ") + toString(frequency) + "Hz, " + toString(gain) + "dB";
 	GraphData *graphData = new GraphData(name);
 	for (double q : qValues) {
-		BiquadFilter *pFilter = new BiquadFilter(fs);
+		FilterBiquad *pFilter = new FilterBiquad(fs);
 		pFilter->addShelf(isLowShelf, frequency, gain, q);
 		std::string name = "Q ";
 		name += toString(q);
@@ -137,7 +137,7 @@ void addBandPass(std::vector<GraphData*> &graphs, const uint32_t fs, const doubl
 	std::string name = "Bandpass " + toString(frequency) + "Hz, " + toString(gain) + "dB";
 	GraphData *graphData = new GraphData(name);
 	for (double bandwidth : bandwidths) {
-		BiquadFilter *pFilter = new BiquadFilter(fs);
+		FilterBiquad *pFilter = new FilterBiquad(fs);
 		pFilter->addBandPass(frequency, bandwidth, gain);
 		std::string name = "BW ";
 		name += toString(bandwidth);
@@ -150,7 +150,7 @@ void addNotch(std::vector<GraphData*> &graphs, const uint32_t fs, const double f
 	std::string name = "Notch " + toString(frequency) + "Hz, " + toString(gain) + "dB";
 	GraphData *graphData = new GraphData(name);
 	for (double bandwidth : bandwidths) {
-		BiquadFilter *pFilter = new BiquadFilter(fs);
+		FilterBiquad *pFilter = new FilterBiquad(fs);
 		pFilter->addNotch(frequency, bandwidth, gain);
 		std::string name = "BW ";
 		name += toString(bandwidth);
@@ -163,7 +163,7 @@ void addLT(std::vector<GraphData*> &graphs, const uint32_t fs, std::vector<doubl
 	std::string name = "Linkwitz-Transform F0=30Hz, Q0=0.707, Fp=10Hz";
 	GraphData *graphData = new GraphData(name);
 	for (double q : qValues) {
-		BiquadFilter *pFilter = new BiquadFilter(fs);
+		FilterBiquad *pFilter = new FilterBiquad(fs);
 		pFilter->addLinkwitzTransform(30, 0.707, 10, q);
 		std::string name = "Qp ";
 		name += toString(q);
@@ -176,7 +176,7 @@ void addPEQ(std::vector<GraphData*> &graphs, const uint32_t fs, const double fre
 	std::string name = "PEQ " + toString(frequency) + "Hz, " + toString(gain) + "dB";
 	GraphData *graphData = new GraphData(name);
 	for (double q : qValues) {
-		BiquadFilter *pFilter = new BiquadFilter(fs);
+		FilterBiquad *pFilter = new FilterBiquad(fs);
 		pFilter->addPEQ(frequency, q, gain);
 		std::string name = "Q ";
 		name += toString(q);
@@ -187,10 +187,10 @@ void addPEQ(std::vector<GraphData*> &graphs, const uint32_t fs, const double fre
 
 void addBiquad(std::vector<GraphData*> &graphs, const std::string name, const uint32_t fs, std::vector<std::vector<double>> biquad) {
 	GraphData *graphData = new GraphData(name);
-	BiquadFilter *pFilterSum = new BiquadFilter(fs);
+	FilterBiquad *pFilterSum = new FilterBiquad(fs);
 	int stage = 1;
 	for (const std::vector<double> &coeffs : biquad) {
-		BiquadFilter *pFilter = new BiquadFilter(fs);
+		FilterBiquad *pFilter = new FilterBiquad(fs);
 		pFilter->add(coeffs[0], coeffs[1], coeffs[2], coeffs[3], coeffs[4]);
 		pFilterSum->add(coeffs[0], coeffs[1], coeffs[2], coeffs[3], coeffs[4]);
 		graphData->add(toString(stage++), pFilter);
@@ -203,11 +203,11 @@ void compareLP(std::vector<GraphData*> &graphs, const uint32_t fs) {
 	double freq = 80;
 	GraphData *graphData = new GraphData("Compare LP");
 
-	BiquadFilter *pFilter = new BiquadFilter(fs);
+	FilterBiquad *pFilter = new FilterBiquad(fs);
 	pFilter->addLowPass(freq, 5, CrossoverType::Butterworth);
 	graphData->add("BW", pFilter);
 
-	pFilter = new BiquadFilter(fs);
+	pFilter = new FilterBiquad(fs);
 	pFilter->addLowPass(freq, { -1, 0.54118411083, 1.21578947368 });
 	graphData->add("Custom", pFilter);
 
@@ -238,7 +238,7 @@ int main(int argc, char **argv) {
 	compareLP(graphs, fs);
 	saveJsGraphData(graphs);
 
-	BiquadFilter *pFilter = new BiquadFilter(fs);
+	FilterBiquad *pFilter = new FilterBiquad(fs);
 	pFilter->addHighPass(100, 4, CrossoverType::Butterworth);
 	printMaxVal(pFilter);
 	pFilter->printCoefficients(true);

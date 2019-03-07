@@ -4,10 +4,10 @@
 #include "Biquad.h"
 #include "CrossoverTypes.h"
 
-class BiquadFilter : public Filter {
+class FilterBiquad : public Filter {
 public:
 
-	BiquadFilter(const uint32_t sampleRate);
+	FilterBiquad(const uint32_t sampleRate);
 
 	const size_t size() const;
 	const bool isEmpty() const;

@@ -69,21 +69,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Biquad.cpp" />
-    <ClCompile Include="BiquadFilter.cpp" />
+    <ClCompile Include="FilterBiquad.cpp" />
     <ClCompile Include="CrossoverTypes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Biquad.h" />
-    <ClInclude Include="BiquadFilter.h" />
-    <ClInclude Include="CancellationFilter.h" />
+    <ClInclude Include="FilterBiquad.h" />
+    <ClInclude Include="FilterCancellation.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Convert.h" />
-    <ClInclude Include="DelayFilter.h" />
+    <ClInclude Include="FilterDelay.h" />
     <ClInclude Include="DSP.h" />
     <ClInclude Include="Filter.h" />
     <ClInclude Include="CrossoverTypes.h" />
-    <ClInclude Include="FirFilter.h" />
-    <ClInclude Include="GainFilter.h" />
+    <ClInclude Include="FilterFir.h" />
+    <ClInclude Include="FilterGain.h" />
     <ClInclude Include="SineGenerator.h" />
     <ClInclude Include="SineSweepGenerator.h" />
     <ClInclude Include="ToneGenerator.h" />

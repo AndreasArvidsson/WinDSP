@@ -1,7 +1,7 @@
 #pragma once
-#include "BiquadFilter.h"
-#include "DelayFilter.h"
-#include "GainFilter.h"
-#include "CancellationFilter.h"
-#include "FirFilter.h"
+#include "FilterBiquad.h"
+#include "FilterDelay.h"
+#include "FilterGain.h"
+#include "FilterCancellation.h"
+#include "FilterFir.h"
 #include "WaveHeader.h"

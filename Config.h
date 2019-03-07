@@ -14,7 +14,7 @@ class Input;
 class Output;
 class Route;
 class Filter;
-class BiquadFilter;
+class FilterBiquad;
 class JsonNode;
 
 class Config {
@@ -81,15 +81,15 @@ private:
 
 	const std::vector<Filter*> parseFilters(const JsonNode *pNode, const std::string path);
 	const std::vector<Filter*> parsePostFilters(const JsonNode *pNode, const std::string path);
-	void parseFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
-	void parsePostFilter(std::vector<Filter*> &filters, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
-	void parseCrossover(const bool isLowPass, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
-	void parseShelf(const bool isLowShelf, BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
-	void parsePEQ(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
-	void parseBandPass(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
-	void parseNotch(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
-	void parseLinkwitzTransform(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
-	void parseBiquad(BiquadFilter *pBiquadFilter, const JsonNode *pFilterNode, const std::string path) const;
+	void parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string path) const;
+	void parsePostFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string path) const;
+	void parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string path) const;
+	void parseShelf(const bool isLowShelf, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string path) const;
+	void parsePEQ(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string path) const;
+	void parseBandPass(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string path) const;
+	void parseNotch(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string path) const;
+	void parseLinkwitzTransform(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string path) const;
+	void parseBiquad(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string path) const;
 	void parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path);
 	void parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path);
 	void parseCancellation(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;

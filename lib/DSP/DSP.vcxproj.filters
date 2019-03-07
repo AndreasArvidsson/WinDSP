@@ -10,21 +10,15 @@
     <ClCompile Include="Biquad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BiquadFilter.cpp">
+    <ClCompile Include="CrossoverTypes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CrossoverTypes.cpp">
+    <ClCompile Include="FilterBiquad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Biquad.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BiquadFilter.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DelayFilter.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="DSP.h">
@@ -33,16 +27,10 @@
     <ClInclude Include="Filter.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="GainFilter.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="ToneGenerator.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="CrossoverTypes.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FirFilter.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Convert.h">
@@ -57,10 +45,22 @@
     <ClInclude Include="SineGenerator.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="CancellationFilter.h">
+    <ClInclude Include="Constants.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Constants.h">
+    <ClInclude Include="FilterBiquad.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FilterCancellation.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FilterDelay.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FilterFir.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FilterGain.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

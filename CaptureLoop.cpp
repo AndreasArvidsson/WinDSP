@@ -15,7 +15,7 @@
 
 #ifdef PERFORMANCE_LOG
 #include "Stopwatch.h"
-Stopwatch sw("Render", 1000);
+Stopwatch sw("Render", 10000);
 #define swStart() sw.intervalStart()
 #define swEnd() sw.intervalEnd()
 #else
@@ -145,9 +145,11 @@ void CaptureLoop::_captureLoop() {
 				}
 			}
 
-			//if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-			//	LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", Date::getLocalDateTimeString().c_str(), samplesAvailable);
-			//}
+#ifdef PERFORMANCE_LOG
+			if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+				LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+			}
+#endif
 
 			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
 			while (samplesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {

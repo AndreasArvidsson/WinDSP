@@ -160,7 +160,7 @@ void CaptureLoop::_captureLoop() {
 
 			swStart();
 
-			//Needed to get correct start for the ++pBuffer loop.
+			//Needed to get correct start for the ++pBuffer loops.
 			--pCaptureBuffer;
 			--pRenderBuffer;
 
@@ -174,7 +174,7 @@ void CaptureLoop::_captureLoop() {
 					pInput->route(*++pCaptureBuffer, renderBlockBuffer);
 				}
 
-				//Iterate outputs and apply output forks and filters
+				//Iterate outputs and apply filters
                 pRenderBlockBuffer = renderBlockBuffer - 1;
 				for (Output * const pOutput : *_pOutputs) {
 					*++pRenderBuffer = (float)pOutput->process(*++pRenderBlockBuffer);

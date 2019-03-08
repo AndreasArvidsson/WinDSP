@@ -32,9 +32,12 @@ Config *pConfig = nullptr;
 AudioDevice *pCaptureDevice = nullptr;
 AudioDevice *pRenderDevice = nullptr;
 
-void showWindow() {
+void showWindow(const bool inForeground) {
 	OS::showWindow();
-	TrayIcon::hide();
+    if (inForeground) {
+        OS::showInForeground();
+    }
+    TrayIcon::hide();
 }
 
 void setVisibility() {
@@ -47,13 +50,14 @@ void setVisibility() {
 		TrayIcon::hide();
 	}
 	else {
-		showWindow();
+        //Dont show in foreground. Irritating when window goes to foreground for config changes.
+        showWindow(false);
 	}
 }
 
 LONG_PTR CALLBACK trayIconCallback(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 	if (iMsg == TRAY_ICON_MSG && lParam == WM_LBUTTONDBLCLK) {
-		showWindow();
+		showWindow(true);
 		return 0; 
 	}
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
@@ -120,7 +124,7 @@ void clearData() {
 #ifdef DEBUG_MEMORY
 	//Check for memory leaks
 	if (MemoryManager::getInstance()->hasLeak()) {
-		showWindow();
+		showWindow(true);
 		MemoryManager::getInstance()->assertNoLeak();
 	}
 #endif
@@ -232,7 +236,7 @@ int main(int argc, char **argv) {
 		}
 		//Keep trying for the service to come back
 		catch (const std::exception &e) {
-			showWindow();
+			showWindow(true);
 			LOG_ERROR("ERROR: %s\n", e.what());
 
 			//Wait before trying again.

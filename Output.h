@@ -34,11 +34,10 @@ public:
 		}
 		//Post filters all use the result of the normal filter instead of the previous result. Ie post filters are NOT chained.
 		if (_usePostFilters) {
-			double post = 0.0;
+			const double preData = data;
 			for (Filter * const pFilter : _postFilters) {
-				post += pFilter->process(data);
+				data += pFilter->process(preData);
 			}
-			data += post;
 		}
 		if (std::abs(data) > 1.0) {
 			//Record clipping level so it can be shown in error message.

@@ -10,18 +10,14 @@
 
 class ConfigChangedException : public std::exception {
 public:
-    char input;
 
-    ConfigChangedException() {
-        input = '\0';
-    }
+    ConfigChangedException();
+    ConfigChangedException(const char input);
 
-    ConfigChangedException(const char input) {
-        this->input = input;
-    }
+    const bool hasInput() const;
+    const char getInput() const;
 
-    const bool hasInput() const {
-        return input != '\0';
-    }
+private:
+    char _input;
 
 };

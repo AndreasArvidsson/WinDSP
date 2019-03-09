@@ -1,5 +1,6 @@
 #include "FilterBiquad.h"
 #include "Biquad.h"
+#include "CrossoverTypes.h"
 
 FilterBiquad::FilterBiquad(const uint32_t sampleRate) {
 	_sampleRate = sampleRate;

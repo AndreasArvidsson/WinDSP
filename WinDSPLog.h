@@ -20,3 +20,10 @@
 #define LOG_ERROR LOG_INFO
 #define LOG_NL()			printf("\n");
 #endif
+
+namespace WinDSPLog {
+
+    void configure();
+
+}
+

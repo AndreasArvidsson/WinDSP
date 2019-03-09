@@ -15,8 +15,8 @@ std::vector<std::string> AudioDevice::getDeviceNames() {
 	assert(_pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &pCollection));
 	UINT count;
 	assert(pCollection->GetCount(&count));
-	for (ULONG i = 0; i < count; i++) {
-		IMMDevice *pDevice;
+    IMMDevice *pDevice;
+	for (ULONG i = 0; i < count; ++i) {
 		assert(pCollection->Item(i, &pDevice));
 		result.push_back(getDeviceName(pDevice));
 		SAFE_RELEASE(pDevice);
@@ -48,7 +48,7 @@ AudioDevice* AudioDevice::initDevice(const std::string &name) {
 	AudioDevice* result = nullptr;
 	assert(pCollection->GetCount(&count));
 	IMMDevice *pDevice;
-	for (ULONG i = 0; i < count; i++) {
+	for (ULONG i = 0; i < count; ++i) {
 		assert(pCollection->Item(i, &pDevice));
 		if (name.compare(getDeviceName(pDevice)) == 0) {
 			result = new AudioDevice(pDevice);

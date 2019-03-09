@@ -1,6 +1,4 @@
 #pragma once
-#include "stdint.h"
-#define _USE_MATH_DEFINES
 #include <vector>
 
 class Biquad {

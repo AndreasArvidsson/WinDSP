@@ -18,8 +18,9 @@
 #include "AudioDevice.h"
 #include "Visibility.h"
 #include "TrayIcon.h"
+#include "Str.h"
 
-#define VERSION "0.18.0b"
+#define VERSION "0.19.0b-SNAPSHOT"
 
 #ifdef DEBUG
 #include "MemoryManager.h"
@@ -32,19 +33,6 @@ char configFileNumber = '0';
 Config *pConfig = nullptr;
 AudioDevice *pCaptureDevice = nullptr;
 AudioDevice *pRenderDevice = nullptr;
-
-void setVisibility() {
-	if (pConfig->hide()) {
-        Visibility::hide();
-	}
-	else if (pConfig->minimize()) {
-        Visibility::minimize();
-	}
-	else {
-        //Dont show in foreground. Irritating when window goes to foreground for config changes.
-        Visibility::show(false);
-	}
-}
 
 LONG_PTR CALLBACK trayIconCallback(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 	if (iMsg == TRAY_ICON_MSG && lParam == WM_LBUTTONDBLCLK) {
@@ -70,11 +58,10 @@ void updateStartWithOS() {
 }
 
 void setTitle() {
-	char title[64];
-	snprintf(title, sizeof(title), "WinDSP %s%s", VERSION, PROFILE);
-	SetConsoleTitle(title);
+    const std::string title = String::format("WinDSP %s%s", VERSION, PROFILE);
+	SetConsoleTitle(title.c_str());
 	LOG_INFO("----------------------------------------------");
-	LOG_INFO("\t%s", title);
+	LOG_INFO("\t%s", title.c_str());
 #ifdef DEBUG_LOG
 	LOG_INFO("\tLog file: %s", LOG_FILE);
 #endif
@@ -84,7 +71,7 @@ void setTitle() {
 
 const std::string getConfigFileName() {
 	if (configFileNumber != '0') {
-		return std::string("WinDSP-") + configFileNumber + ".json";
+        return String::format("WinDSP-%c.json", configFileNumber);
 	}
 	else {
 		return "WinDSP.json";
@@ -131,7 +118,7 @@ void run() {
 	updateStartWithOS();
 
 	//Show or hide window
-	setVisibility();
+	Visibility::update(pConfig);
 
 
 	/*
@@ -199,16 +186,8 @@ void run() {
 	CaptureLoop::run();
 }
 
-void configureLogger() {
-#ifdef DEBUG_LOG
-	Log::logToPrint(false);
-	Log::logToFile(LOG_FILE);
-	Log::clearFile();
-#endif
-}
-
 int main(int argc, char **argv) {
-	configureLogger();
+    WinDSPLog::configure();
 	setTitle();
 
 	//Very important for filter performance.
@@ -221,7 +200,7 @@ int main(int argc, char **argv) {
 			run();
 		}
 		catch (const ConfigChangedException &e) {
-			if (!checkInput(e.input)) {
+			if (!checkInput(e.getInput())) {
 				LOG_INFO("Config file changed. Restarting...\n");
 			}
 		}

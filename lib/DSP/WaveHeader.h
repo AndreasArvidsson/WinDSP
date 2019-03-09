@@ -26,11 +26,11 @@ public:
 		chunkSize = 32 + subChunk2Size;
 	}
 
-	size_t getNumSamples() {
+	const size_t getNumSamples() const  {
 		return subChunk2Size / (numChannels * bitsPerSample / 8);
 	}
 
-	size_t getTotalNumSamples() {
+    const size_t getTotalNumSamples() const  {
 		return subChunk2Size / (bitsPerSample / 8);
 	}
 

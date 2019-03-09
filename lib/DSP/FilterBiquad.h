@@ -2,7 +2,8 @@
 #include <vector>
 #include "Filter.h"
 #include "Biquad.h"
-#include "CrossoverTypes.h"
+
+enum class CrossoverType;
 
 class FilterBiquad : public Filter {
 public:

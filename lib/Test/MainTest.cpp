@@ -1,10 +1,11 @@
 ﻿#include "SineSweepGenerator.h"
-#include "FilterBiquad.h"
 #include <algorithm>
-#include "Convert.h"
 #include <string>
 #include <iostream>
 #include <fstream>
+#include "Convert.h"
+#include "CrossoverTypes.h"
+#include "FilterBiquad.h"
 
 class SeriesData {
 public:

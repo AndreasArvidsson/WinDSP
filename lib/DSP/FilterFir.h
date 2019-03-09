@@ -1,20 +1,12 @@
 #pragma once
 #include "Filter.h"
-#include "vector"
+#include <vector>
 
 class FilterFir : public Filter {
 public:
 
-	FilterFir(const std::vector<double> &taps) {
-		_taps = taps;
-		_size = taps.size();
-		_pDelay = new double[_size];
-		reset();
-	}
-
-	~FilterFir() {
-		delete[] _pDelay;
-	}
+    FilterFir(const std::vector<double> &taps);
+    ~FilterFir();
 
 	inline const double process(const double value) override {
 		double result = value * _taps[0];

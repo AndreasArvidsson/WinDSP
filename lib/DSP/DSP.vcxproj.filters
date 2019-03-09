@@ -5,32 +5,47 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Source Files\generators">
+      <UniqueIdentifier>{f9feaa85-d842-4d8a-a1f2-8c4fda56dbf4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\filters">
+      <UniqueIdentifier>{9faedb0c-f541-4172-b2fa-31d13de48b59}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Biquad.cpp">
+    <ClCompile Include="Convert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CrossoverTypes.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="SineGenerator.cpp">
+      <Filter>Source Files\generators</Filter>
+    </ClCompile>
+    <ClCompile Include="SineSweepGenerator.cpp">
+      <Filter>Source Files\generators</Filter>
     </ClCompile>
     <ClCompile Include="FilterBiquad.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\filters</Filter>
+    </ClCompile>
+    <ClCompile Include="FilterCancellation.cpp">
+      <Filter>Source Files\filters</Filter>
+    </ClCompile>
+    <ClCompile Include="FilterDelay.cpp">
+      <Filter>Source Files\filters</Filter>
+    </ClCompile>
+    <ClCompile Include="FilterFir.cpp">
+      <Filter>Source Files\filters</Filter>
+    </ClCompile>
+    <ClCompile Include="FilterGain.cpp">
+      <Filter>Source Files\filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Biquad.cpp">
+      <Filter>Source Files\filters</Filter>
+    </ClCompile>
+    <ClCompile Include="CrossoverTypes.cpp">
+      <Filter>Source Files\filters</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Biquad.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="DSP.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Filter.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ToneGenerator.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CrossoverTypes.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Convert.h">
@@ -39,29 +54,38 @@
     <ClInclude Include="WaveHeader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="SineSweepGenerator.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SineGenerator.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Constants.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="SineSweepGenerator.h">
+      <Filter>Source Files\generators</Filter>
+    </ClInclude>
+    <ClInclude Include="SineGenerator.h">
+      <Filter>Source Files\generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Filter.h">
+      <Filter>Source Files\filters</Filter>
+    </ClInclude>
     <ClInclude Include="FilterBiquad.h">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\filters</Filter>
     </ClInclude>
     <ClInclude Include="FilterCancellation.h">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\filters</Filter>
     </ClInclude>
     <ClInclude Include="FilterDelay.h">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\filters</Filter>
     </ClInclude>
     <ClInclude Include="FilterFir.h">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\filters</Filter>
     </ClInclude>
     <ClInclude Include="FilterGain.h">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Biquad.h">
+      <Filter>Source Files\filters</Filter>
+    </ClInclude>
+    <ClInclude Include="CrossoverTypes.h">
+      <Filter>Source Files\filters</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

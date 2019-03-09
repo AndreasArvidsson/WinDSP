@@ -16,6 +16,7 @@
 #include "DSP.h"
 #include "Str.h"
 #include "Visibility.h"
+#include "CrossoverTypes.h"
 
 Config::Config(const std::string &path) {
     _configFile = path;

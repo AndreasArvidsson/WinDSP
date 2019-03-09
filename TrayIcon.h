@@ -1,6 +1,6 @@
 #pragma once
 #define NOMINMAX
-#include <windows.h> //GetConsoleWindow
+#include <windows.h> //NOTIFYICONDATA, WNDPROC, HWND, GetConsoleWindow
 #include <string>
 
 #define TRAY_ICON_MSG (WM_USER + 1)

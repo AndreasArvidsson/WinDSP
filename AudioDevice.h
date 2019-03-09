@@ -11,7 +11,7 @@
 #pragma once
 #include <vector>
 #include "Audioclient.h"
-#include "ErrorMessages.h"
+#include "ErrorMessages.h" //assert
 
 struct IMMDevice;
 struct IMMDeviceEnumerator;

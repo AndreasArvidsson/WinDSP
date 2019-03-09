@@ -94,13 +94,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="WinDSP.json" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="AudioDevice.cpp" />
     <ClCompile Include="CaptureLoop.cpp" />
     <ClCompile Include="Condition.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="ConfigChangedException.cpp" />
+    <ClCompile Include="ErrorMessages.cpp" />
     <ClCompile Include="FilterType.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -109,6 +108,7 @@
     <ClCompile Include="SubType.cpp" />
     <ClCompile Include="TrayIcon.cpp" />
     <ClCompile Include="Visibility.cpp" />
+    <ClCompile Include="WinDSPLog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioDevice.h" />

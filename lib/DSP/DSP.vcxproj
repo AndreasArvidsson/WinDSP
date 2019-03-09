@@ -69,8 +69,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Biquad.cpp" />
+    <ClCompile Include="Convert.cpp" />
     <ClCompile Include="FilterBiquad.cpp" />
     <ClCompile Include="CrossoverTypes.cpp" />
+    <ClCompile Include="FilterCancellation.cpp" />
+    <ClCompile Include="FilterDelay.cpp" />
+    <ClCompile Include="FilterFir.cpp" />
+    <ClCompile Include="FilterGain.cpp" />
+    <ClCompile Include="SineGenerator.cpp" />
+    <ClCompile Include="SineSweepGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Biquad.h" />
@@ -86,7 +93,6 @@
     <ClInclude Include="FilterGain.h" />
     <ClInclude Include="SineGenerator.h" />
     <ClInclude Include="SineSweepGenerator.h" />
-    <ClInclude Include="ToneGenerator.h" />
     <ClInclude Include="WaveHeader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,4 +1,6 @@
 #include "Biquad.h"
+#define _USE_MATH_DEFINES
+#include <math.h> // M_LN2
 
 Biquad::Biquad() {
 	b0 = b1 = b2 = a0 = a1 = a2 = z1 = z2 = 0;

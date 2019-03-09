@@ -16,7 +16,7 @@ public:
 
 	static const std::vector<double> pcm16ToDouble(const char *pData, const size_t numSamples) {
 		std::vector<double> result(numSamples);
-		int16_t *p = (int16_t*)pData;
+        const int16_t *p = (int16_t*)pData;
 		for (size_t i = 0; i < numSamples; ++i) {
 			result[i] = (double)p[i] / INT16_MAX;
 		}
@@ -42,7 +42,7 @@ public:
 
 	static const std::vector<double> pcm32ToDouble(const char *pData, const size_t numSamples) {
 		std::vector<double> result(numSamples);
-		int32_t *p = (int32_t*)pData;
+        const int32_t *p = (int32_t*)pData;
 		for (size_t i = 0; i < numSamples; ++i) {
 			result[i] = (double)p[i] / INT32_MAX;
 		}
@@ -51,7 +51,7 @@ public:
 
 	static const std::vector<double> float32ToDouble(const char *pData, const size_t numSamples) {
 		std::vector<double> result(numSamples);
-		float *p = (float*)pData;
+		const float *p = (float*)pData;
 		for (size_t i = 0; i < numSamples; ++i) {
 			result[i] = (double)p[i];
 		}
@@ -60,7 +60,7 @@ public:
 
 	static const std::vector<double> float64ToDouble(const char *pData, const size_t numSamples) {
 		std::vector<double> result(numSamples);
-		double *p = (double*)pData;
+        const double *p = (double*)pData;
 		for (size_t i = 0; i < numSamples; ++i) {
 			result[i] = p[i];
 		}

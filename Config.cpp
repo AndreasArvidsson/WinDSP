@@ -1,6 +1,7 @@
 #include "Config.h"
 #include <iostream> //cin
 #include <algorithm> //std::min
+#include <locale>
 #include "Error.h"
 #include "FilterType.h"
 #include "SubType.h"
@@ -14,6 +15,7 @@
 #include "Output.h"
 #include "DSP.h"
 #include "TrayIcon.h"
+#include "Str.h"
 
 Config::Config(const std::string &path) {
 	_configFile = path;
@@ -87,18 +89,15 @@ void Config::parseMisc() {
 	_startWithOS = _pJsonNode->has("startWithOS") ? boolValue(_pJsonNode, "startWithOS", "") : false;
 
 	//Parse channels
-	std::string path = "channels";
-	JsonNode *pChannels = _pJsonNode->path(path);
+    const std::string path = "channels";
+	const JsonNode *pChannels = _pJsonNode->path(path);
 	if (!pChannels->isMissingNode()) {
 		if (!pChannels->isArray()) {
 			throw Error("Config(%s) - Field is not an array/list", path.c_str());
 		}
 		for (size_t i = 0; i < pChannels->size(); ++i) {
-			JsonNode *pChannelName = pChannels->get(i);
-			if (!pChannelName->isText()) {
-				throw Error("Config(%s/%d) - Value is not a text string", path.c_str(), i);
-			}
-			_channelNames.push_back(pChannelName->textValue());
+            const std::string channelName = textValue(pChannels->get(i), String::format("%s/%d", path.c_str(), i));
+            _channelNames.push_back(channelName);
 		}
 	}
 	else {
@@ -119,11 +118,8 @@ void Config::parseDevices() {
 	}
 	//Devices already set in config.
 	else {
-		std::string path = "devices/capture";
-		_captureDeviceName = textValue(pCaptureNode->get("name"), path + "/name");
-
-		path = "devices/render";
-		_renderDeviceName = textValue(pRenderNode->get("name"), path + "/name");
+		_captureDeviceName = textValue(pCaptureNode, "name", "devices/capture");
+		_renderDeviceName = textValue(pRenderNode, "name", "devices/render");
 		_numChannelsRender = 0;
 	}
 }
@@ -132,8 +128,8 @@ void Config::parseInputs() {
 	//Create default in to out routing
 	_inputs = std::vector<Input*>(_numChannelsIn);
 	//Iterate inputs and set routes
-	std::string path = "inputs";
-	JsonNode *pInputs = _pJsonNode->path(path);
+    const std::string path = "inputs";
+    const JsonNode *pInputs = _pJsonNode->path(path);
 	for (std::string channelName : pInputs->getOrder()) {
 		parseInput(pInputs, channelName, path);
 	}
@@ -153,14 +149,14 @@ void Config::parseInputs() {
 }
 
 void Config::parseInput(const JsonNode *pInputs, const std::string &channelName, std::string path) {
-	size_t channelIn = getChannelIndex(channelName, path);
+    const size_t channelIn = getChannelIndex(channelName, path);
 	if (channelIn >= (int)_numChannelsIn) {
 		LOG_WARN("WARNING: Config(%s) - Capture device doesn't have channel '%s'\n", path.c_str(), channelName.c_str());
 		return;
 	}
 	const JsonNode *pChannelNode = getNode(pInputs, channelName, path);
 	_inputs[channelIn] = new Input(channelName);
-	JsonNode *pRoutes = pChannelNode->path("routes");
+    const JsonNode *pRoutes = pChannelNode->path("routes");
 	path = path + "/" + "routes";
 	for (size_t i = 0; i < pRoutes->size(); ++i) {
 		parseRoute(_inputs[channelIn], pRoutes, i, path);
@@ -171,9 +167,9 @@ void Config::parseRoute(Input *pInput, const JsonNode *pRoutes, const size_t ind
 	const JsonNode *pRouteNode = getNode(pRoutes, index, path);
 	//If route have no out channel it's the same thing as no route at all.
 	if (pRouteNode->has("out")) {
-		std::string outPath = path + "/out";
-		std::string channelName = textValue(pRouteNode->get("out"), outPath);
-		size_t channelOut = getChannelIndex(channelName, outPath);
+        const std::string outPath = path + "/out";
+        const std::string channelName = textValue(pRouteNode->get("out"), outPath);
+		const size_t channelOut = getChannelIndex(channelName, outPath);
 		if (channelOut >= (int)_numChannelsOut) {
 			LOG_WARN("WARNING: Config(%s) - Render device doesn't have channel '%s'\n", outPath.c_str(), channelName.c_str());
 			return;
@@ -189,8 +185,8 @@ void Config::parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::str
 	if (pRouteNode->has("if")) {
 		const JsonNode *pIfNode = getNode(pRouteNode, "if", path);
 		if (pIfNode->has("silent")) {
-			std::string channelName = textValue(pIfNode, "silent", path);
-			size_t channel = getChannelIndex(channelName, path + "/silent");
+            const std::string channelName = textValue(pIfNode, "silent", path);
+            const size_t channel = getChannelIndex(channelName, path + "/silent");
 			pRoute->addCondition(Condition(ConditionType::SILENT, (int)channel));
 		}
 		else {
@@ -204,9 +200,9 @@ void Config::parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::str
 void Config::parseOutputs() {
 	_outputs = std::vector<Output*>(_numChannelsOut);
 	//Iterate outputs and add filters
-	std::string path = "outputs";
-	JsonNode *pOutputs = _pJsonNode->path(path);
-	for (std::string channelName : pOutputs->getOrder()) {
+    const std::string path = "outputs";
+    const JsonNode *pOutputs = _pJsonNode->path(path);
+	for (const std::string &channelName : pOutputs->getOrder()) {
 		parseOutput(pOutputs, channelName, path);
 	}
 	//Add default empty output to missing
@@ -219,7 +215,7 @@ void Config::parseOutputs() {
 }
 
 void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelName, std::string path) {
-	size_t channel = getChannelIndex(channelName, path);
+    const size_t channel = getChannelIndex(channelName, path);
 	if (channel >= (int)_numChannelsOut) {
 		LOG_WARN("WARNING: Config(%s) - Render device doesn't have channel '%s'\n", path.c_str(), channelName.c_str());
 		return;
@@ -286,7 +282,7 @@ const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, std::stri
 	parseDelay(filters, pNode, path);
 	//Parse filters list
 	FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
-	JsonNode *pFiltersNode = pNode->path("filters");
+    const JsonNode *pFiltersNode = pNode->path("filters");
 	for (size_t i = 0; i < pFiltersNode->size(); ++i) {
 		std::string tmpPath = path + "/filters";
 		const JsonNode *pFilter = getNode(pFiltersNode, i, tmpPath);
@@ -412,9 +408,10 @@ void Config::parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiq
 }
 
 void Config::parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string path) const {
-	SubType subType = SubTypes::fromString(getField(pFilterNode, "subType", path)->textValue());
+    const std::string subTypeStr = textValue(pFilterNode, "subType", path);
+	const SubType subType = SubTypes::fromString(subTypeStr);
 	const double freq = doubleValue(pFilterNode, "freq", path);
-	int order = getField(pFilterNode, "order", path)->intValue();
+    const int order = intValue(pFilterNode, "order", path);
 	switch (subType) {
 	case SubType::BUTTERWORTH:
 		pFilterBiquad->addCrossover(isLowPass, freq, order, CrossoverType::Butterworth);
@@ -425,8 +422,7 @@ void Config::parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, c
 	case SubType::BESSEL:
 		pFilterBiquad->addCrossover(isLowPass, freq, order, CrossoverType::Bessel);
 		break;
-	case SubType::CUSTOM:
-	{
+	case SubType::CUSTOM: {
 		const JsonNode *pQNode = getField(pFilterNode, "q", path);
 		std::vector<double> qValues;
 		int calculatedOrder = 0;

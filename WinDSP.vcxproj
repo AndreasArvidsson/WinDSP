@@ -101,10 +101,12 @@
     <ClCompile Include="CaptureLoop.cpp" />
     <ClCompile Include="Condition.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="FilterType.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Output.cpp" />
     <ClCompile Include="Route.cpp" />
+    <ClCompile Include="SubType.cpp" />
     <ClCompile Include="TrayIcon.cpp" />
   </ItemGroup>
   <ItemGroup>

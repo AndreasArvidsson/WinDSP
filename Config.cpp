@@ -107,9 +107,9 @@ void Config::parseMisc() {
 }
 
 void Config::parseDevices() {
-	JsonNode *pDvicesNode = _pJsonNode->path("devices");
-	JsonNode *pCaptureNode = pDvicesNode->path("capture");
-	JsonNode *pRenderNode = pDvicesNode->path("render");
+    const JsonNode *pDvicesNode = _pJsonNode->path("devices");
+    const JsonNode *pCaptureNode = pDvicesNode->path("capture");
+	const JsonNode *pRenderNode = pDvicesNode->path("render");
 
 	//Devices not set in config. Query user
 	if (!pCaptureNode->has("name") || !pRenderNode->has("name")) {
@@ -221,7 +221,10 @@ void Config::parseOutput(const JsonNode *pOutputs, const std::string &channelNam
 		return;
 	}
 	const JsonNode *pChannelNode = getNode(pOutputs, channelName, path);
-	const bool mute = pChannelNode->path("mute")->boolValue();
+    bool mute = false;
+    if (pChannelNode->has("mute")) {
+        mute = boolValue(pChannelNode, "mute", path);
+    }
 	Output *pOutput = new Output(channelName, mute);
 	pOutput->addFilters(parseFilters(pChannelNode, path));
 	pOutput->addPostFilters(parsePostFilters(pChannelNode, path));
@@ -427,7 +430,7 @@ void Config::parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, c
 		std::vector<double> qValues;
 		int calculatedOrder = 0;
 		for (size_t i = 0; i < pQNode->size(); ++i) {
-			double q = pQNode->get(i)->doubleValue();
+			const double q = doubleValue(pQNode->get(i), String::format("%s/%d", path.c_str(), i));
 			calculatedOrder += q < 0 ? 1 : 2;
 			qValues.push_back(q);
 		}

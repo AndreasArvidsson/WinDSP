@@ -10,6 +10,7 @@
 #include "AudioDevice.h"
 #include "Input.h"
 #include "Output.h"
+#include "Visibility.h"
 
 //#define PERFORMANCE_LOG
 
@@ -75,8 +76,7 @@ void CaptureLoop::run() {
 		else {
 			//If hide is enabled and the window is minimize hide it and show tray icon instead.
 			if (_pConfig->hide() && OS::isWindowMinimized()) {
-				OS::hideWindow();
-				TrayIcon::show();
+                Visibility::show(true);
 			}
 		}
 

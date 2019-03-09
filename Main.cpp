@@ -13,10 +13,11 @@
 #include "Date.h"
 #include "ConfigChangedException.h"
 #include "Config.h"
-#include "TrayIcon.h"
 #include "resource.h"
 #include "JsonNode.h"
 #include "AudioDevice.h"
+#include "Visibility.h"
+#include "TrayIcon.h"
 
 #define VERSION "0.18.0b"
 
@@ -32,32 +33,22 @@ Config *pConfig = nullptr;
 AudioDevice *pCaptureDevice = nullptr;
 AudioDevice *pRenderDevice = nullptr;
 
-void showWindow(const bool inForeground) {
-	OS::showWindow();
-    if (inForeground) {
-        OS::showInForeground();
-    }
-    TrayIcon::hide();
-}
-
 void setVisibility() {
 	if (pConfig->hide()) {
-		OS::hideWindow();
-		TrayIcon::show();
+        Visibility::hide();
 	}
 	else if (pConfig->minimize()) {
-		OS::minimizeWindow();
-		TrayIcon::hide();
+        Visibility::minimize();
 	}
 	else {
         //Dont show in foreground. Irritating when window goes to foreground for config changes.
-        showWindow(false);
+        Visibility::show(false);
 	}
 }
 
 LONG_PTR CALLBACK trayIconCallback(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 	if (iMsg == TRAY_ICON_MSG && lParam == WM_LBUTTONDBLCLK) {
-		showWindow(true);
+        Visibility::show(true);
 		return 0; 
 	}
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
@@ -124,7 +115,7 @@ void clearData() {
 #ifdef DEBUG_MEMORY
 	//Check for memory leaks
 	if (MemoryManager::getInstance()->hasLeak()) {
-		showWindow(true);
+		Visibility::show(true);
 		MemoryManager::getInstance()->assertNoLeak();
 	}
 #endif
@@ -236,7 +227,7 @@ int main(int argc, char **argv) {
 		}
 		//Keep trying for the service to come back
 		catch (const std::exception &e) {
-			showWindow(true);
+			Visibility::show(true);
 			LOG_ERROR("ERROR: %s\n", e.what());
 
 			//Wait before trying again.

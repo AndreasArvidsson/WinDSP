@@ -1,5 +1,4 @@
 ﻿#include "SineSweepGenerator.h"
-
 #include "FilterBiquad.h"
 #include <algorithm>
 #include "Convert.h"

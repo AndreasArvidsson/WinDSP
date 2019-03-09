@@ -108,6 +108,7 @@
     <ClCompile Include="Route.cpp" />
     <ClCompile Include="SubType.cpp" />
     <ClCompile Include="TrayIcon.cpp" />
+    <ClCompile Include="Visibility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioDevice.h" />
@@ -123,6 +124,7 @@
     <ClInclude Include="Route.h" />
     <ClInclude Include="SubType.h" />
     <ClInclude Include="TrayIcon.h" />
+    <ClInclude Include="Visibility.h" />
     <ClInclude Include="WinDSPLog.h" />
   </ItemGroup>
   <ItemGroup>

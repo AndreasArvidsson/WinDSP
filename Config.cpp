@@ -99,10 +99,10 @@ void Config::validateLevels(const std::string &path) const {
         //Level is above 0dBFS. CLIPPING CAN OCCURE!!!
         if (levels[i] > 1.0) {
             if (first) {
-                LOG_WARN("WARNING: Config(%s) - Sum of routed channel levels is above 0dBFS on output channel. CLIPPING CAN OCCUR!", path.c_str());
+                LOG_INFO("WARNING: Config(%s) - Sum of routed channel levels is above 0dBFS on output channel. CLIPPING CAN OCCUR!", path.c_str());
                 first = false;
             }
-            LOG_WARN("\t%s: +%.2f dBFS", Channels::toString(i).c_str(), Convert::levelToDb(levels[i]));
+            LOG_INFO("\t%s: +%.2f dBFS", Channels::toString(i).c_str(), Convert::levelToDb(levels[i]));
         }
     }
     if (!first) {
@@ -230,13 +230,18 @@ void Config::printRouteConfig(const Channel channel, const std::vector<Filter*> 
     const double level = getFilterGainSum(filters);
     const double gain = Convert::levelToDb(level);
     printf("%s", Channels::toString(channel).c_str());
-    size_t numFilters = filters.size();
     if (gain) {
         printf("(%.1fdb)", gain);
-        --numFilters; //Retract the gain filter.
     }
     if (hasConditions) {
         printf("(if)");
+    }
+    size_t numFilters = filters.size();
+    for (const Filter *pFilter : filters) {
+        if (typeid (*pFilter) == typeid (FilterGain)) {
+            --numFilters; //Retract the gain filter.
+            break;
+        }
     }
     if (numFilters) {
         printf("(%zdF)", numFilters);

@@ -212,7 +212,7 @@ void Config::printConfig() const {
     for (const Input *pI : _inputs) {
         printf("%s\t", Channels::toString(pI->getChannel()).c_str());
         for (const Route *pR : pI->getRoutes()) {
-            printRouteConfig(pR->getChannel(), pR->getFilters(), pR->hasConditions());
+            printRouteConfig(pR->getChannel(), pR->getFilters(), pR->getFilters().size(), pR->hasConditions());
         }
         printf("\n");
     }
@@ -220,13 +220,13 @@ void Config::printConfig() const {
 
     printf("***** Outputs *****\n");
     for (const Output *pO : _outputs) {
-        printRouteConfig(pO->getChannel(), pO->getFilters());
+        printRouteConfig(pO->getChannel(), pO->getFilters(), pO->getFilters().size() + pO->getPostFilters().size());
         printf("\n");
     }
     printf("\n");
 }
 
-void Config::printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, const bool hasConditions) const {
+void Config::printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, size_t numFilters, const bool hasConditions) const {
     const double level = getFilterGainSum(filters);
     const double gain = Convert::levelToDb(level);
     printf("%s", Channels::toString(channel).c_str());
@@ -236,7 +236,6 @@ void Config::printRouteConfig(const Channel channel, const std::vector<Filter*> 
     if (hasConditions) {
         printf("(if)");
     }
-    size_t numFilters = filters.size();
     for (const Filter *pFilter : filters) {
         if (typeid (*pFilter) == typeid (FilterGain)) {
             --numFilters; //Retract the gain filter.

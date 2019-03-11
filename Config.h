@@ -94,7 +94,7 @@ private:
     void setDevices();
     const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
     void printConfig() const;
-    void printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, const bool hasConditions = false) const;
+    void printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, size_t numFilters, const bool hasConditions = false) const;
 
     /* ********* ConfigParser.cpp ********* */
 
@@ -105,14 +105,12 @@ private:
     void parseOutput(const JsonNode *pOutputs, const size_t index, std::string path);
     const bool getOutputChannel(const JsonNode *pChannelNode, Channel &channelOut, const std::string &path) const;
     const std::vector<Channel> getOutputChannels(const JsonNode *pOutputNode, const std::string &path);
-    void addBasicCrossovers();
 
     /* ********* ConfigParserFilter.cpp ********* */
 
     const std::vector<Filter*> parseFilters(const JsonNode *pNode, const std::string &path, const int outputChannel = -1);
     const std::vector<Filter*> parsePostFilters(const JsonNode *pNode, const std::string &path);
     void parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const int outputChannel, const std::string &path);
-    void parsePostFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parseShelf(const bool isLowShelf, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parsePEQ(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;

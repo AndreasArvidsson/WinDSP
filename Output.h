@@ -21,6 +21,7 @@ public:
 	void addFilters(const std::vector<Filter*> &filters);
 	void addPostFilters(const std::vector<Filter*> &filters);
 	const std::vector<Filter*>& getFilters() const;
+    const std::vector<Filter*>& getPostFilters() const;
     const Channel Output::getChannel() const;
 
 	void reset();

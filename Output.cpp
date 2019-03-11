@@ -30,6 +30,10 @@ const std::vector<Filter*>& Output::getFilters() const {
 	return _filters;
 }
 
+const std::vector<Filter*>& Output::getPostFilters() const {
+    return _postFilters;
+}
+
 void Output::reset() {
 	for (Filter * const pFilter : _filters) {
 		pFilter->reset();

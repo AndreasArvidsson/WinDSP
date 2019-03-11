@@ -268,17 +268,17 @@ const std::unordered_map<Channel, SpeakerType> Config::parseChannels(const JsonN
         }
     }
 
-    const bool useSubwoofers = getUseSubwoofers(subs, subLs, subRs);
-
-    if (result.at(Channel::L) == SpeakerType::SMALL && !useSubwoofers) {
-        throw Error("Config(%s) - Can't use small front speakers with no subwoofers", path.c_str());
-    }
-    if (useSubwoofers) {
+    if (getUseSubwoofers(subs, subLs, subRs)) {
         if (subLs.size() != subRs.size()) {
-            throw Error("Config(%s) - Can't use stereo subwoofer if not both center(C) and subwoofer(SW) channels are used", path.c_str());
+            throw Error("Config(%s) - Can't use stereo bass if not both center(C) and subwoofer(SW) channels are used as subwoofers", path.c_str());
         }
-        if (stereoBass && !subs.size() && !subLs.size()) {
-            LOG_WARN("WARNING: Config(%s) -  Can't use stereo subwoofer if no subwoofer channels are used", path.c_str());
+    }
+    else {
+        if (result.at(Channel::L) == SpeakerType::SMALL) {
+            throw Error("Config(%s) - Can't use small front speakers with no subwoofer", path.c_str());
+        }
+        if (stereoBass) {
+            LOG_WARN("WARNING: Config(%s) -  Can't use stereo bass if no subwoofer channels are used", path.c_str());
         }
     }
 

@@ -212,21 +212,7 @@ void Config::printConfig() const {
     for (const Input *pI : _inputs) {
         printf("%s\t", Channels::toString(pI->getChannel()).c_str());
         for (const Route *pR : pI->getRoutes()) {
-            const double level = getFilterGainSum(pR->getFilters());
-            const double gain = Convert::levelToDb(level);
-            printf("%s", Channels::toString(pR->getChannel()).c_str());
-            size_t numFilters = pR->getFilters().size();
-            if (gain) {
-                printf("(%.1fdb)", gain);
-                --numFilters; //Retract the gain filter.
-            }
-            if (pR->hasConditions()) {
-                printf("(if)");
-            }
-            if (numFilters) {
-                printf("(%zdF)", numFilters);
-            }
-            printf(" ");
+            printRouteConfig(pR->getChannel(), pR->getFilters(), pR->hasConditions());
         }
         printf("\n");
     }
@@ -234,20 +220,26 @@ void Config::printConfig() const {
 
     printf("***** Outputs *****\n");
     for (const Output *pO : _outputs) {
-        printf("%s", Channels::toString(pO->getChannel()).c_str());
-        const double level = getFilterGainSum(pO->getFilters());
-        const double gain = Convert::levelToDb(level);
-        size_t numFilters = pO->getFilters().size();
-        if (gain) {
-            printf("(%.1fdb)", gain);
-            --numFilters; //Retract the gain filter.
-        }
-        if (numFilters) {
-            printf("(%zdF)", numFilters);
-        }
-        printf(" ");
+        printRouteConfig(pO->getChannel(), pO->getFilters());
         printf("\n");
     }
     printf("\n");
+}
 
+void Config::printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, const bool hasConditions) const {
+    const double level = getFilterGainSum(filters);
+    const double gain = Convert::levelToDb(level);
+    printf("%s", Channels::toString(channel).c_str());
+    size_t numFilters = filters.size();
+    if (gain) {
+        printf("(%.1fdb)", gain);
+        --numFilters; //Retract the gain filter.
+    }
+    if (hasConditions) {
+        printf("(if)");
+    }
+    if (numFilters) {
+        printf("(%zdF)", numFilters);
+    }
+    printf(" ");
 }

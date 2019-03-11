@@ -388,23 +388,6 @@ const double Config::getLfeGain(const JsonNode *pBasicNode, const bool useSubwoo
         }
     }
     return lfeGain + LFE_GAIN;
-
-
-    //const double lfeGain = tryGetDoubleValue(pBasicNode, "lfeGain", path);
-    //if (useSubwoofers) {
-    //    //Playing subwoofer and no small speakers. IE LFE is not going to get mixed with other channels.
-    //    if (!hasSmalls) {
-    //        return 0;
-    //    }
-    //    //Stereo subwoofers
-    //    if (stereoBass) {
-    //        return lfeGain + LFE_GAIN + BASS_TO_STEREO_GAIN;
-    //    }
-    //    //Mono subwoofers
-    //    return lfeGain + LFE_GAIN;
-    //}
-    ////Front speakers. Are always two channels.
-    //return lfeGain + LFE_GAIN + BASS_TO_STEREO_GAIN;
 }
 
 const bool Config::getUseSubwoofers(const std::vector<Channel> &subs, const std::vector<Channel> &subLs, const std::vector<Channel> &subRs) const {

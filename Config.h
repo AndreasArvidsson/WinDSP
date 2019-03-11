@@ -29,7 +29,6 @@ public:
     ~Config();
 
     void init(const uint32_t sampleRate, const uint32_t numChannelsIn, const uint32_t numChannelsOut);
-
     const std::string getCaptureDeviceName() const;
     const std::string getRenderDeviceName() const;
     const std::vector<Input*>* getInputs() const;
@@ -49,20 +48,15 @@ public:
     }
 
 private:
-    File _configFile;
-    JsonNode *_pJsonNode;
     std::vector<Input*> _inputs;
     std::vector<Output*> _outputs;
+    std::unordered_map<Channel, bool> _addLpTo, _addHpTo;
+    File _configFile;
+    JsonNode *_pJsonNode, *_pLpFilter, *_pHpFilter;
     std::string _captureDeviceName, _renderDeviceName;
     uint32_t _sampleRate, _numChannelsIn, _numChannelsOut;
     time_t _lastModified;
     bool _hide, _minimize, _useConditionalRouting, _startWithOS;
-
-
-    JsonNode *_pLpFilter, *_pHpFilter;
-    std::unordered_map<Channel, bool> _addLpTo, _addHpTo;
- 
-
 
     /* ********* ConfigParserBasic.cpp ********* */
 
@@ -91,7 +85,6 @@ private:
     void parseRoute(Input *pInput, const JsonNode *pRoutes, const size_t index, std::string path);
     void parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::string path);
 
-
     /* ********* Config.cpp ********* */
 
     void load();
@@ -101,7 +94,7 @@ private:
     void setDevices();
     const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
     void printConfig() const;
-
+    void printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, const bool hasConditions = false) const;
 
     /* ********* ConfigParser.cpp ********* */
 
@@ -142,47 +135,39 @@ private:
     const JsonNode* tryGetNode(const JsonNode *pNode, const size_t index, std::string &path) const;
     const JsonNode* getNode(const JsonNode *pNode, const std::string &field, std::string &path) const;
     const JsonNode* getNode(const JsonNode *pNode, const size_t index, std::string &path) const;
-
     const JsonNode* tryGetObjectNode(const JsonNode *pNode, const std::string &field, std::string &path) const;
     const JsonNode* tryGetObjectNode(const JsonNode *pNode, const size_t index, std::string &path) const;
     const JsonNode* getObjectNode(const JsonNode *pNode, const std::string &field, std::string &path) const;
     const JsonNode* getObjectNode(const JsonNode *pNode, const size_t index, std::string &path) const;
     const JsonNode* validateObjectNode(const JsonNode *pNode, std::string &path, const bool optional = false) const;
-
     const JsonNode* tryGetArrayNode(const JsonNode *pNode, const std::string &field, std::string &path) const;
     const JsonNode* tryGetArrayNode(const JsonNode *pNode, const size_t index, std::string &path) const;
     const JsonNode* getArrayNode(const JsonNode *pNode, const std::string &field, std::string &path) const;
     const JsonNode* getArrayNode(const JsonNode *pNode, const size_t index, std::string &path) const;
     const JsonNode* validateArrayNode(const JsonNode *pNode, std::string &path, const bool optional = false) const;
-
     const JsonNode* _tryGetNodeInner(const JsonNode *pNode, std::string &path, const std::string &appendPath) const;
     const JsonNode* _getNodeInner(const JsonNode *pNode, std::string &path) const;
     const JsonNode* _getReference(const JsonNode *pParent, std::string &path) const;
-
     const std::string tryGetTextValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const std::string tryGetTextValue(const JsonNode *pNode, const size_t index, const std::string &path) const;
     const std::string getTextValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const std::string getTextValue(const JsonNode *pNode, const size_t index, const std::string &path) const;
     const std::string validateTextValue(const JsonNode *pNode, const std::string &path, const bool optional = false) const;
-
     const bool tryGetBoolValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const bool tryGetBoolValue(const JsonNode *pNode, const size_t index, const std::string &path) const;
     const bool getBoolValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const bool getBoolValue(const JsonNode *pNode, const size_t index, const std::string &path) const;
     const bool validateBoolValue(const JsonNode *pNode, const std::string &path, const bool optional = false) const;
-
     const double tryGetDoubleValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const double tryGetDoubleValue(const JsonNode *pNode, const size_t index, const std::string &path) const;
     const double getDoubleValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const double getDoubleValue(const JsonNode *pNode, const size_t index, const std::string &path) const;
     const double validateDoubleValue(const JsonNode *pNode, const std::string &path, const bool optional = false) const;
-
     const int tryGetIntValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const int tryGetIntValue(const JsonNode *pNode, const size_t index, const std::string &path) const;
     const int getIntValue(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const int getIntValue(const JsonNode *pNode, const size_t index, const std::string &path) const;
     const int validateIntValue(const JsonNode *pNode, const std::string &path, const bool optional = false) const;
-
     const SpeakerType getSpeakerType(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const SpeakerType getSpeakerType(const JsonNode *pNode, const std::string &field, std::string &textOut, const std::string &path) const;
     const FilterType getFilterType(const JsonNode *pNode, const std::string &field, const std::string &path) const;

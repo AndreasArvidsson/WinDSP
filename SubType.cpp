@@ -16,7 +16,7 @@ const SubType SubTypes::fromString(const std::string &strIn) {
     else if (str.compare("CUSTOM") == 0) {
         return SubType::CUSTOM;
     }
-    throw Error("Unknown filter sub type '%s'", str.c_str());
+    throw Error("Unknown filter sub type '%s'", strIn.c_str());
 }
 
 const std::string SubTypes::toString(const SubType filterType) {

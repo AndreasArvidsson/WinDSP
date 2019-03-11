@@ -13,10 +13,9 @@ enum class SubType {
     BUTTERWORTH, LINKWITZ_RILEY, BESSEL, CUSTOM
 };
 
-class SubTypes {
-public:
+namespace SubTypes {
 
-    static const SubType fromString(const std::string &str);
-    static const std::string toString(const SubType filterType);
+    const SubType fromString(const std::string &str);
+    const std::string toString(const SubType filterType);
 
 };

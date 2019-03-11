@@ -6,11 +6,11 @@
 class FilterDelay : public Filter {
 public:
 
-	static const int getSampleDelay(const uint32_t sampleRate, double delay, const bool useUnitMeter = false);
+	static const uint32_t getSampleDelay(const uint32_t sampleRate, double delay, const bool useUnitMeter = false);
 
 	FilterDelay();
 	FilterDelay(const uint32_t sampleRate, const double delay, const bool useUnitMeter = false);
-	FilterDelay(const int sampleDelay);
+	FilterDelay(const uint32_t sampleDelay);
 	~FilterDelay();
 
 	inline const double process(const double value) override {
@@ -30,6 +30,6 @@ private:
 	uint32_t _size, _index;
 	double *_pBuffer;
 
-    void init(const int sampleDelay);
+    void init(const uint32_t sampleDelay);
 
 };

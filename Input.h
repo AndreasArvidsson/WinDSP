@@ -8,17 +8,18 @@
 
 #pragma once
 #include "Route.h"
+#include "Channel.h"
 
 class Input {
 public:
 
-	Input(const std::string &name);
-	Input(const std::string &name, const size_t out);
+	Input(const Channel channel);
+	Input(const Channel channel, const Channel out);
 	~Input();
 
 	const std::vector<Route*>& getRoutes() const;
 	void addRoute(Route * const pRoute);
-	const std::string getName() const;
+    const Channel getChannel() const;
 
 	void evalConditions() const;
 	void reset();
@@ -35,7 +36,7 @@ public:
 
 private:
 	std::vector<Route*> _routes;
-	std::string _name;
+    Channel _channel;
 	bool _isPlaying;
 
 };

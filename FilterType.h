@@ -9,14 +9,13 @@
 #pragma once
 #include <string>
 
-enum FilterType {
+enum class FilterType {
 	LOW_PASS, HIGH_PASS, LOW_SHELF, HIGH_SHELF, PEQ, BAND_PASS, NOTCH, LINKWITZ_TRANSFORM, BIQUAD, FIR, CANCELLATION
 };
 
-class FilterTypes {
-public:
+namespace FilterTypes {
 
-    static const FilterType fromString(const std::string &str);
-    static const std::string toString(const FilterType filterType);
+    const FilterType fromString(const std::string &str);
+    const std::string toString(const FilterType filterType);
 
 };

@@ -96,15 +96,22 @@
   <ItemGroup>
     <ClCompile Include="AudioDevice.cpp" />
     <ClCompile Include="CaptureLoop.cpp" />
+    <ClCompile Include="Channel.cpp" />
     <ClCompile Include="Condition.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="ConfigChangedException.cpp" />
+    <ClCompile Include="ConfigParser.cpp" />
+    <ClCompile Include="ConfigParserAdvanced.cpp" />
+    <ClCompile Include="ConfigParserBasic.cpp" />
+    <ClCompile Include="ConfigParserFilter.cpp" />
+    <ClCompile Include="ConfigParserUtil.cpp" />
     <ClCompile Include="ErrorMessages.cpp" />
     <ClCompile Include="FilterType.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Output.cpp" />
     <ClCompile Include="Route.cpp" />
+    <ClCompile Include="SpeakerType.cpp" />
     <ClCompile Include="SubType.cpp" />
     <ClCompile Include="TrayIcon.cpp" />
     <ClCompile Include="Visibility.cpp" />
@@ -113,6 +120,7 @@
   <ItemGroup>
     <ClInclude Include="AudioDevice.h" />
     <ClInclude Include="CaptureLoop.h" />
+    <ClInclude Include="Channel.h" />
     <ClInclude Include="Condition.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="ConfigChangedException.h" />
@@ -122,6 +130,7 @@
     <ClInclude Include="Output.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Route.h" />
+    <ClInclude Include="SpeakerType.h" />
     <ClInclude Include="SubType.h" />
     <ClInclude Include="TrayIcon.h" />
     <ClInclude Include="Visibility.h" />

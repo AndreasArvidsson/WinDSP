@@ -16,8 +16,8 @@
 #define LOG_NL()			printf("\n");								__LOG_NL__()
 #else
 #define LOG_INFO(str, ...)	printf(str,  ##__VA_ARGS__); printf("\n")
-#define LOG_WARN LOG_INFO
-#define LOG_ERROR LOG_INFO
+#define LOG_WARN(str, ...)  printf(str,  ##__VA_ARGS__); printf("\n\n")
+#define LOG_ERROR LOG_WARN
 #define LOG_NL()			printf("\n");
 #endif
 

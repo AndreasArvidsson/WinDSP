@@ -185,20 +185,6 @@ You can declare a list of your favorite filters and reuse them.
 }
 ```
 
-A referenced node can redefine specific fields.
-```json
- "outputs": {
-	"L": {
-		"delay": 2.5,
-		"gain": -5
-	},
-    "R": { 
-        "#ref": "outputs/L" ,
-		"gain": -7
-    }
- }
-```
-
 **Conditional routing**
 * You can add conditions to a route. If the conditions is not met the route will not be active
 * For now the only condition available is to detect if an input channel is silent or not

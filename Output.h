@@ -10,17 +10,18 @@
 #include <vector>
 #include <algorithm> //std::max
 #include "Filter.h"
+#include "Channel.h"
 
 class Output {
 public:
 
-	Output(const std::string &name, const bool mute = false);
+	Output(const Channel channel, const bool mute = false);
 	~Output();
 
 	void addFilters(const std::vector<Filter*> &filters);
 	void addPostFilters(const std::vector<Filter*> &filters);
 	const std::vector<Filter*>& getFilters() const;
-	const std::string getName() const;
+    const Channel Output::getChannel() const;
 
 	void reset();
 	const double resetClipping();
@@ -50,7 +51,7 @@ public:
 
 private:
 	std::vector<Filter*> _filters, _postFilters;
-	std::string _name;
+    Channel _channel;
 	double _clipping;
 	bool _mute, _usePostFilters;
 

@@ -1,7 +1,7 @@
 #include "Output.h"
 
-Output::Output(const std::string &name, const bool mute) {
-	_name = name;
+Output::Output(const Channel channel, const bool mute) {
+	_channel = channel;
 	_mute = mute;
 	_clipping = 0.0;
 	_usePostFilters = false;
@@ -36,8 +36,8 @@ void Output::reset() {
 	}
 }
 
-const std::string Output::getName() const {
-	return _name;
+const Channel Output::getChannel() const {
+	return _channel;
 }
 
 const double Output::resetClipping() {

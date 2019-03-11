@@ -1,7 +1,8 @@
 #include "Route.h"
 
-Route::Route(const size_t channelIndex) {
-	_channelIndex = channelIndex;
+Route::Route(const Channel channel) {
+    _channel = channel;
+	_channelIndex = (size_t)channel;
 	_valid = true;
 }
 
@@ -15,8 +16,16 @@ void Route::addFilters(const std::vector<Filter*> &filters) {
 	_filters.insert(_filters.end(), filters.begin(), filters.end());
 }
 
+void Route::addFilter(Filter *pFilter) {
+    _filters.push_back(pFilter);
+}
+
 void Route::addCondition(const Condition &condition) {
 	_conditions.push_back(condition);
+}
+
+const Channel Route::getChannel() const {
+    return _channel;
 }
 
 const size_t Route::getChannelIndex() const {

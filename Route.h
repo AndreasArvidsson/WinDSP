@@ -10,15 +10,18 @@
 #include <vector>
 #include "Filter.h"
 #include "Condition.h"
+#include "Channel.h"
 
 class Route {
 public:
 
-	Route(const size_t channelIndex);
+	Route(const Channel channel);
 	~Route();
 
 	void addFilters(const std::vector<Filter*> &filters);
+    void addFilter(Filter *pFilter);
 	void addCondition(const Condition &condition);
+    const Channel getChannel() const;
 	const size_t getChannelIndex() const;
 	const bool hasConditions() const;
 	const std::vector<Filter*>& getFilters() const;
@@ -39,6 +42,7 @@ private:
 	std::vector<Filter*> _filters;
 	std::vector<Condition> _conditions;
 	bool _valid;
+    Channel _channel;
 	size_t _channelIndex;
 	
 };

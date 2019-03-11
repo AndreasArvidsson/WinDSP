@@ -52,9 +52,9 @@ const std::string FilterTypes::toString(const FilterType filterType) {
         return "HIGH_SHELF";
     case FilterType::PEQ:
         return "PEQ";
-    case BAND_PASS:
+    case FilterType::BAND_PASS:
         return "BAND_PASS";
-    case NOTCH:
+    case FilterType::NOTCH:
         return "NOTCH";
     case FilterType::LINKWITZ_TRANSFORM:
         return "LINKWITZ_TRANSFORM";

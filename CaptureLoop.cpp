@@ -99,7 +99,7 @@ void CaptureLoop::run() {
 
 void CaptureLoop::_captureLoop() {
 	//Used to temporarily store sample(for all out channels) while they are being processed.
-	double renderBlockBuffer[16];
+	double renderBlockBuffer[8];
 	const size_t nChannelsIn = _pInputs->size();
 	const size_t nChannelsOut = _pOutputs->size();
 	//The size of all sample frames for all channels with the same sample index/timestamp
@@ -147,7 +147,7 @@ void CaptureLoop::_captureLoop() {
 
 #ifdef PERFORMANCE_LOG
 			if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-				LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d\n", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+				LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
 			}
 #endif
 
@@ -234,7 +234,7 @@ void CaptureLoop::_checkClippingChannels() {
 	for (Output * const pOutput : *_pOutputs) {
 		const double clipping = pOutput->resetClipping();
 		if (clipping != 0.0) {
-			LOG_WARN("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS\n", pOutput->getName().c_str(), Convert::levelToDb(clipping));
+			LOG_WARN("WARNING: Output(%s) - Clipping detected: +%0.2f dBFS", Channels::toString(pOutput->getChannel()).c_str(), Convert::levelToDb(clipping));
 		}
 	}
 }
@@ -255,7 +255,8 @@ void CaptureLoop::_updateConditionalRouting() {
 //For debug purposes only.
 void CaptureLoop::_printUsedChannels() {
 	for (size_t i = 0; i < _pInputs->size(); ++i) {
-		LOG_INFO("%s %d", (*_pInputs)[i]->getName().c_str(), _pUsedChannels[i]);
+        const Channel channel = (*_pInputs)[i]->getChannel();
+		LOG_INFO("%s %d", Channels::toString(channel).c_str(), _pUsedChannels[i]);
 	}
 	LOG_NL();
 }

@@ -1,12 +1,12 @@
 #include "Input.h"
 
-Input::Input(const std::string &name) {
-	_name = name;
+Input::Input(const Channel channel) {
+    _channel = channel;
 	_isPlaying = false;
 }
 
-Input::Input(const std::string &name, const size_t out) {
-	_name = name;
+Input::Input(const Channel channel, const Channel out) {
+    _channel = channel;
 	_isPlaying = false;
 	_routes.push_back(new Route(out));
 }
@@ -25,8 +25,8 @@ void Input::addRoute(Route * const pRoute) {
 	_routes.push_back(pRoute);
 }
 
-const std::string Input::getName() const {
-	return _name;
+const Channel Input::getChannel() const {
+    return _channel;
 }
 
 void Input::evalConditions() const {

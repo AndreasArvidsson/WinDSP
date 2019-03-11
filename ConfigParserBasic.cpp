@@ -290,13 +290,21 @@ void Config::parseChannel(std::unordered_map<Channel, SpeakerType> &result, cons
     if (pNode->has(field)) {
         std::string typeStr;
         const SpeakerType type = getSpeakerType(pNode, field, typeStr, path);
+        const std::string myPath = path + "/" + field;
         if (std::find(allowed.begin(), allowed.end(), type) == allowed.end()) {
-            throw Error("Config(%s/%s) - Speaker type '%s' is not allowed", path.c_str(), field.c_str(), typeStr.c_str());
+            throw Error("Config(%s) - Speaker type '%s' is not allowed", myPath.c_str(), typeStr.c_str());
         }
         for (const Channel channel : channels) {
+            //Set default off in case contiue below is triggered.
+            result[channel] = SpeakerType::OFF; 
             //Speaker is set to playing but doesnt exist in render device
             if ((size_t)channel >= _numChannelsOut && type != SpeakerType::OFF) {
-                LOG_WARN("WARNING: Config(%s/%s) - Render device doesn't have channel '%s'", path.c_str(), field.c_str(), Channels::toString(channel).c_str());
+                LOG_WARN("WARNING: Config(%s) - Render device doesn't have channel '%s'", myPath.c_str(), Channels::toString(channel).c_str());
+                continue;
+            }
+            //Speaker is set as a in->out type ie large and small but deosnt exist in capture device.
+            if ((size_t)channel >= _numChannelsIn && (type == SpeakerType::LARGE || type == SpeakerType::SMALL)) {
+                LOG_WARN("WARNING: Config(%s) - Capture device doesn't have channel '%s'", myPath.c_str(), Channels::toString(channel).c_str());
                 continue;
             }
             result[channel] = type;

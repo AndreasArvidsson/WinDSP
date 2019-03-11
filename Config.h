@@ -67,20 +67,22 @@ private:
     /* ********* ConfigParserBasic.cpp ********* */
 
     void parseBasic();
-    const std::unordered_map<Channel, SpeakerType> parseChannels(const JsonNode *pBasicNode, const double swStereo, std::vector<Channel> &subs, std::vector<Channel> &subLs, std::vector<Channel> &subRs, std::vector<Channel> &smalls, const std::string &path);
+    const std::unordered_map<Channel, SpeakerType> parseChannels(const JsonNode *pBasicNode, const double stereoBass, std::vector<Channel> &subs, std::vector<Channel> &subLs, std::vector<Channel> &subRs, std::vector<Channel> &smalls, const std::string &path);
     void parseChannel(std::unordered_map<Channel, SpeakerType> &result, const JsonNode *pNode, const std::string &field, const std::vector<Channel> &channels, const std::vector<SpeakerType> &allowed, const std::string &path) const;
     const std::vector<Channel> getChannelsByType(const std::unordered_map<Channel, SpeakerType> &channelsMap, const SpeakerType targetType) const;
-    const double getLfeGain(const JsonNode *pBasicNode, const bool useSubwoofers, const bool swStereo, const bool hasSmalls, const std::string &path) const;
-    void routeChannels(const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain);
-    void addSwRoute(Input *pInput, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain) const;
+    const double getLfeGain(const JsonNode *pBasicNode, const bool useSubwoofers, const bool stereoBass, const bool hasSmalls, const std::string &path) const;
+    void routeChannels(const std::unordered_map<Channel, SpeakerType> &channelsMap, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain);
+    void addBassRoute(Input *pInput, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain) const;
+    void addSwRoute(Input *pInput, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double gain) const;
+    void addFrontBassRoute(Input *pInput, const bool stereoBass, const double gain) const;
     void addRoutes(Input *pInput, const std::vector<Channel> channels, const double gain) const;
-    void addRoute(Input *pInput, const Channel channel, const double gain = 0) const;
+    void addRoute(Input *pInput, const Channel channel, const double gain = 0, const bool addLP = false) const;
     const SpeakerType addRoute(const std::unordered_map<Channel, SpeakerType> &channelsMap, Input *pInput, const std::vector<Channel> &channels) const;
-    void downmix(const std::unordered_map<Channel, SpeakerType> &channelsMap, Input *pInput, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain) const;
+    void downmix(const std::unordered_map<Channel, SpeakerType> &channelsMap, Input *pInput, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain) const;
     const bool getUseSubwoofers(const std::vector<Channel> &subs, const std::vector<Channel> &subLs, const std::vector<Channel> &subRs) const;
     void parseExpandSurround(const JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path);
     void addIfRoute(Input *pInput, const Channel channel) const;
-    void parseCrossover(const JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path);
+    void parseCrossover(JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path);
 
     /* ********* ConfigParserAdvanced.cpp ********* */
 
@@ -108,6 +110,7 @@ private:
     void parseRouting();
     void parseOutputs();
     void parseOutput(const JsonNode *pOutputs, const size_t index, std::string path);
+    const bool getOutputChannel(const JsonNode *pChannelNode, Channel &channelOut, const std::string &path) const;
     const std::vector<Channel> getOutputChannels(const JsonNode *pOutputNode, const std::string &path);
     void addBasicCrossovers();
 
@@ -186,5 +189,14 @@ private:
     const FilterType getFilterType(const JsonNode *pNode, const std::string &field, std::string &textOut, const std::string &path) const;
     const SubType getSubType(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const SubType getSubType(const JsonNode *pNode, const std::string &field, std::string &textOut, const std::string &path) const;
+
+    /* ********* MISC ********* */
+
+    template<typename T>
+    void addNonExisting(JsonNode *pNode, const std::string &key, const T &value) const {
+        if (!pNode->has(key)) {
+            pNode->put(key, value);
+        }
+    }
 
 };

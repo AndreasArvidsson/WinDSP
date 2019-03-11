@@ -31,8 +31,6 @@ Config::~Config() {
     }
     delete _pJsonNode;
     _pJsonNode = nullptr;
-    delete _pLpFilter;
-    delete _pHpFilter;
     _pLpFilter = _pHpFilter = nullptr;
 }
 
@@ -217,11 +215,16 @@ void Config::printConfig() const {
             const double level = getFilterGainSum(pR->getFilters());
             const double gain = Convert::levelToDb(level);
             printf("%s", Channels::toString(pR->getChannel()).c_str());
+            size_t numFilters = pR->getFilters().size();
             if (gain) {
-                printf("(%.1f)", gain);
+                printf("(%.1fdb)", gain);
+                --numFilters; //Retract the gain filter.
             }
             if (pR->hasConditions()) {
                 printf("(if)");
+            }
+            if (numFilters) {
+                printf("(%zdF)", numFilters);
             }
             printf(" ");
         }
@@ -234,8 +237,13 @@ void Config::printConfig() const {
         printf("%s", Channels::toString(pO->getChannel()).c_str());
         const double level = getFilterGainSum(pO->getFilters());
         const double gain = Convert::levelToDb(level);
+        size_t numFilters = pO->getFilters().size();
         if (gain) {
-            printf("(%.1f)", gain);
+            printf("(%.1fdb)", gain);
+            --numFilters; //Retract the gain filter.
+        }
+        if (numFilters) {
+            printf("(%zdF)", numFilters);
         }
         printf(" ");
         printf("\n");

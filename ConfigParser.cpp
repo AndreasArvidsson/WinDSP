@@ -90,20 +90,39 @@ void Config::parseOutput(const JsonNode *pOutputs, const size_t index, std::stri
 
 const std::vector<Channel> Config::getOutputChannels(const JsonNode *pOutputNode, const std::string &path) {
     std::vector<Channel> result;
-    std::string channelsPath = path;
-    const JsonNode *pChannels = getArrayNode(pOutputNode, "channels", channelsPath);
-    for (size_t i = 0; i < pChannels->size(); ++i) {
-        const std::string channelName = getTextValue(pChannels, i, channelsPath);
-        const Channel channel = Channels::fromString(channelName);
-        const size_t channelIndex = (size_t)channel;
-        if (channelIndex >= _numChannelsOut) {
-            LOG_WARN("WARNING: Config(%s) - Render device doesn't have channel '%s'", channelsPath.c_str(), channelName.c_str());
-            continue;
+    if (pOutputNode->has("channels")) {
+        std::string channelsPath = path;
+        const JsonNode *pChannels = getArrayNode(pOutputNode, "channels", channelsPath);
+        for (size_t i = 0; i < pChannels->size(); ++i) {
+            Channel channel;
+            if (getOutputChannel(pChannels->get(i), channel, channelsPath + "/" + std::to_string(i))) {
+                result.push_back(channel);
+            }
         }
-        if (_outputs[channelIndex]) {
-            throw Error("Config(%s/%d) - Channel '%s' is already defiend/used", channelsPath.c_str(), i, Channels::toString(channel).c_str());
+    }
+    else if (pOutputNode->has("channel")) {
+        Channel channel;
+        if (getOutputChannel(pOutputNode->get("channel"), channel, path + "/channel")) {
+            result.push_back(channel);
         }
-        result.push_back(channel);
+    }
+    else {
+        throw Error("Config(%s) - 'channels' array/List or 'channel' text string is required", path.c_str());
     }
     return result;
+}
+
+const bool Config::getOutputChannel(const JsonNode *pChannelNode, Channel &channelOut, const std::string &path) const {
+    const std::string channelName = validateTextValue(pChannelNode, path, false);
+    const Channel channel = Channels::fromString(channelName);
+    const size_t channelIndex = (size_t)channel;
+    if (channelIndex >= _numChannelsOut) {
+        LOG_WARN("WARNING: Config(%s) - Render device doesn't have channel '%s'", path.c_str(), channelName.c_str());
+        return false;
+    }
+    if (_outputs[channelIndex]) {
+        throw Error("Config(%s) - Channel '%s' is already defiend/used", path.c_str(), Channels::toString(channel).c_str());
+    }
+    channelOut = channel;
+    return true;
 }

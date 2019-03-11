@@ -13,6 +13,7 @@
 #define BASS_TO_STEREO_GAIN             -6 //Gain for routing single bass channel to two
 
 void Config::parseBasic() {
+    _addAutoGain = true;
     std::string path = "";
     JsonNode *pBasicNode = (JsonNode*)getObjectNode(_pJsonNode, "basic", path);
     //Get channels

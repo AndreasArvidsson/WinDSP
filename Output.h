@@ -19,6 +19,7 @@ public:
 	~Output();
 
 	void addFilters(const std::vector<Filter*> &filters);
+    void addFilter(Filter *pFilter);
 	void addPostFilters(const std::vector<Filter*> &filters);
 	const std::vector<Filter*>& getFilters() const;
     const std::vector<Filter*>& getPostFilters() const;

@@ -19,6 +19,10 @@ void Output::addFilters(const std::vector<Filter*> &filters) {
 	}
 }
 
+void Output::addFilter(Filter *pFilter) {
+    _filters.push_back(pFilter);
+}
+
 void Output::addPostFilters(const std::vector<Filter*> &filters) {
 	for (Filter * const pFilter : filters) {
 		_postFilters.push_back(pFilter);

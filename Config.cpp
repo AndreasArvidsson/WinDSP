@@ -13,7 +13,7 @@
 
 Config::Config(const std::string &path) {
     _configFile = path;
-    _hide = _minimize = _useConditionalRouting = _startWithOS = false;
+    _hide = _minimize = _useConditionalRouting = _startWithOS = _addAutoGain = false;
     _sampleRate = _numChannelsIn = _numChannelsOut = 0;
     _lastModified = 0;
     _pLpFilter = _pHpFilter = nullptr;
@@ -75,34 +75,43 @@ const bool Config::minimize() const {
 }
 
 void Config::validateLevels(const std::string &path) const {
-    std::vector<double> levels;
-    //Init levels to silence/0
-    for (size_t i = 0; i < _outputs.size(); ++i) {
-        levels.push_back(0);
-    }
+    std::vector<double> levels(_outputs.size());
     //Apply input/route levels
     for (const Input *pInput : _inputs) {
         for (const Route * const pRoute : pInput->getRoutes()) {
             //Conditional routing is not always applied at the same time as other route. Eg if silent.
             if (!pRoute->hasConditions()) {
-                levels[pRoute->getChannelIndex()] += getFilterGainSum(pRoute->getFilters());
+                levels[pRoute->getChannelIndex()] += getFiltersLevelSum(pRoute->getFilters());
             }
         }
     }
     //Apply output gain
     for (size_t i = 0; i < _outputs.size(); ++i) {
-        levels[i] = getFilterGainSum(_outputs[i]->getFilters(), levels[i]);
+        levels[i] = getFiltersLevelSum(_outputs[i]->getFilters(), levels[i]);
     }
     //Eval output channel levels
     bool first = true;
-    for (size_t i = 0; i < levels.size(); ++i) {
+    for (size_t i = 0; i < _outputs.size(); ++i) {
         //Level is above 0dBFS. CLIPPING CAN OCCURE!!!
-        if (levels[i] > 1.0) {
+        if (levels[i] > 1) {
+            const double gain = Convert::levelToDb(levels[i]);
+
+            //Add enough gain to avoid clipping.
+            if (_addAutoGain) {
+                Output *pOutput = _outputs[i];
+                //Don't add additional gain filter.
+                if (!hasGainFilter(pOutput->getFilters())) {
+                    //Add 0.1 to be sure to cover range
+                    pOutput->addFilter(new FilterGain(-(gain + 0.1)));
+                    continue;
+                }
+            }
+
             if (first) {
                 LOG_INFO("WARNING: Config(%s) - Sum of routed channel levels is above 0dBFS on output channel. CLIPPING CAN OCCUR!", path.c_str());
                 first = false;
             }
-            LOG_INFO("\t%s: +%.2f dBFS", Channels::toString(i).c_str(), Convert::levelToDb(levels[i]));
+            LOG_INFO("\t%s: +%.2f dBFS", Channels::toString(i).c_str(), gain);
         }
     }
     if (!first) {
@@ -110,7 +119,7 @@ void Config::validateLevels(const std::string &path) const {
     }
 }
 
-const double Config::getFilterGainSum(const std::vector<Filter*> &filters, double startLevel) const {
+const double Config::getFiltersLevelSum(const std::vector<Filter*> &filters, double startLevel) const {
     for (const Filter * const pFilter : filters) {
         //If filter is gain: Apply gain
         if (typeid (*pFilter) == typeid (FilterGain)) {
@@ -207,6 +216,15 @@ const bool Config::hasDescription() const {
     return _pJsonNode->has("description");
 }
 
+const bool Config::hasGainFilter(const std::vector<Filter*> &filters) const {
+    for (const Filter *pFilter : filters) {
+        if (typeid (*pFilter) == typeid (FilterGain)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void Config::printConfig() const {
     printf("***** Inputs *****\n");
     for (const Input *pI : _inputs) {
@@ -227,7 +245,7 @@ void Config::printConfig() const {
 }
 
 void Config::printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, size_t numFilters, const bool hasConditions) const {
-    const double level = getFilterGainSum(filters);
+    const double level = getFiltersLevelSum(filters);
     const double gain = Convert::levelToDb(level);
     printf("%s", Channels::toString(channel).c_str());
     if (gain) {
@@ -236,11 +254,9 @@ void Config::printRouteConfig(const Channel channel, const std::vector<Filter*> 
     if (hasConditions) {
         printf("(if)");
     }
-    for (const Filter *pFilter : filters) {
-        if (typeid (*pFilter) == typeid (FilterGain)) {
-            --numFilters; //Retract the gain filter.
-            break;
-        }
+    if (hasGainFilter(filters)) {
+        //Retract the gain filter.
+        --numFilters; 
     }
     if (numFilters) {
         printf("(%zdF)", numFilters);

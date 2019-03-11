@@ -56,7 +56,29 @@ private:
     std::string _captureDeviceName, _renderDeviceName;
     uint32_t _sampleRate, _numChannelsIn, _numChannelsOut;
     time_t _lastModified;
-    bool _hide, _minimize, _useConditionalRouting, _startWithOS;
+    bool _hide, _minimize, _useConditionalRouting, _startWithOS, _addAutoGain;
+
+    /* ********* Config.cpp ********* */
+
+    void load();
+    void save();
+    void validateLevels(const std::string &path) const;
+    const double getFiltersLevelSum(const std::vector<Filter*> &filters, double startLevel = 1.0) const;
+    void setDevices();
+    const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
+    void printConfig() const;
+    void printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, size_t numFilters, const bool hasConditions = false) const;
+    const bool hasGainFilter(const std::vector<Filter*> &filters) const;
+
+    /* ********* ConfigParser.cpp ********* */
+
+    void parseDevices();
+    void parseMisc();
+    void parseRouting();
+    void parseOutputs();
+    void parseOutput(const JsonNode *pOutputs, const size_t index, std::string path);
+    const bool getOutputChannel(const JsonNode *pChannelNode, Channel &channelOut, const std::string &path) const;
+    const std::vector<Channel> getOutputChannels(const JsonNode *pOutputNode, const std::string &path);
 
     /* ********* ConfigParserBasic.cpp ********* */
 
@@ -84,27 +106,6 @@ private:
     void parseInput(const JsonNode *pInputs, const std::string &channelName, std::string path);
     void parseRoute(Input *pInput, const JsonNode *pRoutes, const size_t index, std::string path);
     void parseConditions(Route *pRoute, const JsonNode *pRouteNode, std::string path);
-
-    /* ********* Config.cpp ********* */
-
-    void load();
-    void save();
-    void validateLevels(const std::string &path) const;
-    const double getFilterGainSum(const std::vector<Filter*> &filters, double startLevel = 1.0) const;
-    void setDevices();
-    const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
-    void printConfig() const;
-    void printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, size_t numFilters, const bool hasConditions = false) const;
-
-    /* ********* ConfigParser.cpp ********* */
-
-    void parseDevices();
-    void parseMisc();
-    void parseRouting();
-    void parseOutputs();
-    void parseOutput(const JsonNode *pOutputs, const size_t index, std::string path);
-    const bool getOutputChannel(const JsonNode *pChannelNode, Channel &channelOut, const std::string &path) const;
-    const std::vector<Channel> getOutputChannels(const JsonNode *pOutputNode, const std::string &path);
 
     /* ********* ConfigParserFilter.cpp ********* */
 

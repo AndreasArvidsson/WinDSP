@@ -62,7 +62,6 @@ private:
 
     void load();
     void save();
-    void validateLevels(const std::string &path) const;
     const double getFiltersLevelSum(const std::vector<Filter*> &filters, double startLevel = 1.0) const;
     void setDevices();
     const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
@@ -79,6 +78,7 @@ private:
     void parseOutput(const JsonNode *pOutputs, const size_t index, std::string path);
     const bool getOutputChannel(const JsonNode *pChannelNode, Channel &channelOut, const std::string &path) const;
     const std::vector<Channel> getOutputChannels(const JsonNode *pOutputNode, const std::string &path);
+    void validateLevels(const std::string &path) const;
 
     /* ********* ConfigParserBasic.cpp ********* */
 

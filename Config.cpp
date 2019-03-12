@@ -74,51 +74,6 @@ const bool Config::minimize() const {
     return _minimize;
 }
 
-void Config::validateLevels(const std::string &path) const {
-    std::vector<double> levels(_outputs.size());
-    //Apply input/route levels
-    for (const Input *pInput : _inputs) {
-        for (const Route * const pRoute : pInput->getRoutes()) {
-            //Conditional routing is not always applied at the same time as other route. Eg if silent.
-            if (!pRoute->hasConditions()) {
-                levels[pRoute->getChannelIndex()] += getFiltersLevelSum(pRoute->getFilters());
-            }
-        }
-    }
-    //Apply output gain
-    for (size_t i = 0; i < _outputs.size(); ++i) {
-        levels[i] = getFiltersLevelSum(_outputs[i]->getFilters(), levels[i]);
-    }
-    //Eval output channel levels
-    bool first = true;
-    for (size_t i = 0; i < _outputs.size(); ++i) {
-        //Level is above 0dBFS. CLIPPING CAN OCCURE!!!
-        if (levels[i] > 1) {
-            const double gain = Convert::levelToDb(levels[i]);
-
-            //Add enough gain to avoid clipping.
-            if (_addAutoGain) {
-                Output *pOutput = _outputs[i];
-                //Don't add additional gain filter.
-                if (!hasGainFilter(pOutput->getFilters())) {
-                    //Add 0.1 to be sure to cover range
-                    pOutput->addFilter(new FilterGain(-(gain + 0.1)));
-                    continue;
-                }
-            }
-
-            if (first) {
-                LOG_INFO("WARNING: Config(%s) - Sum of routed channel levels is above 0dBFS on output channel. CLIPPING CAN OCCUR!", path.c_str());
-                first = false;
-            }
-            LOG_INFO("\t%s: +%.2f dBFS", Channels::toString(i).c_str(), gain);
-        }
-    }
-    if (!first) {
-        LOG_NL();
-    }
-}
-
 const double Config::getFiltersLevelSum(const std::vector<Filter*> &filters, double startLevel) const {
     for (const Filter * const pFilter : filters) {
         //If filter is gain: Apply gain

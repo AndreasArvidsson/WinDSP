@@ -69,7 +69,7 @@ void Config::parseCrossover(JsonNode *pBasicNode, const std::unordered_map<Chann
     }
     else {
         pCrossoverNode = new JsonNode(JsonNodeType::OBJECT);
-        pBasicNode->put("lowPass", pCrossoverNode);
+        pBasicNode->put("highPass", pCrossoverNode);
     }
     addNonExisting(pCrossoverNode, "subType", "BUTTERWORTH");
     addNonExisting(pCrossoverNode, "freq", 80);

@@ -152,7 +152,7 @@ void Config::validateLevels(const std::string &path) const {
             const double gain = Convert::levelToDb(levels[i]);
 
             //Add enough gain to avoid clipping.
-            if (_addAutoGain) {
+            if (_addAutoGain && gain > 0) {
                 Output *pOutput = _outputs[i];
                 //Don't add additional gain filter.
                 if (!hasGainFilter(pOutput->getFilters())) {

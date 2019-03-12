@@ -24,14 +24,14 @@ void Config::parseBasic() {
     const double lfeGain = getLfeGain(pBasicNode, useSubwoofers, stereoBass, smalls.size(), path);
 
     //Parse crossover config
-    parseCrossover(pBasicNode, channelsMap, path);
+    parseBasicCrossovers(pBasicNode, channelsMap, path);
     //Route input to output channels
     routeChannels(channelsMap, stereoBass, subs, subLs, subRs, lfeGain);
     //Add conditional routing to surrounds
     parseExpandSurround(pBasicNode, channelsMap, path);
 }
 
-void Config::parseCrossover(JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path) {
+void Config::parseBasicCrossovers(JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path) {
     for (const auto &e : channelsMap) {
         switch (e.second) {
         case SpeakerType::SMALL:
@@ -42,39 +42,27 @@ void Config::parseCrossover(JsonNode *pBasicNode, const std::unordered_map<Chann
             break;
         }
     }
+    _pLpFilter = parseBasicCrossover(pBasicNode, "lowPass", "BUTTERWORTH", 80, 5, path);
+    _pHpFilter = parseBasicCrossover(pBasicNode, "highPass", "BUTTERWORTH", 80, 3, path);
+}
 
+JsonNode* Config::parseBasicCrossover(JsonNode *pBasicNode, const std::string &field, const std::string &type, const double freq, const int order, const std::string &path) const {
     JsonNode *pCrossoverNode;
-    if (pBasicNode->has("lowPass")) {
+    if (pBasicNode->has(field)) {
         std::string myPath = path;
-        pCrossoverNode = (JsonNode*)tryGetObjectNode(pBasicNode, "lowPass", myPath);
+        pCrossoverNode = (JsonNode*)tryGetObjectNode(pBasicNode, field, myPath);
         if (pCrossoverNode->has("type") && !pCrossoverNode->has("subType")) {
             pCrossoverNode->renameField("type", "subType");
         }
     }
     else {
         pCrossoverNode = new JsonNode(JsonNodeType::OBJECT);
-        pBasicNode->put("lowPass", pCrossoverNode);
+        pBasicNode->put(field, pCrossoverNode);
     }
-    addNonExisting(pCrossoverNode, "subType", "BUTTERWORTH");
-    addNonExisting(pCrossoverNode, "freq", 80);
-    addNonExisting(pCrossoverNode, "order", 5);
-    _pLpFilter = pCrossoverNode;
-
-    if (pBasicNode->has("highPass")) {
-        std::string myPath = path;
-        pCrossoverNode = (JsonNode*)tryGetObjectNode(pBasicNode, "highPass", myPath);
-        if (pCrossoverNode->has("type") && !pCrossoverNode->has("subType")) {
-            pCrossoverNode->renameField("type", "subType");
-        }
-    }
-    else {
-        pCrossoverNode = new JsonNode(JsonNodeType::OBJECT);
-        pBasicNode->put("highPass", pCrossoverNode);
-    }
-    addNonExisting(pCrossoverNode, "subType", "BUTTERWORTH");
-    addNonExisting(pCrossoverNode, "freq", 80);
-    addNonExisting(pCrossoverNode, "order", 3);
-    _pHpFilter = pCrossoverNode;
+    addNonExisting(pCrossoverNode, "subType", type);
+    addNonExisting(pCrossoverNode, "freq", freq);
+    addNonExisting(pCrossoverNode, "order", order);
+    return pCrossoverNode;
 }
 
 void Config::parseExpandSurround(const JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path) {
@@ -297,7 +285,7 @@ void Config::parseChannel(std::unordered_map<Channel, SpeakerType> &result, cons
         }
         for (const Channel channel : channels) {
             //Set default off in case contiue below is triggered.
-            result[channel] = SpeakerType::OFF; 
+            result[channel] = SpeakerType::OFF;
             //Speaker is set to playing but doesnt exist in render device
             if ((size_t)channel >= _numChannelsOut && type != SpeakerType::OFF) {
                 LOG_WARN("WARNING: Config(%s) - Render device doesn't have channel '%s'", myPath.c_str(), Channels::toString(channel).c_str());

@@ -98,7 +98,8 @@ private:
     const bool getUseSubwoofers(const std::vector<Channel> &subs, const std::vector<Channel> &subLs, const std::vector<Channel> &subRs) const;
     void parseExpandSurround(const JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path);
     void addIfRoute(Input *pInput, const Channel channel) const;
-    void parseCrossover(JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path);
+    void parseBasicCrossovers(JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path);
+    JsonNode* parseBasicCrossover(JsonNode *pBasicNode, const std::string &field, const std::string &type, const double freq, const int order, const std::string &path) const;
 
     /* ********* ConfigParserAdvanced.cpp ********* */
 

@@ -1,5 +1,6 @@
 #include "FilterGain.h"
 #include <cmath> //pow
+#include "Str.h"
 
 const double FilterGain::getMultiplier(const double gain) {
     return std::pow(10.0, gain / 20.0);
@@ -34,4 +35,8 @@ void FilterGain::init(const double gain, const bool invert) {
     _invert = invert;
     _multiplierNoInvert = getMultiplier(gain);
     _multiplier = invert ? _multiplierNoInvert * -1.0 : _multiplierNoInvert;
+}
+
+const std::string FilterGain::toString() const {
+    return String::format("Gain: %.1fdB%s", _gain, _invert ? " inverted" : "");
 }

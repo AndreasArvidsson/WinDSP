@@ -66,7 +66,7 @@ private:
     void setDevices();
     const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
     void printConfig() const;
-    void printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, size_t numFilters, const bool hasConditions = false) const;
+    void printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, const std::vector<Filter*> &postFilters, const bool hasConditions = false) const;
     const bool hasGainFilter(const std::vector<Filter*> &filters) const;
 
     /* ********* ConfigParser.cpp ********* */

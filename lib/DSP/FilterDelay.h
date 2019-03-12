@@ -1,7 +1,7 @@
 #pragma once
 #include "Filter.h"
 #include <cstdint>
-#include <cstring> //memset
+//#include <cstring> //memset
 
 class FilterDelay : public Filter {
 public:
@@ -10,8 +10,9 @@ public:
 
 	FilterDelay();
 	FilterDelay(const uint32_t sampleRate, const double delay, const bool useUnitMeter = false);
-	FilterDelay(const uint32_t sampleDelay);
 	~FilterDelay();
+
+    const std::string toString() const;
 
 	inline const double process(const double value) override {
 		if (_index == _size) {
@@ -29,7 +30,7 @@ public:
 private:
 	uint32_t _size, _index;
 	double *_pBuffer;
-
-    void init(const uint32_t sampleDelay);
+    double _delay;
+    bool _useUnitMeter;
 
 };

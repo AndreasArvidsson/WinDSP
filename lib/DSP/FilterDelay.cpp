@@ -1,6 +1,7 @@
 #include "FilterDelay.h"
 #include "Constants.h"
 #include <cmath> //lround
+#include "Str.h"
 
 const uint32_t FilterDelay::getSampleDelay(const uint32_t sampleRate, double delay, const bool useUnitMeter) {
     //Value is in meter. Convert to milliseconds
@@ -11,25 +12,25 @@ const uint32_t FilterDelay::getSampleDelay(const uint32_t sampleRate, double del
 }
 
 FilterDelay::FilterDelay() {
+    _delay = 0;
+    _useUnitMeter = false;
     _size = _index = 0;
     _pBuffer = nullptr;
 }
 
 FilterDelay::FilterDelay(const uint32_t sampleRate, const double delay, const bool useUnitMeter) {
-    init(getSampleDelay(sampleRate, delay, useUnitMeter));
-}
-
-FilterDelay::FilterDelay(const uint32_t sampleDelay) {
-    init(sampleDelay);
+    _delay = delay;
+    _useUnitMeter = useUnitMeter;
+    _size = getSampleDelay(sampleRate, delay, useUnitMeter);
+    _index = 0;
+    _pBuffer = new double[_size];
+    reset();
 }
 
 FilterDelay::~FilterDelay() {
     delete[] _pBuffer;
 }
 
-void FilterDelay::init(const uint32_t sampleDelay) {
-    _size = sampleDelay;
-    _index = 0;
-    _pBuffer = new double[_size];
-    reset();
+const std::string FilterDelay::toString() const {
+    return String::format("Delay: %.1f%s", _delay, _useUnitMeter ? "m" : "ms");
 }

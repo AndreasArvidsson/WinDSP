@@ -179,14 +179,6 @@ void Biquad::normalize() {
 	reset();
 }
 
-void Biquad::printCoefficients(const bool miniDSPFormat) const {
-	printf("b0=%.15g,\n", b0);
-	printf("b1=%.15g,\n", b1);
-	printf("b2=%.15g,\n", b2);
-	printf("a1=%.15g,\n", miniDSPFormat ? -a1 : a1);
-	printf("a2=%.15g,\n", miniDSPFormat ? -a2 : a2);
-}
-
 const std::vector<std::vector<double>> Biquad::getFrequencyResponse(const uint32_t sampleRate, const uint32_t nPoints, const double fMin, const double fMax) const {
 	const double logFreqStep = std::log2(fMax / fMin) / (double)(nPoints - 1);
 	std::vector<std::vector<double>> result;
@@ -198,4 +190,12 @@ const std::vector<std::vector<double>> Biquad::getFrequencyResponse(const uint32
 		result.push_back({ f, db });
 	}
 	return result;
+}
+
+void Biquad::printCoefficients(const bool miniDSPFormat) const {
+    printf("b0=%.15g,\n", b0);
+    printf("b1=%.15g,\n", b1);
+    printf("b2=%.15g,\n", b2);
+    printf("a1=%.15g,\n", miniDSPFormat ? -a1 : a1);
+    printf("a2=%.15g,\n", miniDSPFormat ? -a2 : a2);
 }

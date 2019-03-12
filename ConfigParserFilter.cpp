@@ -89,7 +89,7 @@ void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, st
     if (value != 0) {
         const uint32_t sampleDelay = FilterDelay::getSampleDelay(_sampleRate, value, useUnitMeter);
         if (sampleDelay > 0) {
-            filters.push_back(new FilterDelay(sampleDelay));
+            filters.push_back(new FilterDelay(_sampleRate, value, useUnitMeter));
         }
         else {
             LOG_WARN("WARNING: Config(%s) - Discarding delay filter with to low value. Can't delay less then one sample", path.c_str());

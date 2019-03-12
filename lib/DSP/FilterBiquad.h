@@ -36,8 +36,9 @@ public:
 	void addPEQ(const double frequency, const double q, const double gain);
 	void addLinkwitzTransform(const double f0, const double q0, const double fp, const double qp);
 	
-	void printCoefficients(const bool miniDSPFormat = false) const;
 	const std::vector<std::vector<double>> getFrequencyResponse(const uint32_t nPoints, const double fMin, const double fMax) const;
+    void printCoefficients(const bool miniDSPFormat = false) const;
+    const std::string toString() const;
 
 	inline const double process(double data) override {
 		for (Biquad &biquad : _biquads) {
@@ -54,6 +55,9 @@ public:
 
 private:
 	std::vector<Biquad> _biquads;
+    std::string _toStringValue;
 	uint32_t _sampleRate;
+
+    void appendToString(const std::string &str);
 
 };

@@ -183,38 +183,33 @@ const bool Config::hasGainFilter(const std::vector<Filter*> &filters) const {
 void Config::printConfig() const {
     printf("***** Inputs *****\n");
     for (const Input *pI : _inputs) {
-        printf("%s\t", Channels::toString(pI->getChannel()).c_str());
         for (const Route *pR : pI->getRoutes()) {
-            printRouteConfig(pR->getChannel(), pR->getFilters(), pR->getFilters().size(), pR->hasConditions());
+            printf("%s\t", Channels::toString(pI->getChannel()).c_str());
+            printRouteConfig(pR->getChannel(), pR->getFilters(), {}, pR->hasConditions());
         }
-        printf("\n");
     }
     printf("\n");
 
     printf("***** Outputs *****\n");
     for (const Output *pO : _outputs) {
-        printRouteConfig(pO->getChannel(), pO->getFilters(), pO->getFilters().size() + pO->getPostFilters().size());
-        printf("\n");
+        printRouteConfig(pO->getChannel(), pO->getFilters(), pO->getPostFilters());
     }
     printf("\n");
 }
 
-void Config::printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, size_t numFilters, const bool hasConditions) const {
-    const double level = getFiltersLevelSum(filters);
-    const double gain = Convert::levelToDb(level);
+void Config::printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, const std::vector<Filter*> &postFilters, const bool hasConditions) const {
     printf("%s", Channels::toString(channel).c_str());
-    if (gain) {
-        printf("(%.1fdb)", gain);
-    }
     if (hasConditions) {
-        printf("(if)");
+        printf("\t[ Cond ]");
     }
-    if (hasGainFilter(filters)) {
-        //Retract the gain filter.
-        --numFilters; 
+    if (filters.size() + postFilters.size()) {
+        printf("\t");
+        for (const Filter *pFilter : filters) {
+            printf("[ %s ] ", pFilter->toString().c_str());
+        }
+        for (const Filter *pFilter : postFilters) {
+            printf("[ %s ] ", pFilter->toString().c_str());
+        }
     }
-    if (numFilters) {
-        printf("(%zdF)", numFilters);
-    }
-    printf(" ");
+    printf("\n");
 }

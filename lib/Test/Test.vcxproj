@@ -126,6 +126,9 @@
     <ClCompile Include="MainTest.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Core.vcxproj">
+      <Project>{5f894556-9a4b-4255-b8b7-5c1ae0f9cf26}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\DSP\DSP.vcxproj">
       <Project>{49c706ab-09b0-451e-a6d6-403a28a54ce5}</Project>
     </ProjectReference>

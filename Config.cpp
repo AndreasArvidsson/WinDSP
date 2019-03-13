@@ -13,7 +13,7 @@
 
 Config::Config(const std::string &path) {
     _configFile = path;
-    _hide = _minimize = _useConditionalRouting = _startWithOS = _addAutoGain = false;
+    _hide = _minimize = _useConditionalRouting = _startWithOS = _addAutoGain = _debugPrint = false;
     _sampleRate = _numChannelsIn = _numChannelsOut = 0;
     _lastModified = 0;
     _pLpFilter = _pHpFilter = nullptr;
@@ -39,11 +39,13 @@ void Config::init(const uint32_t sampleRate, const uint32_t numChannelsIn, const
     _numChannelsIn = numChannelsIn;
     _numChannelsOut = numChannelsOut;
     _useConditionalRouting = false;
+    _debugPrint = tryGetBoolValue(_pJsonNode, "debugPrint", "");
     parseRouting();
     parseOutputs();
 
-    //TODO
-    printConfig();
+    if (_debugPrint) {
+        printConfig();
+    }
 }
 
 const std::string Config::getCaptureDeviceName() const {
@@ -183,8 +185,9 @@ const bool Config::hasGainFilter(const std::vector<Filter*> &filters) const {
 void Config::printConfig() const {
     printf("***** Inputs *****\n");
     for (const Input *pI : _inputs) {
+        printf("%s", Channels::toString(pI->getChannel()).c_str());
         for (const Route *pR : pI->getRoutes()) {
-            printf("%s\t", Channels::toString(pI->getChannel()).c_str());
+            printf("\t");
             printRouteConfig(pR->getChannel(), pR->getFilters(), {}, pR->hasConditions());
         }
     }

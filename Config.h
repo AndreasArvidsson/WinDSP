@@ -56,7 +56,7 @@ private:
     std::string _captureDeviceName, _renderDeviceName;
     uint32_t _sampleRate, _numChannelsIn, _numChannelsOut;
     time_t _lastModified;
-    bool _hide, _minimize, _useConditionalRouting, _startWithOS, _addAutoGain;
+    bool _hide, _minimize, _useConditionalRouting, _startWithOS, _addAutoGain,  _debugPrint;
 
     /* ********* Config.cpp ********* */
 

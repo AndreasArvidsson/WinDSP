@@ -7,7 +7,7 @@
 void Config::parseAdvanced() {
     std::string path = "";
     //Iterate inputs and set routes
-    const JsonNode *pInputs = tryGetArrayNode(_pJsonNode, "advanced", path);
+    const JsonNode *pInputs = tryGetObjectNode(_pJsonNode, "advanced", path);
     for (const std::string &channelName : pInputs->getOrder()) {
         parseInput(pInputs, channelName, path);
     }

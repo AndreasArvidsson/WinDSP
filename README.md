@@ -125,24 +125,24 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
 ```
 
 **Start WinDSP with Windows**
-* Set startWithOS to true and WinDSP will start with the OS/Windows
+* Set startWithOS to true and WinDSP will start with the OS/Windows.
 
 **Hide and minimize**    
-* Set hide to true to hide window on startup and show tray icon
-* Set minimize to true to minimize window on startup
-* Hide supersedes minimize
-* Errors will show the window again, but not warnings
-* Double click tray icon to manually show hidden window again
+* Set hide to true to hide window on startup and show tray icon.
+* Set minimize to true to minimize window on startup.
+* Hide supersedes minimize.
+* Errors will show the window again, but not warnings.
+* Double click tray icon to manually show hidden window again.
 * Minimizing the window when hide is set to true will instead hide it
 
 **Description**
 * Description of the config file to be displayed at startup.
-* Optional. If not given no description will be shown
-* Useful when using multiple config files. eg: "Default", "Night mode", "Less bass"
+* Optional. If not given no description will be shown.
+* Useful when using multiple config files. eg: "Default", "Night mode", "Less bass".
 
 **Devices**
-* Devices contains the capture and render device names
-* If devices are not set the user will be queried from a list of available devices. Do **NOT** write these names yourself
+* Devices contains the capture and render device names.
+* If devices are not set the user will be queried from a list of available devices. Do **NOT** write these names yourself.
 
 **Basic routing**   
 * Basic routing CAN'T be combined with advanced routing.
@@ -152,7 +152,7 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
     * Small: Speaker will not play bass. High frequencies will be sent to speaker and low frequencies to subwoofer.
     * Off: Speaker output is disabled. Send signal to the next best available channel. Output is disabled/silent.
     * Sub: Output is subwoofer. If not SW channel routing will be the same as Off. Difference is that the output is used for subwoofer.
-* Available speaker modes per channel. First value is default
+* Available speaker modes per channel. First value is default.
    * front(L/R): **Large**, Small
    * center(C): **Large**, Small, Sub, Off
    * subwoofer(SW): **Sub**, Off

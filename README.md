@@ -12,7 +12,7 @@ Windows based DSP(Digital Signal Processor)
 
 ## Devices
 Windows (as far as I know) doesn't allow manipulation of the audio stream during playback. You can however capture a playing audio stream from one device and play it back to another device.
-This requires two devices: one capture device and one render/playback device
+This requires two devices: one capture device and one render/playback device.
 
 **Capture device**
 * Receives audio from applications. Make it the default playback device.

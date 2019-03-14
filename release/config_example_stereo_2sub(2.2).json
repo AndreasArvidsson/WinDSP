@@ -1,77 +1,28 @@
 {
     "startWithOS": false,
-	"minimize": false,
+    "minimize": false,
     "hide": false,
-    "channels": [ "L", "R", "SWL", "SWR" ],
-	"devices": {
-	},
-    "filters": {
-        "lp": {
-            "type": "LOW_PASS",
-            "subType": "BUTTERWORTH",
-            "order": 5,
-            "freq": 80.0
-        },
-        "hp": {
-            "type": "HIGH_PASS",
-            "subType": "BUTTERWORTH",
-            "order": 3,
-            "freq": 80.0
-        },
-        "peq": {
-            "type": "PEQ",
-            "freq": 52,
-            "gain": -9,
-            "q": 5
-        }
+    "devices": {
     },
-    "inputs": {
-        "L": {
-            "routes": [
-                {
-                    "out": "L"
-                },
-                {
-                    "out": "SWL"
-                }
-            ]
-        },
-        "R": {
-            "routes": [
-                {
-                    "out": "R"
-                },
-                {
-                    "out": "SWR"
-                }
-            ]
-        }
+    "basic": {
+        "front": "Small",
+        "center": "Sub",
+        "subwoofer": "Sub",
+        "surround": "Off",
+        "surroundBack": "Off",
+        "stereoBass": true,
+        "lfeGain": 0
     },
-    "outputs": {
-        "L": {
-            "filters": [
-                {
-                    "#ref": "filters/hp"
-                }
-            ]
+    "outputs": [
+        {
+            "channels": [ "L", "R" ],
+            "gain": 0,
+            "filters": [ ]
         },
-        "R": {
-            "#ref": "outputs/L"
-        },
-        "SWL": {
-            "gain": -5,
-            "delay": 2.5,
-            "filters": [
-                {
-                    "#ref": "filters/lp"
-                },
-                {
-                    "#ref": "filters/peq"
-                }
-            ]
-        },
-        "SWR": {
-            "#ref": "outputs/SWL"
+        {
+            "channels": [ "C", "SW" ],
+            "gain": 0,
+            "filters": [ ]
         }
-    }
+    ]
 }

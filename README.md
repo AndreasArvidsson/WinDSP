@@ -77,11 +77,11 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
         "render": "Focusrite USB AUDIO"
     },
     "basic": {
-        "front": "small",
-        "center": "sub",
-        "subwoofer": "sub",
-        "surround": "small",
-        "surroundBack": "small",
+        "front": "Large",
+        "center": Sub",
+        "subwoofer": "Sub",
+        "surround": "Small",
+        "surroundBack": "Off",
         "stereoBass": true,
         "expandSurround": true,
         "lfeGain": -3,

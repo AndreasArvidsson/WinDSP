@@ -1,39 +1,39 @@
 {
     "startWithOS": false,
-	"minimize" : false,
-    "hide" : false,
-	"channels": [ "L", "R", "C", "SW", "SBL", "SBR", "SL", "SR" ],
-    "devices" : {
+    "minimize": false,
+    "hide": false,
+    "description": "Default config",
+    "devices": {
     },
-    "filters" : {
-    },
-    "inputs" : {
-        "L" : {
-            "routes" : [
-                {
-                    "out" : "L",
-                    "filters" : [
-                    ]
-                }
-            ]
+    "basic": {
+        "front": "Large",
+        "center": "Large",
+        "subwoofer": "Sub",
+        "surround": "Large",
+        "surroundBack": "Large",
+        "stereoBass": false,
+        "expandSurround": false,
+        "lfeGain": 0,
+        "lowPass": {
+            "type": "BUTTERWORTH",
+            "order": 5,
+            "freq": 80
         },
-        "R" : {
-            "routes" : [
-                {
-                    "out" : "R",
-                    "filters" : [
-                    ]
-                }
-            ]
+        "highPass": {
+            "type": "BUTTERWORTH",
+            "order": 3,
+            "freq": 80
         }
     },
-    "outputs" : {
-        "L" : {
-            "filters" : [
+    "outputs": [
+        {
+            "channels": [ "L", "R" ],
+            "gain": 0,
+            "delay": 0,
+            "invert": false,
+            "mute": false,
+            "filters": [
             ]
-        },
-        "R" : {
-            "#ref" : "outputs/L"
         }
-    }
+    ]
 }

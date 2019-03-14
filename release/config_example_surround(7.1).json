@@ -1,189 +1,32 @@
 {
     "startWithOS": false,
-	"minimize": false,
+    "minimize": false,
     "hide": false,
-    "channels": [ "L", "R", "C", "SW", "SBL", "SBR", "SL", "SR" ],
-	"devices": {
-	},
-    "filters": {
-        "lp": {
-            "type": "LOW_PASS",
-            "subType": "BUTTERWORTH",
-            "order": 5,
-            "freq": 80.0
-        },
-        "hp": {
-            "type": "HIGH_PASS",
-            "subType": "BUTTERWORTH",
-            "order": 3,
-            "freq": 80.0
-        },
-        "peq": {
-            "type": "PEQ",
-            "freq": 52,
-            "gain": -9,
-            "q": 5
-        },
-        "lfeGain": -10
+    "devices": {
     },
-    "inputs": {
-        "L": {
-            "routes": [
-                {
-                    "out": "L"
-                },
-                {
-                    "out": "SW",
-                    "gain": { "#ref": "filters/lfeGain" }
-                }
-            ]
-        },
-        "R": {
-            "routes": [
-                {
-                    "out": "R"
-                },
-                {
-                    "out": "SW",
-                    "gain": { "#ref": "filters/lfeGain" }
-                }
-            ]
-        },
-        "C": {
-            "routes": [
-                {
-                    "out": "C"
-                },
-                {
-                    "out": "SW",
-                    "gain": { "#ref": "filters/lfeGain" }
-                }
-            ]
-        },
-        "SW": {
-            "routes": [
-                {
-                    "out": "SW"
-                }
-            ]
-        },
-        "SBL": {
-            "routes": [
-                {
-                    "out": "SBL"
-                },
-                {
-                    "out": "SW",
-                    "gain": { "#ref": "filters/lfeGain" }
-                }
-            ]
-        },
-        "SBR": {
-            "routes": [
-                {
-                    "out": "SBR"
-                },
-                {
-                    "out": "SW",
-                    "gain": { "#ref": "filters/lfeGain" }
-                }
-            ]
-        },
-        "SL": {
-            "routes": [
-                {
-                    "out": "SL"
-                },
-                {
-                    "out": "SW",
-                    "gain": { "#ref": "filters/lfeGain" }
-                }
-            ]
-        },
-        "SR": {
-            "routes": [
-                {
-                    "out": "SR"
-                },
-                {
-                    "out": "SW",
-                    "gain": { "#ref": "filters/lfeGain" }
-                }
-            ]
-        }
+    "basic": {
+        "front": "Small",
+        "center": "Small",
+        "subwoofer": "Sub",
+        "surround": "Small",
+        "surroundBack": "Small",
+        "lfeGain": 0
     },
-    "outputs": {
-        "L": {
-            "gain": 1,
-            "delay": {
-                "value": 3.2,
-                "unitMeter": true
-            },
-            "filters": [
-                {
-                    "#ref": "filters/hp"
-                }
-            ]
-        },
-        "R": {
-            "#ref": "outputs/L"
-        },
-        "SW": {
-            "gain": -5,
-            "delay": {
-                "value": 2.5,
-                "unitMeter": true
-            },
-            "filters": [
-                {
-                    "#ref": "filters/lp"
-                },
-                {
-                    "#ref": "filters/peq"
-                }
-            ]
-        },
-        "C": {
-            "gain": 3,
-            "delay": {
-                "value": 3.0,
-                "unitMeter": true
-            },
-            "filters": [
-                {
-                    "#ref": "filters/hp"
-                }
-            ]
-        },
-        "SBL": {
-            "gain": 0.5,
-            "delay": {
-                "value": 2.8,
-                "unitMeter": true
-            },
-            "filters": [
-                {
-                    "#ref": "filters/hp"
-                }
-            ]
-        },
-        "SBR": {
-            "#ref": "outputs/SBL"
-        },
-        "SL": {
+    "outputs": [
+        {
+            "channels": [ "L", "R" ],
             "gain": 0,
-            "delay": {
-                "value": 2.6,
-                "unitMeter": true
-            },
-            "filters": [
-                {
-                    "#ref": "filters/hp"
-                }
-            ]
+            "filters": [ ]
         },
-        "SR": {
-            "#ref": "outputs/SL"
+        {
+            "channels": [ "C", "SW" ],
+            "gain": 0,
+            "filters": [ ]
+        },
+        {
+            "channels": [ "SL", "SR", "SBL", "SBR" ],
+            "gain": 0,
+            "filters": [ ]
         }
-    }
+    ]
 }

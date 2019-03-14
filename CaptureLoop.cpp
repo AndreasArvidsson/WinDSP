@@ -133,7 +133,7 @@ void CaptureLoop::_captureLoop() {
                     if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
                         LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
                     }
-                    else if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
+                    if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
                         LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
                     }
                 }

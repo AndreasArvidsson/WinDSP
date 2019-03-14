@@ -13,7 +13,7 @@
 
 Config::Config(const std::string &path) {
     _configFile = path;
-    _hide = _minimize = _useConditionalRouting = _startWithOS = _addAutoGain = _debugPrint = false;
+    _hide = _minimize = _useConditionalRouting = _startWithOS = _addAutoGain = _debug = false;
     _sampleRate = _numChannelsIn = _numChannelsOut = 0;
     _lastModified = 0;
     _pLpFilter = _pHpFilter = nullptr;
@@ -39,11 +39,11 @@ void Config::init(const uint32_t sampleRate, const uint32_t numChannelsIn, const
     _numChannelsIn = numChannelsIn;
     _numChannelsOut = numChannelsOut;
     _useConditionalRouting = false;
-    _debugPrint = tryGetBoolValue(_pJsonNode, "debugPrint", "");
+    _debug = tryGetBoolValue(_pJsonNode, "debug", "");
     parseRouting();
     parseOutputs();
 
-    if (_debugPrint) {
+    if (_debug) {
         printConfig();
     }
 }
@@ -171,6 +171,10 @@ const std::string Config::getDescription() const {
 
 const bool Config::hasDescription() const {
     return _pJsonNode->has("description");
+}
+
+const bool Config::inDebug() const {
+    return _debug;
 }
 
 const bool Config::hasGainFilter(const std::vector<Filter*> &filters) const {

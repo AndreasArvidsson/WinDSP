@@ -119,15 +119,25 @@ void CaptureLoop::_captureLoop() {
 			//Get capture buffer pointer and number of available frames.
 			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &samplesAvailable, &flags));
 
-			if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
-				//Was playing audio before. Reset filter states.
-				if (!silent) {
-					silent = true;
-					_resetFilters();
-				}
-				assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
-				break;
-			}
+            if (flags) {
+                if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
+                    //Was playing audio before. Reset filter states.
+                    if (!silent) {
+                        silent = true;
+                        _resetFilters();
+                    }
+                    assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
+                    break;
+                }
+                else if (!first && _pConfig->inDebug()) {
+                    if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+                        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                    }
+                    else if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
+                        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                    }
+                }
+            }
 
 			//Was silent before.
 			if (silent) {
@@ -144,12 +154,6 @@ void CaptureLoop::_captureLoop() {
 					break;
 				}
 			}
-
-#ifdef PERFORMANCE_LOG
-			if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-				LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
-			}
-#endif
 
 			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
 			while (samplesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {

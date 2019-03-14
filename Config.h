@@ -38,6 +38,7 @@ public:
     const bool startWithOS() const;
     const std::string getDescription() const;
     const bool hasDescription() const;
+    const bool inDebug() const;
 
     inline const bool Config::hasChanged() const {
         return _lastModified != _configFile.getLastModifiedTime();
@@ -56,7 +57,7 @@ private:
     std::string _captureDeviceName, _renderDeviceName;
     uint32_t _sampleRate, _numChannelsIn, _numChannelsOut;
     time_t _lastModified;
-    bool _hide, _minimize, _useConditionalRouting, _startWithOS, _addAutoGain,  _debugPrint;
+    bool _hide, _minimize, _useConditionalRouting, _startWithOS, _addAutoGain, _debug;
 
     /* ********* Config.cpp ********* */
 

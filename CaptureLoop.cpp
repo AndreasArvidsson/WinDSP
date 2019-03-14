@@ -76,7 +76,7 @@ void CaptureLoop::run() {
 		else {
 			//If hide is enabled and the window is minimize hide it and show tray icon instead.
 			if (_pConfig->hide() && OS::isWindowMinimized()) {
-                Visibility::show(true);
+                Visibility::hide();
 			}
 		}
 

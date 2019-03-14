@@ -78,7 +78,7 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
     },
     "basic": {
         "front": "Large",
-        "center": Sub",
+        "center": "Sub",
         "subwoofer": "Sub",
         "surround": "Small",
         "surroundBack": "Off",

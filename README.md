@@ -2,12 +2,12 @@
 Windows based DSP(Digital Signal Processor)
 
 ## Features
-* Route any input to any output. Any input can be routed to zero or many outputs
-* Add any filter to route or output
-* Filters like crossovers, PEQ, shelf, custom biquad(IIR), FIR, delay, gain and more
-* Uses double-precision floating-points to calculate filters
-* Uses WASAPI(Windows Audio Session API) to capture and manipulate audio streams
-* JSON based configuration file to easy set up your DSP
+* Route any input to any output. Any input can be routed to zero or many outputs.
+* Add any filter to route or output.
+* Filters like crossovers, PEQ, shelf, custom biquad(IIR), FIR, delay, gain and more.
+* Uses double-precision floating-points to calculate filters.
+* Uses WASAPI(Windows Audio Session API) to capture and manipulate audio streams.
+* JSON based configuration file to easy set up your DSP.
 * User friendly error and warning messages. Warns you about digital clipping. Using missing channels and more.
 
 ## Devices
@@ -15,12 +15,12 @@ Windows (as far as I know) doesn't allow manipulation of the audio stream during
 This requires two devices: one capture device and one render/playback device
 
 **Capture device**
-* Receives audio from applications. Make it the default playback device
-* Have NO audio equipment/speakers attached
+* Receives audio from applications. Make it the default playback device.
+* Have NO audio equipment/speakers attached.
 
 **Render device**
-* Receives audio ONLY from WinDSP
-* Have audio equipment/speakers attached
+* Receives audio ONLY from WinDSP.
+* Have audio equipment/speakers attached.
 
 **Virtual Cable**    
 If you don't have a spare soundcard in your computer to use for the capture device I can recommendend [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable) which gives you a virtual audio device to use as the capture device.
@@ -29,7 +29,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-audio.com/Cable) can be used as render device to playback through an ASIO soundcard.
 
 ## Prerequisites(To run application)
-* Capture and render audio devices
+* Capture and render audio devices.
 * Windows 10 or newer. May work on older OS. Feel free to try it out.
 * [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
 
@@ -37,14 +37,14 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
 * [CoreLib](https://github.com/AndreasArvidsson/CoreLib)
 
 ## Install
-1. Download and install [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
-1. Download and install [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable/index.htm)
-1. Set Virtual Cable as your default audio playback device
-1. Configure Virtual Cabel to use the same sample rate as your render device (/properties/advanced)
-1. Configure Virtual Cabel to NOT allow applications to take exclusive control (/properties/advanced)
-1. Configure Virtual Cable to use 7.1 surround (/configure)
-1. Configure WinDSP.json configuration file
-1. Start WinDSP.exe
+1. Download and install [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685).
+1. Download and install [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable/index.htm).
+1. Set Virtual Cable as your default audio playback device.
+1. Configure Virtual Cabel to use the same sample rate as your render device (/properties/advanced).
+1. Configure Virtual Cabel to NOT allow applications to take exclusive control (/properties/advanced).
+1. Configure Virtual Cable to use 7.1 surround (/configure).
+1. Configure WinDSP.json configuration file.
+1. Start WinDSP.exe.
 
 ## JSON config file
 * Saving the config file will automatically restart WinDSP. No need to manually close and open the program.

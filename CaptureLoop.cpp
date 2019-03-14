@@ -115,7 +115,7 @@ void CaptureLoop::_captureLoop() {
 		//Check for samples in capture buffer.
 		assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
 
-		while (samplesAvailable != 0) {
+		while (samplesAvailable) {
 			//Get capture buffer pointer and number of available frames.
 			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &samplesAvailable, &flags));
 

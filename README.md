@@ -47,61 +47,82 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
 1. Start WinDSP.exe
 
 ## JSON config file
-* Saving the config file will automatically restart WinDSP. No need to manually close and open the program
-* If you are not used to JSON use an editor like [Json Parser Online](http://json.parser.online.fr) to get the format correct
+* Saving the config file will automatically restart WinDSP. No need to manually close and open the program.
+* If you are not used to JSON use an editor like [Json Parser Online](http://json.parser.online.fr) to get the format correct.
 
 **Config switching**    
-* If you have multiple config files you can switch between them using the 0-9 buttons
-* Button '1' selects congfig file 'WinDSP-1.json', button '2' selects 'WinDSP-2.json' and so on
-* Button '0' select the default config file 'WinDSP.json'
+* If you have multiple config files you can switch between them using the 0-9 buttons.
+* Button '1' selects congfig file 'WinDSP-1.json', button '2' selects 'WinDSP-2.json' and so on.
+* Button '0' select the default config file 'WinDSP.json'.
+
+**Available channels**    
+   * L: Front left
+   * R: Front right
+   * C: Center
+   * SW: Subwoofer/LFE
+   * SL: Surround left
+   * SR: Surround right
+   * SBL: Surround back left
+   * SBR: Surround back right
 
 **Config layout**    
 ```json
 {
-    "description": "Default config",
     "startWithOS": false,
-    "minimize":  false,
-    "hide":  false,
-    "channels": ["L", "R", "C", "SW", "SBL", "SBR", "SL", "SR"],
+    "minimize": false,
+    "hide": false,
+    "description": "Default config",
     "devices": {
-        "capture" : {
-            "name" : "CABLE Input (VB-Audio Virtual Cable)"
+        "capture": "CABLE Input (VB-Audio Virtual Cable)",
+        "render": "Focusrite USB AUDIO"
+    },
+    "basic": {
+        "front": "small",
+        "center": "sub",
+        "subwoofer": "sub",
+        "surround": "small",
+        "surroundBack": "small",
+        "stereoBass": true,
+        "expandSurround": true,
+        "lfeGain": -3,
+        "lowPass": {
+            "type": "BUTTERWORTH",
+            "order": 5,
+            "freq": 80
         },
-        "render" : {
-            "name" : "Focusrite USB AUDIO"
+        "highPass": {
+            "type": "BUTTERWORTH",
+            "order": 3,
+            "freq": 80
         }
     },
-    "inputs": {
-        "L": {
-            "routes": [{
+    "advanced": {
+        "L": [
+            {
                 "out": "L",
                 "gain": -3.8,
                 "delay": 2,
-                "invert": true,
-                "filters": [ ]
-            }]
-        }
+                "invert": false,
+                "filters": []
+            }
+        ]
     },
-    "outputs": {
-        "L": {
+    "outputs": [
+        {
+            "channels": [ "L", "R" ],
             "gain": -3.2,
             "delay": 4.5,
-            "invert": true,
-            "mute": true,
-            "cancellation": {
-                "freq": 28.0,
-                "gain": -5
-            },
-            "filters": [ ]
+            "invert": false,
+            "mute": false,
+            "filters": []
+        },
+        {
+            "channel": "C",
+            "gain": -2
         }
-    }
+    ]
 }
 ```
-
-**Description**
-* Description of the config file to be displayed at startup.
-* Optional. If not given no description will be shown
-* Useful when using multiple config files. eg: "Default", "Night mode", "Less bass"
 
 **Start WinDSP with Windows**
 * Set startWithOS to true and WinDSP will start with the OS/Windows
@@ -114,36 +135,60 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
 * Double click tray icon to manually show hidden window again
 * Minimizing the window when hide is set to true will instead hide it
 
-**Channels**   
-* Different devices may have different order on their channels. You can specify this order. 
-* You can also use this feature to rename the channels
-* Default value is: ```["L", "R", "C", "SW", "SBL", "SBR", "SL", "SR"]```
-* Explanation of default channel short names
-   * L: Front left
-   * R: Front right
-   * C: Center
-   * SW: Subwoofer/LFE
-   * SBL: Surround back left
-   * SBR: Surround back right
-   * SL: Surround left
-   * SR: Surround right
+**Description**
+* Description of the config file to be displayed at startup.
+* Optional. If not given no description will be shown
+* Useful when using multiple config files. eg: "Default", "Night mode", "Less bass"
 
 **Devices**
 * Devices contains the capture and render device names
 * If devices are not set the user will be queried from a list of available devices. Do **NOT** write these names yourself
 
-**Inputs**
-* Inputs contains the routes. i.e. the mapping between inputs and outputs
-* By default all inputs are routed directly to the matching output. L to L, R to R and so on
+**Basic routing**   
+* Basic routing CAN'T be combined with advanced routing.
+* Use basic node to specify speaker types. The DSP will automatically route input signal to correct output.
+* The following speaker types are available:
+    * Large: Speaker will play full range. Input will be sent to output unchanged.
+    * Small: Speaker will not play bass. High frequencies will be sent to speaker and low frequencies to subwoofer.
+    * Off: Speaker output is disabled. Send signal to the next best available channel. Output is disabled/silent.
+    * Sub: Output is subwoofer. If not SW channel routing will be the same as Off. Difference is that the output is used for subwoofer.
+* Available speaker modes per channel. First value is default
+   * front(L/R): **Large**, Small
+   * center(C): **Large**, Small, Sub, Off
+   * Subwoofer(SW): **Sub**, Off
+   * surround(SL/SR): **Large**, Small, Sub, Off
+   * surroundBack(SBL/SBR): **Large**, Small, Sub, Off
+* stereoBass: If true bass will be played in stereo. If false bass will be in mono.
+   * Default value: false
+   * Can't be used with only one subwoofer
+   * Can be used with Large fronts. Bass from small channels will be sent to only one front speaker.
+   * L/C/SL/SBL channels are considered left bass channels. If set to sub and stereoBass true.
+   * R/SW/SR/SBR channels are considered right bass channels. If set to sub and stereoBass true.
+* expandSurround: If true and surround back input is quiet(5.1 source) surround back will play surround channels track.
+   * Default value: false
+* lfeGain: Gain offset for mixing the LFE signal with other channels.
+   * Default value: 0
+   * Works with both subwoofers and front speakers.
+* lowPass: Filter configuration for low pass filter. Is applied to Sub channels.
+   * Default value: Butterworth 80Hz 5order(30dB/oct)
+* highPass: Filter configuration for high pass filter. Is applied to Small channels.
+   * Default value: Butterworth 80Hz 3order(18dB/oct)
+
+**Advanced routing**
+* Advanced routing CAN'T be combined with basic routing.
+* Use advanced node to manually specify each mapping between inputs and ouputs.
+* By default all inputs are routed directly to the matching output. L to L, R to R and so on.
 * To not use an input at all just add empty brackets: ```"L": {}```
-* One input can have multiple outputs. Including the same output twice if needed
+* One input can have multiple outputs. Including the same output twice if needed.
 * A route can have multiple filters like gain, delay, crossovers, peq and more.
 
 **Outputs**
-* Outputs contains each output channel. This is the sum of all the input routes to this channel
-* By default the output channels have no filters
+* Outputs contains each output channel. This is the sum of all the input routes to this channel.
+* By default the output channels have no filters.
+* If basic routing is used crossovers and gain filters are applied if not specified manually in output.
 * An output can have multiple filters like gain, delay, crossovers, peq just like the input routes.
 * An output can be muted or inverted
+* Each output node can be for one channel ```"channel": "L"``` or multiple ```"channels": ["L", "R"]```
 
 **Filters**    
 * The program handles all audio manipulation as filters. A filter can be a something complex as a crossover or something simple like gain

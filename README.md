@@ -155,7 +155,7 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
 * Available speaker modes per channel. First value is default
    * front(L/R): **Large**, Small
    * center(C): **Large**, Small, Sub, Off
-   * Subwoofer(SW): **Sub**, Off
+   * subwoofer(SW): **Sub**, Off
    * surround(SL/SR): **Large**, Small, Sub, Off
    * surroundBack(SBL/SBR): **Large**, Small, Sub, Off
 * stereoBass: If true bass will be played in stereo. If false bass will be in mono.
@@ -187,53 +187,41 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
 * By default the output channels have no filters.
 * If basic routing is used crossovers and gain filters are applied if not specified manually in output.
 * An output can have multiple filters like gain, delay, crossovers, peq just like the input routes.
-* An output can be muted or inverted
+* An output can be muted or inverted.
 * Each output node can be for one channel ```"channel": "L"``` or multiple ```"channels": ["L", "R"]```
 
 **Filters**    
-* The program handles all audio manipulation as filters. A filter can be a something complex as a crossover or something simple like gain
-* Some filters can only exist once in a route or output. eg. gain, delay, invert, mute
-* Other filters(in the filters array) can occur multiple times. eg. crossovers, shelf, PEQ, LT, custom biquad, FIR
+* The program handles all audio manipulation as filters. A filter can be a something complex as a crossover or something simple like gain.
+* Some filters can only exist once in a route or output. eg. gain, delay, invert, mute.
+* Other filters(in the filters array) can occur multiple times. eg. crossovers, shelf, PEQ, LT, custom biquad, FIR.
 
 **References**    
 A common user case is that multiple channels or routes share filter configurations. Instead of having to copy and paste these you can reference one JSON node from another.
 ```json
- "outputs": {
-	"L": {
-		"gain": -5
-	},
-    "R": { 
-        "#ref": "outputs/L" 
+"filters": {
+    "myPEQ": {
+        "type": "PEQ",
+        "freq": 320,
+        "gain": -10,
+        "q": 5
     }
- }
-```
-You can declare a list of your favorite filters and reuse them.
-```json
- {
-    "filters": {
-        "myPEQ": {
-          "type": "PEQ",
-          "freq": 320,
-          "gain": -10,
-          "q": 5
-        }
-    },
-    "outputs": {
-       "SL": {
-         "filters": [
+},
+"outputs": [
+    {
+        "channels": [ "L", "R" ],
+        "filters": [
             { 
                "#ref": "filters/myPEQ" 
             }
-         ]
-      }
-   }
-}
+        ]
+    }
+]
 ```
 
 **Conditional routing**
-* You can add conditions to a route. If the conditions is not met the route will not be active
-* For now the only condition available is to detect if an input channel is silent or not
-* The code below will route audio from surround(input) to surround back(output) if surround back(input) is silent
+* You can add conditions to a route. If the conditions is not met the route will not be active.
+* For now the only condition available is to detect if an input channel is silent or not.
+* The code below will route audio from surround(input) to surround back(output) if surround back(input) is silent.
 ```json
 "inputs": {
    "SL": {
@@ -253,7 +241,7 @@ You can declare a list of your favorite filters and reuse them.
 
 **Delay**    
 * Requires: value
-* Optional unitMeter parameter to use meters instead of milliseconds
+* Optional unitMeter parameter to use meters instead of milliseconds.
 ```json
 "delay": 5.2
 ```
@@ -320,7 +308,7 @@ or
 * Butterworth is available in orders: 1 through 8
 * Linkwitz-Riley is available in orders: 2, 4 and 8
 * Bessel is available in orders: 2 through 8
-* Subtype custom requires Q values array. One Q-value per 2nd order filter. Give Q as -1 to get a 1st order filter
+* Subtype custom requires Q values array. One Q-value per 2nd order filter. Give Q as -1 to get a 1st order filter.
 ```json
 {
     "type": "LOW_PASS",
@@ -356,10 +344,10 @@ or
 ```
 
 [Biquad](https://www.minidsp.com/applications/advanced-tools/advanced-biquad-programming)    
-* Create a custom biquad by giving the biquad coefficients    
-* Biquad filters are also known as IIR(Infinite Impulse Response)  
-* b0-b2 are the feedforward values in the numerator and a0-a2 are the feedback values in the denominator  
-* Multiple sets of coefficients can be given to create a cascading filter
+* Create a custom biquad by giving the biquad coefficients.
+* Biquad filters are also known as IIR(Infinite Impulse Response).
+* b0-b2 are the feedforward values in the numerator and a0-a2 are the feedback values in the denominator.
+* Multiple sets of coefficients can be given to create a cascading filter.
 * Requires: type, values[b0, b1, b2, a1, a2]
 * a0 defaults to 1.0
 ```json
@@ -377,10 +365,10 @@ or
 ```
 
 [FIR(Finite Impulse Response)](https://www.minidsp.com/applications/advanced-tools/rephase-fir-tool)    
-* WinDSP loads a text file with the FIR parameters
-* Use a tool like [rePhase](https://sourceforge.net/projects/rephase) to calculate the FIR parameters
+* WinDSP loads a text file with the FIR parameters.
+* Use a tool like [rePhase](https://sourceforge.net/projects/rephase) to calculate the FIR parameters.
 * FIR file is either a text(.txt) file or a wave(.wav). 
-* Wave file can be either LPCM(16/24/32bit) or float(32/64bit)
+* Wave file can be either LPCM(16/24/32bit) or float(32/64bit).
 * Warning: FIR filters require much more CPU capacity then the other filters. WinDSP doesn't limit the number of taps you can input so use with care.
 ```json
 {
@@ -393,8 +381,8 @@ or
 }
 ```
 
-* FIR text file format is one FIR tap per line as a floating point number
-* Use "32 / 64 bits floats mono (.txt)" option in reShape to generate parameters file
+* FIR text file format is one FIR tap per line as a floating point number.
+* Use "32 / 64 bits floats mono (.txt)" option in reShape to generate parameters file.
 ```
 0
 0.0000000000000000025148658985616801
@@ -406,7 +394,7 @@ or
 ```
 
 ## Output filter parameters
-These are filter only available on outputs and not on routes
+These are filter only available on outputs and not on routes.
 
 **Cancellation**    
 * Creates an inverted and delayed signal cancel out on the specified frequency. This is another way to remove peaks.
@@ -420,10 +408,10 @@ These are filter only available on outputs and not on routes
 ```
          
 ## Errors and Warnings
-* An error is a problem serious enough that the program can't run. eg. missing devices, faulty config
-* An error will output a text message describing the problem and then restart the program. If the problem is corrected the program will start normally
-* A warning is a potential problem, but the program can still continue running. eg. Configured a route for a channel the audio device is lacking, the sum of all routes can go above 0dBFS on the output
-* All configured input and outputs the device is lacking will just be ignored
+* An error is a problem serious enough that the program can't run. eg. missing devices, faulty config.
+* An error will output a text message describing the problem and then restart the program. If the problem is corrected the program will start normally.
+* A warning is a potential problem, but the program can still continue running. eg. Configured a route for a channel the audio device is lacking, the sum of all routes can go above 0dBFS on the output.
+* All configured input and outputs the device is lacking will just be ignored.
 * If you sum multiple inputs together and they play peak signals at the same time digital clipping will occur which creates distortion. Lower the output gain if a digital clipping warning is shown.
 
 ## Disclaimer

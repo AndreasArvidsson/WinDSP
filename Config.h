@@ -64,7 +64,6 @@ private:
     void load();
     void save();
     const double getFiltersLevelSum(const std::vector<Filter*> &filters, double startLevel = 1.0) const;
-    void setDevices();
     const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
     void printConfig() const;
     void printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, const std::vector<Filter*> &postFilters, const bool hasConditions = false) const;
@@ -73,6 +72,7 @@ private:
     /* ********* ConfigParser.cpp ********* */
 
     void parseDevices();
+    void setDevices();
     void parseMisc();
     void parseRouting();
     void parseOutputs();

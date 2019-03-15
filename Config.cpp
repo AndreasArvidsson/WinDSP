@@ -1,15 +1,8 @@
 #include "Config.h"
-#define NOMINMAX
-#include <iostream> //cin
 #include "JsonParser.h"
-#include "Convert.h"
-#include "WinDSPLog.h"
-#include "AudioDevice.h"
 #include "Input.h"
 #include "Output.h"
-#include "Visibility.h"
 #include "FilterGain.h"
-#include "Channel.h"
 
 Config::Config(const std::string &path) {
     _configFile = path;
@@ -85,74 +78,6 @@ const double Config::getFiltersLevelSum(const std::vector<Filter*> &filters, dou
         }
     }
     return startLevel;
-}
-
-void Config::setDevices() {
-    Visibility::show(true);
-    const std::vector<std::string> wasapiDevices = AudioDevice::getDeviceNames();
-
-    size_t selectedIndex;
-    bool isOk;
-    do {
-        LOG_INFO("Available capture devices:\n");
-        for (size_t i = 0; i < wasapiDevices.size(); ++i) {
-            LOG_INFO("%zu: %s\n", i + 1, wasapiDevices[i].c_str());
-        }
-        //Make selection
-        selectedIndex = getSelection(1, wasapiDevices.size());
-        _captureDeviceName = wasapiDevices[selectedIndex - 1];
-
-        LOG_INFO("\nAvailable render devices:\n");
-        size_t index = 1;
-        for (size_t i = 0; i < wasapiDevices.size(); ++i, ++index) {
-            //Cant reuse capture device.
-            if (index != selectedIndex) {
-                LOG_INFO("%zu: %s\n", index, wasapiDevices[i].c_str());
-            }
-        }
-        //Make selection
-        selectedIndex = getSelection(1, wasapiDevices.size(), selectedIndex);
-
-        //Query if selection is ok.
-        LOG_INFO("\nSelected devices:\n");
-        LOG_INFO("Capture: %s\n", _captureDeviceName.c_str());
-        _renderDeviceName = wasapiDevices[selectedIndex - 1];
-        LOG_INFO("Render: %s\n", _renderDeviceName.c_str());
-        LOG_INFO("\nPress 1 to continue or 0 to re-select\n");
-        isOk = getSelection(0, 1) == 1;
-        LOG_NL();
-    } while (!isOk);
-
-    //Update json
-
-    if (!_pJsonNode->path("devices")->isObject()) {
-        _pJsonNode->put("devices", new JsonNode(JsonNodeType::OBJECT));
-    }
-    JsonNode *pDevicesNode = _pJsonNode->get("devices");
-
-    if (!_pJsonNode->path("capture")->isObject()) {
-        pDevicesNode->put("capture", new JsonNode(JsonNodeType::OBJECT));
-    }
-    JsonNode *pCaptureNode = pDevicesNode->get("capture");
-
-    if (!_pJsonNode->path("render")->isObject()) {
-        pDevicesNode->put("render", new JsonNode(JsonNodeType::OBJECT));
-    }
-    JsonNode *pRenderNode = pDevicesNode->get("render");
-
-    pCaptureNode->put("name", _captureDeviceName);
-    pRenderNode->put("name", _renderDeviceName);
-    save();
-}
-
-const size_t Config::getSelection(const size_t start, const size_t end, const size_t blacklist) const {
-    char buf[10];
-    int value;
-    do {
-        std::cin.getline(buf, 10);
-        value = atoi(buf);
-    } while (value < start || value > end || value == blacklist);
-    return value;
 }
 
 void Config::load() {

@@ -308,13 +308,15 @@ or
 * Butterworth is available in orders: 1 through 8
 * Linkwitz-Riley is available in orders: 2, 4 and 8
 * Bessel is available in orders: 2 through 8
+* For all subtypes except cutsom a single optional Q-value can be given. This is a Q-offset to tweak basic crossovers.
 * Subtype custom requires Q values array. One Q-value per 2nd order filter. Give Q as -1 to get a 1st order filter.
 ```json
 {
     "type": "LOW_PASS",
     "subType": "BUTTERWORTH",
     "order": 4,
-    "freq": 80.0
+    "freq": 80.0,
+    "q": 1.0
 }
 ```
 ```json

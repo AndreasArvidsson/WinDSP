@@ -326,8 +326,8 @@ void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, const 
 }
 
 const double Config::getQOffset(const JsonNode *pFilterNode, const std::string &path) const {
-    if (pFilterNode->has("q")) {
-        return getDoubleValue(pFilterNode, "q", path);
+    if (pFilterNode->has("qOffset")) {
+        return getDoubleValue(pFilterNode, "qOffset", path);
     }
     return 0;
 }

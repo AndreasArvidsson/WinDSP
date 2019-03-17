@@ -316,7 +316,7 @@ or
     "subType": "BUTTERWORTH",
     "order": 4,
     "freq": 80.0,
-    "q": 1.0
+    "q": 0.2
 }
 ```
 ```json

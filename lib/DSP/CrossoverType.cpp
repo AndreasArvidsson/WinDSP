@@ -88,9 +88,10 @@ const std::vector<double> CrossoverTypes::getQValues(const CrossoverType type, c
 
 const std::vector<double> CrossoverTypes::getQValues(const CrossoverType type, const uint8_t order, const double qOffset) {
     std::vector<double> values = getQValues(type, order);
+    const double qMultiplier = 1 + qOffset;
     for (size_t i = 0; i < values.size(); ++i) {
         if (values[i] >= 0) {
-            values[i] *= qOffset;
+            values[i] *= qMultiplier;
         }
     }
     return values;

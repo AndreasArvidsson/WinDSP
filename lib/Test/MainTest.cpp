@@ -208,12 +208,12 @@ void compareLP(std::vector<GraphData*> &graphs, const uint32_t fs) {
     graphData->add("BW", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addLowPass(freq, CrossoverType::Butterworth, 5, 1.2);
-    graphData->add("BW Q1.2", pFilter);
+    pFilter->addLowPass(freq, CrossoverType::Butterworth, 5, 0.2);
+    graphData->add("BW Q+0.2", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addLowPass(freq, CrossoverType::Butterworth, 5, 0.8);
-    graphData->add("BW Q0.8", pFilter);
+    pFilter->addLowPass(freq, CrossoverType::Butterworth, 5, -0.2);
+    graphData->add("BW Q-0.2", pFilter);
 
     pFilter = new FilterBiquad(fs);
     pFilter->addLowPass(freq, { -1, 0.5, 0.8 });
@@ -231,12 +231,12 @@ void compareHP(std::vector<GraphData*> &graphs, const uint32_t fs) {
     graphData->add("BW", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addHighPass(freq, CrossoverType::Butterworth, 3, 1.2);
-    graphData->add("BW Q1.2", pFilter);
+    pFilter->addHighPass(freq, CrossoverType::Butterworth, 3, 0.2);
+    graphData->add("BW Q+0.2", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addHighPass(freq, CrossoverType::Butterworth, 3, 0.8);
-    graphData->add("BW Q0.8", pFilter);
+    pFilter->addHighPass(freq, CrossoverType::Butterworth, 3, -0.2);
+    graphData->add("BW Q-0.2", pFilter);
 
     pFilter = new FilterBiquad(fs);
     pFilter->addHighPass(freq, { -1, 0.6 });

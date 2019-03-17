@@ -329,7 +329,7 @@ const double Config::getQOffset(const JsonNode *pFilterNode, const std::string &
     if (pFilterNode->has("q")) {
         return getDoubleValue(pFilterNode, "q", path);
     }
-    return DEFAULT_Q_OFFSET;
+    return 0;
 }
 
 const std::vector<double> Config::getQValues(const JsonNode *pFilterNode, const int order, const std::string &path) const {

@@ -127,6 +127,8 @@ private:
     void parseFir(std::vector<Filter*> &filters, const JsonNode *pFilterNode, const std::string &path) const;
     void parseFirTxt(std::vector<Filter*> &filters, const File &file, const std::string &path) const;
     void parseFirWav(std::vector<Filter*> &filters, const File &file, const std::string &path) const;
+    const double getQOffset(const JsonNode *pFilterNode, const std::string &path) const;
+    const std::vector<double> getQValues(const JsonNode *pFilterNode, const int order, const std::string &path) const;
     void updateCrossoverMaps(const bool isLP, const int outputChannel);
     void applyCrossoversMap(FilterBiquad *pFilterBiquad, const int outputChannel);
 

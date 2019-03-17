@@ -4,7 +4,7 @@
 #include "WinDSPLog.h"
 #include "FilterType.h"
 #include "SubType.h"
-#include "CrossoverTypes.h"
+#include "CrossoverType.h"
 #include "Str.h"
 #include "Convert.h"
 #include "AudioDevice.h" //WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
@@ -150,30 +150,17 @@ void Config::parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, c
     const int order = getIntValue(pFilterNode, "order", path);
     switch (subType) {
     case SubType::BUTTERWORTH:
-        pFilterBiquad->addCrossover(isLowPass, freq, order, CrossoverType::Butterworth);
+        pFilterBiquad->addCrossover(isLowPass, freq, CrossoverType::Butterworth, order, getQOffset(pFilterNode, path));
         break;
     case SubType::LINKWITZ_RILEY:
-        pFilterBiquad->addCrossover(isLowPass, freq, order, CrossoverType::Linkwitz_Riley);
+        pFilterBiquad->addCrossover(isLowPass, freq, CrossoverType::Linkwitz_Riley, order, getQOffset(pFilterNode, path));
         break;
     case SubType::BESSEL:
-        pFilterBiquad->addCrossover(isLowPass, freq, order, CrossoverType::Bessel);
+        pFilterBiquad->addCrossover(isLowPass, freq, CrossoverType::Bessel, order, getQOffset(pFilterNode, path));
         break;
-    case SubType::CUSTOM: {
-        std::string qPath = path;
-        const JsonNode *pQNode = getArrayNode(pFilterNode, "q", qPath);
-        std::vector<double> qValues;
-        int calculatedOrder = 0;
-        for (size_t i = 0; i < pQNode->size(); ++i) {
-            const double q = getDoubleValue(pQNode, i, qPath);
-            calculatedOrder += q < 0 ? 1 : 2;
-            qValues.push_back(q);
-        }
-        if (calculatedOrder != order) {
-            throw Error("Config(%s) - CROSSOVER.CUSTOM: Q values list doesn't match order. Expected(%d), Found(%d)", path.c_str(), order, calculatedOrder);
-        }
-        pFilterBiquad->addCrossover(isLowPass, freq, qValues);
+    case SubType::CUSTOM:
+        pFilterBiquad->addCrossover(isLowPass, freq, getQValues(pFilterNode, order, path));
         break;
-    }
     default:
         throw Error("Config(%s) - Unknown crossover sub type %d", path.c_str(), subTypeStr.c_str());
     }
@@ -336,6 +323,29 @@ void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, const 
         delete[] pBuffer;
         throw e;
     }
+}
+
+const double Config::getQOffset(const JsonNode *pFilterNode, const std::string &path) const {
+    if (pFilterNode->has("q")) {
+        return getDoubleValue(pFilterNode, "q", path);
+    }
+    return DEFAULT_Q_OFFSET;
+}
+
+const std::vector<double> Config::getQValues(const JsonNode *pFilterNode, const int order, const std::string &path) const {
+    std::string qPath = path;
+    const JsonNode *pQNode = getArrayNode(pFilterNode, "q", qPath);
+    std::vector<double> qValues;
+    int calculatedOrder = 0;
+    for (size_t i = 0; i < pQNode->size(); ++i) {
+        const double q = getDoubleValue(pQNode, i, qPath);
+        calculatedOrder += q < 0 ? 1 : 2;
+        qValues.push_back(q);
+    }
+    if (calculatedOrder != order) {
+        throw Error("Config(%s) - CROSSOVER.CUSTOM: Q values list doesn't match order. Expected(%d), Found(%d)", path.c_str(), order, calculatedOrder);
+    }
+    return qValues;
 }
 
 void Config::updateCrossoverMaps(const bool isLP, const int outputChannel) {

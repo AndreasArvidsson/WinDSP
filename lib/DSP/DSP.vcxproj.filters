@@ -40,7 +40,7 @@
     <ClCompile Include="Biquad.cpp">
       <Filter>Source Files\filters</Filter>
     </ClCompile>
-    <ClCompile Include="CrossoverTypes.cpp">
+    <ClCompile Include="CrossoverType.cpp">
       <Filter>Source Files\filters</Filter>
     </ClCompile>
   </ItemGroup>
@@ -84,7 +84,7 @@
     <ClInclude Include="Biquad.h">
       <Filter>Source Files\filters</Filter>
     </ClInclude>
-    <ClInclude Include="CrossoverTypes.h">
+    <ClInclude Include="CrossoverType.h">
       <Filter>Source Files\filters</Filter>
     </ClInclude>
   </ItemGroup>

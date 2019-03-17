@@ -71,7 +71,7 @@
     <ClCompile Include="Biquad.cpp" />
     <ClCompile Include="Convert.cpp" />
     <ClCompile Include="FilterBiquad.cpp" />
-    <ClCompile Include="CrossoverTypes.cpp" />
+    <ClCompile Include="CrossoverType.cpp" />
     <ClCompile Include="FilterCancellation.cpp" />
     <ClCompile Include="FilterDelay.cpp" />
     <ClCompile Include="FilterFir.cpp" />
@@ -88,7 +88,7 @@
     <ClInclude Include="FilterDelay.h" />
     <ClInclude Include="DSP.h" />
     <ClInclude Include="Filter.h" />
-    <ClInclude Include="CrossoverTypes.h" />
+    <ClInclude Include="CrossoverType.h" />
     <ClInclude Include="FilterFir.h" />
     <ClInclude Include="FilterGain.h" />
     <ClInclude Include="SineGenerator.h" />

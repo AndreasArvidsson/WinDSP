@@ -1,4 +1,4 @@
-#include "CrossoverTypes.h"
+#include "CrossoverType.h"
 #include "Error.h"
 
 const std::string CrossoverTypes::toString(const CrossoverType type) {
@@ -84,4 +84,14 @@ const std::vector<double> CrossoverTypes::getQValues(const CrossoverType type, c
 		throw Error("Unknown crossover type: %s", toString(type));
 	}
 	throw Error("Crossover type '%s' have no order '%d'", toString(type), order);
+}
+
+const std::vector<double> CrossoverTypes::getQValues(const CrossoverType type, const uint8_t order, const double qOffset) {
+    std::vector<double> values = getQValues(type, order);
+    for (size_t i = 0; i < values.size(); ++i) {
+        if (values[i] >= 0) {
+            values[i] *= qOffset;
+        }
+    }
+    return values;
 }

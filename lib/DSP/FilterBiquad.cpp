@@ -1,6 +1,6 @@
 #include "FilterBiquad.h"
 #include "Biquad.h"
-#include "CrossoverTypes.h"
+#include "CrossoverType.h"
 #include "Str.h"
 
 FilterBiquad::FilterBiquad(const uint32_t sampleRate) {
@@ -42,12 +42,12 @@ void FilterBiquad::addCrossover(const bool isLowPass, const double frequency, co
 	}
 }
 
-void FilterBiquad::addCrossover(const bool isLowPass, const double frequency, const uint8_t order, const CrossoverType type) {
+void FilterBiquad::addCrossover(const bool isLowPass, const double frequency, const CrossoverType type, const uint8_t order, const double qOffset) {
 	if (isLowPass) {
-		addLowPass(frequency, order, type);
+		addLowPass(frequency, type, order, qOffset);
 	}
 	else {
-		addHighPass(frequency, order, type);
+		addHighPass(frequency, type, order, qOffset);
 	}
 }
 
@@ -67,8 +67,8 @@ void FilterBiquad::addLowPass(const double frequency, const std::vector<double> 
     appendToString(String::format("LP%0.f", frequency));
 }
 
-void FilterBiquad::addLowPass(const double frequency, const uint8_t order, const CrossoverType type) {
-	addLowPass(frequency, CrossoverTypes::getQValues(type, order));
+void FilterBiquad::addLowPass(const double frequency, const CrossoverType type, const uint8_t order, const double qOffset) {
+	addLowPass(frequency, CrossoverTypes::getQValues(type, order, qOffset));
 }
 
 void FilterBiquad::addHighPass(const double frequency, const std::vector<double> qValues) {
@@ -85,8 +85,8 @@ void FilterBiquad::addHighPass(const double frequency, const std::vector<double>
     appendToString(String::format("HP%0.f", frequency));
 }
 
-void FilterBiquad::addHighPass(const double frequency, const uint8_t order, const CrossoverType type) {
-	addHighPass(frequency, CrossoverTypes::getQValues(type, order));
+void FilterBiquad::addHighPass(const double frequency, const CrossoverType type, const uint8_t order, const double qOffset) {
+	addHighPass(frequency, CrossoverTypes::getQValues(type, order, qOffset));
 }
 
 void FilterBiquad::addShelf(const bool isLowShelf, const double frequency, const double gain, const double q) {

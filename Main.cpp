@@ -20,7 +20,7 @@
 #include "TrayIcon.h"
 #include "Str.h"
 
-#define VERSION "0.19.2b"
+#define VERSION "0.20.0b-SNAPSHOT"
 
 #ifdef DEBUG
 #include "MemoryManager.h"

@@ -38,7 +38,7 @@ public:
 	
 	const std::vector<std::vector<double>> getFrequencyResponse(const uint32_t nPoints, const double fMin, const double fMax) const;
     void printCoefficients(const bool miniDSPFormat = false) const;
-    const std::string toString() const;
+    const std::string toString() const override;
 
 	inline const double process(double data) override {
 		for (Biquad &biquad : _biquads) {

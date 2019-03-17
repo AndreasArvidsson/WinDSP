@@ -8,7 +8,7 @@ public:
     FilterFir(const std::vector<double> &taps);
     ~FilterFir();
 
-    const std::string toString() const;
+    const std::string toString() const override;
 
 	inline const double process(const double value) override {
 		double result = value * _taps[0];

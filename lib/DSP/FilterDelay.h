@@ -12,7 +12,7 @@ public:
 	FilterDelay(const uint32_t sampleRate, const double delay, const bool useUnitMeter = false);
 	~FilterDelay();
 
-    const std::string toString() const;
+    const std::string toString() const override;
 
 	inline const double process(const double value) override {
 		if (_index == _size) {

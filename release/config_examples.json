@@ -11,7 +11,8 @@
             "type": "HIGH_PASS",
             "subType": "BUTTERWORTH",
             "order": 3,
-            "freq": 80.0
+            "freq": 80.0,
+            "qOffset": 0.0
         },
         "hpCustom": {
             "type": "HIGH_PASS",

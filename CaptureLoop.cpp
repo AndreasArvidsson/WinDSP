@@ -13,7 +13,7 @@
 #include "Visibility.h"
 #include "AsioDevice.h"
 
-//#define PERFORMANCE_LOG
+#define PERFORMANCE_LOG
 
 #ifdef PERFORMANCE_LOG
 #include "Stopwatch.h"
@@ -167,6 +167,8 @@ void CaptureLoop::_captureLoopAsio() {
 
             //Not sure that the render device is ready yet. Nullptr buffer means just ignore this pass.
             if (pRenderBuffer) {
+                swStart();
+
                 //Set buffer default value to 0 so we can add/mix values to it later
                 memset(pRenderBuffer, 0, bufferByteSize);
 
@@ -191,10 +193,8 @@ void CaptureLoop::_captureLoopAsio() {
 
                 AsioDevice::addWriteBuffer(pBuffer);
 
-                swStart();
+                swEnd();
             }
-
-            swEnd();
 
             //Release capture buffer.
             assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));

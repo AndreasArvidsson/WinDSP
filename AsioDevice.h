@@ -38,7 +38,7 @@ namespace AsioDevice {
     extern double _sampleRate;
     extern bool _outputReady;
     extern std::atomic<bool> _run;
-    extern std::vector<double*> _buffers, _unusedBuffers;
+    extern std::vector<double*> *_pBuffers, *_pUnusedBuffers;
     extern std::mutex _buffersMutex, _unusedBuffersMutex;
     extern ASIOCallbacks _callbacks;
 

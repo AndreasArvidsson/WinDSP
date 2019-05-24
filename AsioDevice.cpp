@@ -28,8 +28,8 @@ double AsioDevice::_sampleRate = 0.0;
 bool AsioDevice::_outputReady = false;
 std::atomic<bool> AsioDevice::_run(false);
 std::string *AsioDevice::_pDriverName = nullptr;
-std::vector<double*> AsioDevice::_buffers;
-std::vector<double*> AsioDevice::_unusedBuffers;
+std::vector<double*> *AsioDevice::_pBuffers;
+std::vector<double*> *AsioDevice::_pUnusedBuffers;
 std::mutex AsioDevice::_buffersMutex;
 std::mutex AsioDevice::_unusedBuffersMutex;
 ASIOCallbacks AsioDevice::_callbacks{ 0 };
@@ -63,6 +63,9 @@ void AsioDevice::init(const std::string &dName, const long bufferSize, const lon
     _numChannels = numChannels > 0 ? min(numChannels, _numOutputChannels) : _numOutputChannels;
     _callbacks.asioMessage = &_asioMessage;
     _callbacks.bufferSwitch = &_bufferSwitch;
+
+    _pBuffers = new std::vector<double*>;
+    _pUnusedBuffers = new std::vector<double*>;
 
     //Create buffer info per channel.
     _pBufferInfos = new ASIOBufferInfo[_numChannels];
@@ -98,9 +101,9 @@ void AsioDevice::stopRenderService() {
     //Move all buffers to unused list.
     _buffersMutex.lock();
     _unusedBuffersMutex.lock();
-    while (_buffers.size() > 0) {
-        _unusedBuffers.push_back(_buffers.back());
-        _buffers.pop_back();
+    while (_pBuffers->size() > 0) {
+        _pUnusedBuffers->push_back(_pBuffers->back());
+        _pBuffers->pop_back();
     }
     _buffersMutex.unlock();
     _unusedBuffersMutex.unlock();
@@ -108,18 +111,21 @@ void AsioDevice::stopRenderService() {
 
 void AsioDevice::destroy() {
     _assertAsio(ASIOExit());
+    for (double *pBuffer : *_pUnusedBuffers) {
+        delete[] pBuffer;
+    }
+    delete _pBuffers;
+    delete _pUnusedBuffers;
     delete[] _pBufferInfos;
     delete[] _pChannelInfos;
     delete _pDriverName;
     delete asioDrivers;
+    _pBuffers = nullptr;
+    _pUnusedBuffers = nullptr;
     _pBufferInfos = nullptr;
     _pChannelInfos = nullptr;
     _pDriverName = nullptr;
     asioDrivers = nullptr;
-    for (double *pBuffer : _unusedBuffers) {
-        delete[] pBuffer;
-    }
-    _unusedBuffers.clear();
 }
 
 const std::string AsioDevice::getName() {
@@ -143,34 +149,38 @@ const long AsioDevice::getBufferSize() {
 }
 
 double* AsioDevice::getWriteBuffer() {
+    //If service is not running dont return a buffer.
     if (!_run) {
         return nullptr;
     }
 
     _unusedBuffersMutex.lock();
-    if (_unusedBuffers.size() > 0) {
-        double* pBuffer = _unusedBuffers.back();
-        _unusedBuffers.pop_back();
+    //Check for available buffers.
+    if (_pUnusedBuffers->size() > 0) {
+        double* pBuffer = _pUnusedBuffers->back();
+        _pUnusedBuffers->pop_back();
         _unusedBuffersMutex.unlock();
         return pBuffer;
     }
     _unusedBuffersMutex.unlock();
+    //Create new buffer.
     LOG_INFO("Create buffer");
     return new double[_numChannels * _bufferSize];
 }
 
 void AsioDevice::addWriteBuffer(double * const pBuffer) {
     _buffersMutex.lock();
-    _buffers.insert(_buffers.begin(), pBuffer);
+    _pBuffers->insert(_pBuffers->begin(), pBuffer);
     _buffersMutex.unlock();
 }
 
 double* AsioDevice::_getReadBuffer() {
+    //Wait for an available buffer.
     for (;;) {
         _buffersMutex.lock();
-        if (_buffers.size() > 0) {
-            double *pBuffer = _buffers.back();
-            _buffers.pop_back();
+        if (_pBuffers->size() > 0) {
+            double *pBuffer = _pBuffers->back();
+            _pBuffers->pop_back();
             _buffersMutex.unlock();
             return pBuffer;
         }
@@ -181,7 +191,7 @@ double* AsioDevice::_getReadBuffer() {
 
 void AsioDevice::_addReadBuffer(double * const pBuffer) {
     _unusedBuffersMutex.lock();
-    _unusedBuffers.push_back(pBuffer);
+    _pUnusedBuffers->push_back(pBuffer);
     _unusedBuffersMutex.unlock();
 }
 
@@ -243,6 +253,7 @@ long AsioDevice::_asioMessage(const long selector, const long value, void * cons
 }
 
 void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
+    //Signal first time that the render service is running.
     if (!_run) {
         _run = true;
         return;

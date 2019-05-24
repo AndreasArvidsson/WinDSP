@@ -48,6 +48,9 @@ void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, Audio
 }
 
 void CaptureLoop::destroy() {
+    if (_pConfig->useAsioRenderDevice()) {
+        AsioDevice::destroy();
+    }
 	delete[] _pUsedChannels;
 	_pUsedChannels = nullptr;
 	_pInputs = nullptr;
@@ -315,7 +318,7 @@ void CaptureLoop::_captureLoopWasapi() {
 void CaptureLoop::stop() {
 	if (_run) {
 		_run = false;
-		//Stop and wait for wasapi thread to finish.
+		//Stop and wait for capture thread to finish.
 		_captureThread.join();
 	}
 }

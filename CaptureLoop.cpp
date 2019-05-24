@@ -108,7 +108,7 @@ void CaptureLoop::_captureLoopAsio() {
     const size_t nChannelsIn = _pInputs->size();
     const size_t nChannelsOut = _pOutputs->size();
     //The size of all sample frames for all channels with the same sample index/timestamp
-    const size_t bufferBlockSize = sizeof(double) * nChannelsOut *  AsioDevice::getBufferSize();
+    const size_t bufferByteSize = sizeof(double) * nChannelsOut * AsioDevice::getBufferSize();
     UINT32 sampleIndex, samplesAvailable;
     DWORD flags;
     float *pCaptureBuffer;
@@ -126,7 +126,7 @@ void CaptureLoop::_captureLoopAsio() {
 
             if (flags) {
                 if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
-                    //Was playing audio before. Reset filter states.
+                    //Was playing audio before. Stop rendering and reset filter states.
                     if (!silent) {
                         silent = true;
                         AsioDevice::stopRenderService();
@@ -145,10 +145,9 @@ void CaptureLoop::_captureLoopAsio() {
                 }
             }
 
-            //Was silent before.
+            //Was silent before. Start rendering.
             if (silent) {
                 silent = false;
-
                 AsioDevice::startRenderService();
 
                 //First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
@@ -163,10 +162,12 @@ void CaptureLoop::_captureLoopAsio() {
 
             pRenderBuffer = AsioDevice::getWriteBuffer();
 
+            //Not sure that the render device is ready yet. Nullptr buffer means just ignore this pass.
             if (pRenderBuffer) {
                 //Set buffer default value to 0 so we can add/mix values to it later
-                memset(pRenderBuffer, 0, bufferBlockSize);
+                memset(pRenderBuffer, 0, bufferByteSize);
 
+                //Store reference to start of buffer. Used in addWriteBuffer below.
                 pBuffer = pRenderBuffer;
 
                 //Needed to get correct start for the ++pBuffer loops.

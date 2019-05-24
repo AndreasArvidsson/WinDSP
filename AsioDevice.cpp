@@ -175,7 +175,7 @@ double* AsioDevice::_getReadBuffer() {
             return pBuffer;
         }
         _buffersMutex.unlock();
-        Date::sleepMicros(10);
+        Date::sleepMicros(1);
     }
 }
 

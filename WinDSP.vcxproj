@@ -92,8 +92,12 @@
     <ProjectReference Include="$(SolutionDir)\lib\DSP\DSP.vcxproj">
       <Project>{49c706ab-09b0-451e-a6d6-403a28a54ce5}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\AsioSDK\AsioSDK\AsioSDK.vcxproj">
+      <Project>{0ab9a655-ba2c-42cb-909f-b61ae395e2e8}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AsioDevice.cpp" />
     <ClCompile Include="AudioDevice.cpp" />
     <ClCompile Include="CaptureLoop.cpp" />
     <ClCompile Include="Channel.cpp" />
@@ -118,6 +122,7 @@
     <ClCompile Include="WinDSPLog.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AsioDevice.h" />
     <ClInclude Include="AudioDevice.h" />
     <ClInclude Include="CaptureLoop.h" />
     <ClInclude Include="Channel.h" />

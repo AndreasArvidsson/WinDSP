@@ -102,6 +102,11 @@ const bool Config::inDebug() const {
     return _debug;
 }
 
+const bool Config::useAsioRenderDevice() const {
+    //TODO
+    return true;
+}
+
 const bool Config::hasGainFilter(const std::vector<Filter*> &filters) const {
     for (const Filter *pFilter : filters) {
         if (typeid (*pFilter) == typeid (FilterGain)) {

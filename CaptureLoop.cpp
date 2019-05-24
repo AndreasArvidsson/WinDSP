@@ -11,6 +11,7 @@
 #include "Input.h"
 #include "Output.h"
 #include "Visibility.h"
+#include "AsioDevice.h"
 
 //#define PERFORMANCE_LOG
 
@@ -58,11 +59,17 @@ void CaptureLoop::run() {
 
 	//Start wasapi capture device.
 	_pCaptureDevice->startService();
-	//Start wasapi render device.
-	_pRenderDevice->startService();
 
-	//Start capturing in a new thread.
-	_captureThread = std::thread(_captureLoop);
+    if (_pConfig->useAsioRenderDevice()) {
+        //Start capturing in a new thread.
+        _captureThread = std::thread(_captureLoopAsio);
+    }
+    else {
+        //Start wasapi render device.
+        _pRenderDevice->startService();
+        //Start capturing in a new thread.
+        _captureThread = std::thread(_captureLoopWasapi);
+    }
 
 	size_t count = 0;
 	while (_run) {
@@ -97,7 +104,107 @@ void CaptureLoop::run() {
 	}
 }
 
-void CaptureLoop::_captureLoop() {
+void CaptureLoop::_captureLoopAsio() {
+    const size_t nChannelsIn = _pInputs->size();
+    const size_t nChannelsOut = _pOutputs->size();
+    //The size of all sample frames for all channels with the same sample index/timestamp
+    const size_t bufferBlockSize = sizeof(double) * nChannelsOut *  AsioDevice::getBufferSize();
+    UINT32 sampleIndex, samplesAvailable;
+    DWORD flags;
+    float *pCaptureBuffer;
+    double *pRenderBuffer, *pBuffer;
+    bool silent = true;
+    bool first = true;
+
+    while (_run) {
+        //Check for samples in capture buffer.
+        assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
+
+        while (samplesAvailable) {
+            //Get capture buffer pointer and number of available frames.
+            assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &samplesAvailable, &flags));
+
+            if (flags) {
+                if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
+                    //Was playing audio before. Reset filter states.
+                    if (!silent) {
+                        silent = true;
+                        AsioDevice::stopRenderService();
+                        _resetFilters();
+                    }
+                    assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
+                    break;
+                }
+                else if (!first && _pConfig->inDebug()) {
+                    if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+                        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                    }
+                    if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
+                        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                    }
+                }
+            }
+
+            //Was silent before.
+            if (silent) {
+                silent = false;
+
+                AsioDevice::startRenderService();
+
+                //First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
+                //Need to flush buffer of bad data or we can get glitches.
+                if (first) {
+                    first = false;
+                    assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
+                    _pCaptureDevice->flushCaptureBuffer();
+                    break;
+                }
+            }
+
+            pRenderBuffer = AsioDevice::getWriteBuffer();
+
+            if (pRenderBuffer) {
+                //Set buffer default value to 0 so we can add/mix values to it later
+                memset(pRenderBuffer, 0, bufferBlockSize);
+
+                pBuffer = pRenderBuffer;
+
+                //Needed to get correct start for the ++pBuffer loops.
+                --pCaptureBuffer;
+
+                //Iterate all capture frames
+                for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
+                    //Iterate inputs and route samples to outputs
+                    for (Input * const pInput : *_pInputs) {
+                        pInput->route(*++pCaptureBuffer, pRenderBuffer);
+                    }
+
+                    //Iterate outputs and apply filters
+                    for (Output * const pOutput : *_pOutputs) {
+                        *pRenderBuffer++ = (float)pOutput->process(*pRenderBuffer);
+                    }
+                }
+
+                AsioDevice::addWriteBuffer(pBuffer);
+
+                swStart();
+            }
+
+            swEnd();
+
+            //Release capture buffer.
+            assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
+
+            //Check for more samples in capture buffer.
+            assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
+        }
+
+        //No available samples. Short sleep just to not busy wait all resources.
+        Date::sleepMicros(1);
+    }
+}
+
+void CaptureLoop::_captureLoopWasapi() {
 	//Used to temporarily store sample(for all out channels) while they are being processed.
 	double renderBlockBuffer[8];
 	const size_t nChannelsIn = _pInputs->size();

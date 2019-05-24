@@ -19,6 +19,7 @@
 #include "Visibility.h"
 #include "TrayIcon.h"
 #include "Str.h"
+#include "AsioDevice.h"
 
 #define VERSION "0.20.0b"
 
@@ -126,7 +127,8 @@ void run() {
 	*/
 
 	const std::string captureDeviceName = pConfig->getCaptureDeviceName();
-	const std::string renderDeviceName = pConfig->getRenderDeviceName();
+	//const std::string renderDeviceName = pConfig->getRenderDeviceName();
+    const std::string renderDeviceName = "Focusrite USB ASIO";
 
 	LOG_INFO("----------------------------------------------");
 	LOG_INFO("Starting DSP service @ %s", Date::getLocalDateTimeString().c_str());
@@ -137,7 +139,6 @@ void run() {
 	}
 	LOG_INFO("----------------------------------------------\n");
 
-
 	/*
 	 * Create and initalize devices and validate device settings
 	 */
@@ -145,24 +146,35 @@ void run() {
 	pCaptureDevice = AudioDevice::initDevice(captureDeviceName);
 	pCaptureDevice->initCaptureService();
 	const WAVEFORMATEX *pCaptureFormat = pCaptureDevice->getFormat();
+    //Sample buffers must contains a 32bit float. All code depends on it.
+    if (pCaptureFormat->wBitsPerSample != 32) {
+        throw Error("Bit depth doesnt match float(32), Found(%d)", pCaptureFormat->wBitsPerSample);
+    }
+
 	uint32_t rendererSampleRate, renderNumChannels;
 
-	pRenderDevice = AudioDevice::initDevice(renderDeviceName);
-	pRenderDevice->initRenderService();
-	const WAVEFORMATEX *pRenderFormat = pRenderDevice->getFormat();
-	rendererSampleRate = pRenderFormat->nSamplesPerSec;
-	renderNumChannels = pRenderFormat->nChannels;
-
-	if (pCaptureFormat->wBitsPerSample != pRenderFormat->wBitsPerSample) {
-		throw Error("Bit depth missmatch: Capture(%d), Render(%d)", pCaptureFormat->wBitsPerSample, pRenderFormat->wBitsPerSample);
-	}
-	//Sample buffers must contains a 32bit float. All code depends on it.
-	if (pCaptureFormat->wBitsPerSample != 32) {
-		throw Error("Bit depth doesnt match float(32), Found(%d)", pCaptureFormat->wBitsPerSample);
-	}
-	if (pCaptureFormat->wFormatTag != pRenderFormat->wFormatTag) {
-		throw Error("Format tag missmatch: Capture(%d), Render(%d)", pCaptureFormat->wFormatTag, pRenderFormat->wFormatTag);
-	}
+    //ASIO render device.
+    if (pConfig->useAsioRenderDevice()) {
+        const long bufferSize = pCaptureDevice->getEngineBufferSize();
+        const long numChannels = 8;
+        AsioDevice::init(renderDeviceName, bufferSize, numChannels);
+        rendererSampleRate = AsioDevice::getSampleRate();
+        renderNumChannels = AsioDevice::getNumChannels();
+    }
+    //WASAPI render device.
+    else {
+        pRenderDevice = AudioDevice::initDevice(renderDeviceName);
+        pRenderDevice->initRenderService();
+        const WAVEFORMATEX *pRenderFormat = pRenderDevice->getFormat();
+        rendererSampleRate = pRenderFormat->nSamplesPerSec;
+        renderNumChannels = pRenderFormat->nChannels;
+        if (pCaptureFormat->wBitsPerSample != pRenderFormat->wBitsPerSample) {
+            throw Error("Bit depth missmatch: Capture(%d), Render(%d)", pCaptureFormat->wBitsPerSample, pRenderFormat->wBitsPerSample);
+        }
+        if (pCaptureFormat->wFormatTag != pRenderFormat->wFormatTag) {
+            throw Error("Format tag missmatch: Capture(%d), Render(%d)", pCaptureFormat->wFormatTag, pRenderFormat->wFormatTag);
+        }
+    }
 
 	//The application have no resampler. Sample rate and bit depth must be a match.
 	if (pCaptureFormat->nSamplesPerSec != rendererSampleRate) {

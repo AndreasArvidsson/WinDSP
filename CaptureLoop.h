@@ -37,7 +37,8 @@ namespace CaptureLoop {
 	extern std::atomic<bool> _run;
 	extern bool *_pUsedChannels;
 
-	void _captureLoop();
+    void _captureLoopWasapi();
+	void _captureLoopAsio();
 	void _resetFilters();
 	void _checkConfig();
 	void _checkClippingChannels();

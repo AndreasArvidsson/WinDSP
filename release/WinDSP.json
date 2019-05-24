@@ -1,38 +1,43 @@
 {
-    "startWithOS": false,
-    "minimize": false,
-    "hide": false,
-    "description": "Default config",
-    "devices": {
+    "startWithOS" : false,
+    "minimize" : false,
+    "hide" : false,
+    "description" : "Default config",
+    "devices" : {
+        "capture" : "Hi-Fi Cable Input (VB-Audio Virtual Cable)",
+        "render" : "Hi-Fi Cable Input (VB-Audio Hi-Fi Cable)"
     },
-    "basic": {
-        "front": "Large",
-        "center": "Large",
-        "subwoofer": "Sub",
-        "surround": "Large",
-        "surroundBack": "Large",
-        "stereoBass": false,
-        "expandSurround": false,
-        "lfeGain": 0,
-        "lowPass": {
-            "type": "BUTTERWORTH",
-            "order": 5,
-            "freq": 80
+    "basic" : {
+        "front" : "Large",
+        "center" : "Large",
+        "subwoofer" : "Sub",
+        "surround" : "Large",
+        "surroundBack" : "Large",
+        "stereoBass" : false,
+        "expandSurround" : false,
+        "lfeGain" : 0,
+        "lowPass" : {
+            "type" : "BUTTERWORTH",
+            "order" : 5,
+            "freq" : 80
         },
-        "highPass": {
-            "type": "BUTTERWORTH",
-            "order": 3,
-            "freq": 80
+        "highPass" : {
+            "type" : "BUTTERWORTH",
+            "order" : 3,
+            "freq" : 80
         }
     },
-    "outputs": [
+    "outputs" : [
         {
-            "channels": [ "L", "R" ],
-            "gain": 0,
-            "delay": 0,
-            "invert": false,
-            "mute": false,
-            "filters": [
+            "channels" : [
+                "L",
+                "R"
+            ],
+            "gain" : 0,
+            "delay" : 0,
+            "invert" : false,
+            "mute" : false,
+            "filters" : [
             ]
         }
     ]

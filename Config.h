@@ -39,6 +39,7 @@ public:
     const std::string getDescription() const;
     const bool hasDescription() const;
     const bool inDebug() const;
+    const bool useAsioRenderDevice() const;
 
     inline const bool Config::hasChanged() const {
         return _lastModified != _configFile.getLastModifiedTime();

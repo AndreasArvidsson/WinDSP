@@ -34,6 +34,8 @@ std::mutex AsioDevice::_buffersMutex;
 std::mutex AsioDevice::_unusedBuffersMutex;
 ASIOCallbacks AsioDevice::_callbacks{ 0 };
 
+//std::atomic<bool> AsioDevice::_reset = false;
+
 std::vector<std::string> AsioDevice::getDeviceNames() {
     std::vector<std::string> result;
     AsioDrivers asioDrivers;
@@ -86,18 +88,29 @@ void AsioDevice::init(const std::string &dName, const long bufferSize, const lon
 }
 
 void AsioDevice::startRenderService() {
+    LOG_INFO("startRenderService");
+
     //Create buffers and connect callbacks.
     _assertAsio(ASIOCreateBuffers(_pBufferInfos, _numChannels, _bufferSize, &_callbacks));
     //Latencies are dependent on the used buffer size so have to be fetched after create buffers.
     _assertAsio(ASIOGetLatencies(&_inputLatency, &_outputLatency));
+
+    _run = true;
+    double *pBuffer = getWriteBuffer();
+    _run = false;
+    memset(pBuffer, 0, _numChannels * _bufferSize * sizeof(double));
+    addWriteBuffer(pBuffer);
+
     //Start service.
     _assertAsio(ASIOStart());
 }
 
 void AsioDevice::stopRenderService() {
+    LOG_INFO("stopRenderService");
+
+    _run = false;
     _assertAsio(ASIOStop());
     _assertAsio(ASIODisposeBuffers());
-    _run = false;
     //Move all buffers to unused list.
     _buffersMutex.lock();
     _unusedBuffersMutex.lock();
@@ -174,9 +187,25 @@ void AsioDevice::addWriteBuffer(double * const pBuffer) {
     _buffersMutex.unlock();
 }
 
+void AsioDevice::test() {
+    LOG_INFO("test()");
+
+    _run = false;
+
+    //Move all buffers to unused list.
+    _buffersMutex.lock();
+    _unusedBuffersMutex.lock();
+    while (_pBuffers->size() > 0) {
+        _pUnusedBuffers->push_back(_pBuffers->back());
+        _pBuffers->pop_back();
+    }
+    _buffersMutex.unlock();
+    _unusedBuffersMutex.unlock();
+}
+
 double* AsioDevice::_getReadBuffer() {
     //Wait for an available buffer.
-    for (;;) {
+    while (_run) {
         _buffersMutex.lock();
         if (_pBuffers->size() > 0) {
             double *pBuffer = _pBuffers->back();
@@ -187,6 +216,7 @@ double* AsioDevice::_getReadBuffer() {
         _buffersMutex.unlock();
         Date::sleepMicros(1);
     }
+    return nullptr;
 }
 
 void AsioDevice::_addReadBuffer(double * const pBuffer) {
@@ -255,17 +285,27 @@ long AsioDevice::_asioMessage(const long selector, const long value, void * cons
 void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
     //Signal first time that the render service is running.
     if (!_run) {
-        _run = true;
+
+        LOG_INFO("Render silence");
+        for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
+            memset((int*)_pBufferInfos[channelIndex].buffers[asioBufferIndex], 0, _bufferSize * sizeof(int));
+        }
+
+        //_run = true;
         return;
     }
 
     double * const pReadBuffer = _getReadBuffer();
 
-    for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
-        int *pRenderBuffer = (int*)_pBufferInfos[channelIndex].buffers[asioBufferIndex];
-        for (size_t sampleIndex = 0; sampleIndex < _bufferSize; ++sampleIndex) {
-            pRenderBuffer[sampleIndex] = (int)(MAX_INT32 * pReadBuffer[sampleIndex * _numChannels + channelIndex]);
+    if (pReadBuffer) {
+
+        for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
+            int *pRenderBuffer = (int*)_pBufferInfos[channelIndex].buffers[asioBufferIndex];
+            for (size_t sampleIndex = 0; sampleIndex < _bufferSize; ++sampleIndex) {
+                pRenderBuffer[sampleIndex] = (int)(MAX_INT32 * pReadBuffer[sampleIndex * _numChannels + channelIndex]);
+            }
         }
+
     }
 
     _addReadBuffer(pReadBuffer);

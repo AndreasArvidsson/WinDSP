@@ -29,6 +29,8 @@ namespace AsioDevice {
     double* getWriteBuffer();
     void addWriteBuffer(double * const pBuffer);
 
+    void test();
+
     //Privates
     extern std::string *_pDriverName;
     extern ASIOBufferInfo* _pBufferInfos;
@@ -41,6 +43,8 @@ namespace AsioDevice {
     extern std::vector<double*> *_pBuffers, *_pUnusedBuffers;
     extern std::mutex _buffersMutex, _unusedBuffersMutex;
     extern ASIOCallbacks _callbacks;
+
+    extern /*std::atomic<bool> _reset;*/
 
     long _asioMessage(const long selector, const long value, void * const message, double * const opt);
     void _bufferSwitch(const long asioBufferIndex, const ASIOBool);

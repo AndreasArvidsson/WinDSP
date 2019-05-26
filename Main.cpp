@@ -128,7 +128,15 @@ void run() {
 
 	const std::string captureDeviceName = pConfig->getCaptureDeviceName();
 	//const std::string renderDeviceName = pConfig->getRenderDeviceName();
-    const std::string renderDeviceName = "Focusrite USB ASIO";
+    
+    std::string renderDeviceName;
+    if (pConfig->useAsioRenderDevice()) {
+        renderDeviceName = "Focusrite USB ASIO";
+    }
+    else {
+        renderDeviceName = pConfig->getRenderDeviceName();
+    }
+
 
 	LOG_INFO("----------------------------------------------");
 	LOG_INFO("Starting DSP service @ %s", Date::getLocalDateTimeString().c_str());

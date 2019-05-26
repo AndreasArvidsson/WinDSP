@@ -66,6 +66,8 @@ void CaptureLoop::run() {
     if (_pConfig->useAsioRenderDevice()) {
         //Start capturing in a new thread.
         _captureThread = std::thread(_captureLoopAsio);
+
+        AsioDevice::startRenderService();
     }
     else {
         //Start wasapi render device.
@@ -119,6 +121,8 @@ void CaptureLoop::_captureLoopAsio() {
     bool silent = true;
     bool first = true;
 
+    //AsioDevice::startRenderService();
+
     while (_run) {
         //Check for samples in capture buffer.
         assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
@@ -132,7 +136,10 @@ void CaptureLoop::_captureLoopAsio() {
                     //Was playing audio before. Stop rendering and reset filter states.
                     if (!silent) {
                         silent = true;
-                        AsioDevice::stopRenderService();
+                        //AsioDevice::stopRenderService();
+
+                        AsioDevice::_run = false;
+
                         _resetFilters();
                     }
                     assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
@@ -141,6 +148,24 @@ void CaptureLoop::_captureLoopAsio() {
                 else if (!first && _pConfig->inDebug()) {
                     if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
                         LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+
+
+                        AsioDevice::test();
+                        //AsioDevice::_run = false;
+                        assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
+                        break;
+
+                   /*     AsioDevice::stopRenderService();
+                        AsioDevice::startRenderService();*/
+                        //assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
+                   /*     _pCaptureDevice->flushCaptureBuffer();*/
+
+                        //silent = true;
+                        //break;
+
+                  /*      AsioDevice::stopRenderService();
+                        AsioDevice::startRenderService();*/
+
                     }
                     if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
                         LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
@@ -148,10 +173,16 @@ void CaptureLoop::_captureLoopAsio() {
                 }
             }
 
+            AsioDevice::_run = true;
+
             //Was silent before. Start rendering.
             if (silent) {
                 silent = false;
-                AsioDevice::startRenderService();
+                AsioDevice::_run = true;
+
+
+
+                //AsioDevice::startRenderService();
 
                 //First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
                 //Need to flush buffer of bad data or we can get glitches.
@@ -167,6 +198,7 @@ void CaptureLoop::_captureLoopAsio() {
 
             //Not sure that the render device is ready yet. Nullptr buffer means just ignore this pass.
             if (pRenderBuffer) {
+                swEnd();
                 swStart();
 
                 //Set buffer default value to 0 so we can add/mix values to it later
@@ -182,18 +214,18 @@ void CaptureLoop::_captureLoopAsio() {
                 for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
                     //Iterate inputs and route samples to outputs
                     for (Input * const pInput : *_pInputs) {
-                        pInput->route(*++pCaptureBuffer, pRenderBuffer);
+                        //pInput->route(*++pCaptureBuffer, pRenderBuffer);
+                        pRenderBuffer[(size_t)pInput->getChannel()] = *++pCaptureBuffer;
                     }
 
                     //Iterate outputs and apply filters
                     for (Output * const pOutput : *_pOutputs) {
-                        *pRenderBuffer++ = (float)pOutput->process(*pRenderBuffer);
+                        //*pRenderBuffer++ = (float)pOutput->process(*pRenderBuffer);
+                        pRenderBuffer++;
                     }
                 }
 
                 AsioDevice::addWriteBuffer(pBuffer);
-
-                swEnd();
             }
 
             //Release capture buffer.

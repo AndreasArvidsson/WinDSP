@@ -13,7 +13,7 @@
 #include "Visibility.h"
 #include "AsioDevice.h"
 
-#define PERFORMANCE_LOG
+//#define PERFORMANCE_LOG
 
 #ifdef PERFORMANCE_LOG
 #include "Stopwatch.h"
@@ -25,14 +25,14 @@ Stopwatch sw("Render", 10000);
 #define swEnd() (void)0
 #endif
 
-const Config *CaptureLoop::_pConfig;
-const std::vector<Input*> *CaptureLoop::_pInputs = nullptr;
-const std::vector<Output*> *CaptureLoop::_pOutputs = nullptr;
-AudioDevice *CaptureLoop::_pCaptureDevice = nullptr;
-AudioDevice *CaptureLoop::_pRenderDevice = nullptr;
-std::thread CaptureLoop::_captureThread;
-std::atomic<bool> CaptureLoop::_run = false;
-bool *CaptureLoop::_pUsedChannels;
+const Config *_pConfig;
+const std::vector<Input*> *_pInputs = nullptr;
+const std::vector<Output*> *_pOutputs = nullptr;
+AudioDevice *_pCaptureDevice = nullptr;
+AudioDevice *_pRenderDevice = nullptr;
+std::thread _captureThread;
+std::atomic<bool> _run = false;
+bool *_pUsedChannels;
 
 void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice) {
 	_pConfig = pConfig;
@@ -49,6 +49,7 @@ void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, Audio
 
 void CaptureLoop::destroy() {
     if (_pConfig->useAsioRenderDevice()) {
+        AsioDevice::stopRenderService();
         AsioDevice::destroy();
     }
 	delete[] _pUsedChannels;
@@ -121,7 +122,9 @@ void CaptureLoop::_captureLoopAsio() {
     bool silent = true;
     bool first = true;
 
-    //AsioDevice::startRenderService();
+    //Wait until ASIO service has started.
+    while (!AsioDevice::isRunning());
+    _pCaptureDevice->flushCaptureBuffer();
 
     while (_run) {
         //Check for samples in capture buffer.
@@ -136,53 +139,29 @@ void CaptureLoop::_captureLoopAsio() {
                     //Was playing audio before. Stop rendering and reset filter states.
                     if (!silent) {
                         silent = true;
-                        //AsioDevice::stopRenderService();
-
-                        AsioDevice::_run = false;
-
                         _resetFilters();
                     }
                     assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
                     break;
                 }
-                else if (!first && _pConfig->inDebug()) {
+                else if (!first) {
                     if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-                        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
-
-
-                        AsioDevice::test();
-                        //AsioDevice::_run = false;
+                        AsioDevice::reset();
                         assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
+                        if (_pConfig->inDebug()) {
+                            LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                        }
                         break;
-
-                   /*     AsioDevice::stopRenderService();
-                        AsioDevice::startRenderService();*/
-                        //assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
-                   /*     _pCaptureDevice->flushCaptureBuffer();*/
-
-                        //silent = true;
-                        //break;
-
-                  /*      AsioDevice::stopRenderService();
-                        AsioDevice::startRenderService();*/
-
                     }
-                    if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
+                    if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR && _pConfig->inDebug()) {
                         LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
                     }
                 }
             }
 
-            AsioDevice::_run = true;
-
-            //Was silent before. Start rendering.
+            //Was silent before.
             if (silent) {
                 silent = false;
-                AsioDevice::_run = true;
-
-
-
-                //AsioDevice::startRenderService();
 
                 //First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
                 //Need to flush buffer of bad data or we can get glitches.
@@ -194,39 +173,33 @@ void CaptureLoop::_captureLoopAsio() {
                 }
             }
 
-            pRenderBuffer = AsioDevice::getWriteBuffer();
+            //Store reference to start of buffer. Used in addWriteBuffer below.
+            pRenderBuffer = pBuffer = AsioDevice::getWriteBuffer();
 
-            //Not sure that the render device is ready yet. Nullptr buffer means just ignore this pass.
-            if (pRenderBuffer) {
-                swEnd();
-                swStart();
+            swEnd();
+            swStart();
 
-                //Set buffer default value to 0 so we can add/mix values to it later
-                memset(pRenderBuffer, 0, bufferByteSize);
+            //Set buffer default value to 0 so we can add/mix values to it later
+            memset(pRenderBuffer, 0, bufferByteSize);
 
-                //Store reference to start of buffer. Used in addWriteBuffer below.
-                pBuffer = pRenderBuffer;
+            //Needed to get correct start for the ++pBuffer loops.
+            --pCaptureBuffer;
 
-                //Needed to get correct start for the ++pBuffer loops.
-                --pCaptureBuffer;
-
-                //Iterate all capture frames
-                for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
-                    //Iterate inputs and route samples to outputs
-                    for (Input * const pInput : *_pInputs) {
-                        //pInput->route(*++pCaptureBuffer, pRenderBuffer);
-                        pRenderBuffer[(size_t)pInput->getChannel()] = *++pCaptureBuffer;
-                    }
-
-                    //Iterate outputs and apply filters
-                    for (Output * const pOutput : *_pOutputs) {
-                        //*pRenderBuffer++ = (float)pOutput->process(*pRenderBuffer);
-                        pRenderBuffer++;
-                    }
+            //Iterate all capture frames
+            for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
+                //Iterate inputs and route samples to outputs
+                for (Input * const pInput : *_pInputs) {
+                    pInput->route(*++pCaptureBuffer, pRenderBuffer);
                 }
 
-                AsioDevice::addWriteBuffer(pBuffer);
+                //Iterate outputs and apply filters
+                for (Output * const pOutput : *_pOutputs) {
+                    *pRenderBuffer++ = pOutput->process(*pRenderBuffer);
+                }
             }
+
+            //Release render buffer.
+            AsioDevice::addWriteBuffer(pBuffer);
 
             //Release capture buffer.
             assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
@@ -236,7 +209,7 @@ void CaptureLoop::_captureLoopAsio() {
         }
 
         //No available samples. Short sleep just to not busy wait all resources.
-        Date::sleepMicros(1);
+        Date::sleepMilli();
     }
 }
 
@@ -301,7 +274,7 @@ void CaptureLoop::_captureLoopWasapi() {
 			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
 			while (samplesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
 				//Short sleep just to not busy wait all resources.
-				Date::sleepMicros(1);
+				Date::sleepMilli();
 			}
 
 			//Get render buffer
@@ -343,7 +316,7 @@ void CaptureLoop::_captureLoopWasapi() {
 		}
 
 		//No available samples. Short sleep just to not busy wait all resources.
-		Date::sleepMicros(1);
+        Date::sleepMilli();
 	}
 }
 

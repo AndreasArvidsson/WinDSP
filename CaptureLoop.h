@@ -20,7 +20,6 @@ class Input;
 class Output;
 
 namespace CaptureLoop {
-	
 	//Public
 	void init(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice);
 	void destroy();
@@ -28,15 +27,6 @@ namespace CaptureLoop {
 	void stop();
 
 	//Private
-	extern const Config *_pConfig;
-	extern const std::vector<Input*> *_pInputs;
-	extern const std::vector<Output*> *_pOutputs;
-	extern AudioDevice *_pCaptureDevice;
-	extern AudioDevice *_pRenderDevice;
-	extern std::thread _captureThread;
-	extern std::atomic<bool> _run;
-	extern bool *_pUsedChannels;
-
     void _captureLoopWasapi();
 	void _captureLoopAsio();
 	void _resetFilters();
@@ -44,5 +34,4 @@ namespace CaptureLoop {
 	void _checkClippingChannels();
 	void _updateConditionalRouting();
 	void _printUsedChannels();
-
 }

@@ -159,14 +159,14 @@ void run() {
         throw Error("Bit depth doesnt match float(32), Found(%d)", pCaptureFormat->wBitsPerSample);
     }
 
-	uint32_t rendererSampleRate, renderNumChannels;
+	uint32_t renderNumChannels;
 
     //ASIO render device.
     if (pConfig->useAsioRenderDevice()) {
+        const long sampleRate = pCaptureFormat->nSamplesPerSec;
         const long bufferSize = pCaptureDevice->getEngineBufferSize();
-        const long numChannels = 8;
-        AsioDevice::init(renderDeviceName, bufferSize, numChannels);
-        rendererSampleRate = AsioDevice::getSampleRate();
+        const long numChannels = pCaptureDevice->getFormat()->nChannels;
+        AsioDevice::initRenderService(renderDeviceName, sampleRate, bufferSize, numChannels);
         renderNumChannels = AsioDevice::getNumChannels();
     }
     //WASAPI render device.
@@ -174,8 +174,11 @@ void run() {
         pRenderDevice = AudioDevice::initDevice(renderDeviceName);
         pRenderDevice->initRenderService();
         const WAVEFORMATEX *pRenderFormat = pRenderDevice->getFormat();
-        rendererSampleRate = pRenderFormat->nSamplesPerSec;
         renderNumChannels = pRenderFormat->nChannels;
+        //The application have no resampler. Sample rate and bit depth must be a match.
+        if (pCaptureFormat->nSamplesPerSec != pRenderFormat->nSamplesPerSec) {
+            throw Error("Sample rate missmatch: Capture(%d), Render(%d)", pCaptureFormat->nSamplesPerSec, pRenderFormat->nSamplesPerSec);
+        }
         if (pCaptureFormat->wBitsPerSample != pRenderFormat->wBitsPerSample) {
             throw Error("Bit depth missmatch: Capture(%d), Render(%d)", pCaptureFormat->wBitsPerSample, pRenderFormat->wBitsPerSample);
         }
@@ -184,18 +187,12 @@ void run() {
         }
     }
 
-	//The application have no resampler. Sample rate and bit depth must be a match.
-	if (pCaptureFormat->nSamplesPerSec != rendererSampleRate) {
-		throw Error("Sample rate missmatch: Capture(%d), Render(%d)", pCaptureFormat->nSamplesPerSec, rendererSampleRate);
-	}
-
-
 	/*
 	* Init I/O and filters
 	*/
 
 	//Read config and get I/O instances with filters 
-	pConfig->init(rendererSampleRate, pCaptureFormat->nChannels, renderNumChannels);
+	pConfig->init(pCaptureFormat->nSamplesPerSec, pCaptureFormat->nChannels, renderNumChannels);
 
 
 	/*

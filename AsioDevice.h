@@ -8,52 +8,35 @@
 
 #pragma once
 #include <vector>
-#include <mutex>
-#include <atomic>
 #include "asiosys.h"
 #include "asio.h"
 
 namespace AsioDevice {
     //Public
+    void initRenderService(const std::string &driverName, const long sampleRate, const long bufferSize = 0, const long numChannels = 0);
     void destroy();
-    std::vector<std::string> getDeviceNames();
-    void init(const std::string &driverName, const long bufferSize = 0, const long numChannels = 0);
     void startRenderService();
     void stopRenderService();
-    void printInfo();
+    void reset();
+    std::vector<std::string> getDeviceNames();
     const std::string getName();
     const long getSampleRate();
     const long getNumOutputChannels();
     const long getNumChannels();
     const long getBufferSize();
-    double* getWriteBuffer();
+    double * const getWriteBuffer();
     void addWriteBuffer(double * const pBuffer);
+    const bool isRunning();
+    void printInfo();
 
-    void test();
-
-    //Privates
-    extern std::string *_pDriverName;
-    extern ASIOBufferInfo* _pBufferInfos;
-    extern ASIOChannelInfo* _pChannelInfos;
-    extern long _numInputChannels, _numOutputChannels, _numChannels, _asioVersion, _driverVersion;
-    extern long _minSize, _maxSize, _preferredSize, _granularity, _bufferSize, _inputLatency, _outputLatency;
-    extern double _sampleRate;
-    extern bool _outputReady;
-    extern std::atomic<bool> _run;
-    extern std::vector<double*> *_pBuffers, *_pUnusedBuffers;
-    extern std::mutex _buffersMutex, _unusedBuffersMutex;
-    extern ASIOCallbacks _callbacks;
-
-    extern /*std::atomic<bool> _reset;*/
-
+    //Private
     long _asioMessage(const long selector, const long value, void * const message, double * const opt);
     void _bufferSwitch(const long asioBufferIndex, const ASIOBool);
     void _loadDriver(const std::string &driverName);
-    void _assertAsio(ASIOError error);
-    void _assertSampleType(ASIOSampleType type);
+    void _assertAsio(const ASIOError error);
+    void _assertSampleType(const ASIOSampleType type);
     const std::string _asioSampleType(const ASIOSampleType type);
     const std::string _asioResult(const ASIOError error);
-    double* _getReadBuffer();
+    double * const _getReadBuffer();
     void _addReadBuffer(double * const pBuffer);
-
 }

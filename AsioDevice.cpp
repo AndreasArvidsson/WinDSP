@@ -4,6 +4,7 @@
 #include "WinDSPLog.h"
 #include "Error.h"
 #include "Date.h"
+#include "SpinLock.h"
 
 #define MAX_INT32 2147483647.0
 
@@ -39,10 +40,6 @@ long _currentWriteBufferCapacity = 0;
 long _currentWriteBufferSize = 0;
 double _sampleRate = 0.0;
 Error _error;
-
-//#include <mutex>
-//std::mutex _usedBuffersLock, _unusedBuffersLock;
-#include "SpinLock.h"
 SpinLock _usedBuffersLock, _unusedBuffersLock;
 
 std::vector<std::string> AsioDevice::getDeviceNames() {
@@ -139,7 +136,7 @@ void AsioDevice::stopService() {
 }
 
 void AsioDevice::reset() {
-    LOG_INFO("reset()");
+    __LOG_INFO__("reset()");
 
     //Empty current write buffer.
     _currentWriteBufferSize = 0;
@@ -228,7 +225,7 @@ void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
         _addReadBuffer(pReadBuffer);
     }
     else {
-        LOG_INFO("Render silence");
+        __LOG_INFO__("Render silence");
         for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
             memset((int*)_pBufferInfos[channelIndex].buffers[asioBufferIndex], 0, _bufferByteSize);
         }

@@ -42,14 +42,8 @@ public:
     const bool useAsioRenderDevice() const;
     const uint32_t getAsioBufferSize() const;
     const uint32_t getAsioNumChannels() const;
-
-    inline const bool Config::hasChanged() const {
-        return _lastModified != _configFile.getLastModifiedTime();
-    }
-
-    inline const bool useConditionalRouting() const {
-        return _useConditionalRouting;
-    }
+    const bool useConditionalRouting() const;
+    const bool hasChanged() const;
 
 private:
     std::vector<Input*> _inputs;

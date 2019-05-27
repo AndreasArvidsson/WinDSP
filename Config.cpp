@@ -114,6 +114,14 @@ const uint32_t Config::getAsioNumChannels() const {
     return _asioNumChannels;
 }
 
+const bool Config::useConditionalRouting() const {
+    return _useConditionalRouting;
+}
+
+const bool Config::hasChanged() const {
+    return _lastModified != _configFile.getLastModifiedTime();
+}
+
 const bool Config::hasGainFilter(const std::vector<Filter*> &filters) const {
     for (const Filter *pFilter : filters) {
         if (typeid (*pFilter) == typeid (FilterGain)) {

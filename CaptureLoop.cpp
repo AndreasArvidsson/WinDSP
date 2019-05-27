@@ -17,7 +17,7 @@
 
 #ifdef PERFORMANCE_LOG
 #include "Stopwatch.h"
-Stopwatch sw("Render", 10000);
+Stopwatch sw("Render", 5000);
 #define swStart() sw.intervalStart()
 #define swEnd() sw.intervalEnd()
 #else
@@ -120,8 +120,7 @@ void CaptureLoop::_captureLoopAsio() {
     const size_t nChannelsOut = _pOutputs->size();
     //The size of all sample frames for all channels with the same sample index/timestamp
     const size_t renderBlockSize = sizeof(double) * nChannelsOut;
-    //UINT32 sampleIndex, samplesAvailable;
-	UINT32 samplesAvailable, samplesLeft;
+    UINT32 sampleIndex, samplesAvailable;
     DWORD flags;
     float *pCaptureBuffer;
     double *pRenderBlockBuffer;
@@ -180,21 +179,14 @@ void CaptureLoop::_captureLoopAsio() {
 
             swStart();
 
-            //Needed to get correct start for the ++pBuffer loops.
-            --pCaptureBuffer;
-
             //Iterate all capture frames
-			//for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
-			//samplesLeft = samplesAvailable;
-			///while(samplesLeft--) {
-			samplesLeft = samplesAvailable + 1;
-			while(--samplesLeft) {
+			for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
 				//Set buffer default value to 0 so we can add/mix values to it later
 				memset(renderBlockBuffer, 0, renderBlockSize);
 
 				//Iterate inputs and route samples to outputs
 				for (Input * const pInput : *_pInputs) {
-					pInput->route(*++pCaptureBuffer, renderBlockBuffer);
+                    pInput->route(*pCaptureBuffer++, renderBlockBuffer);
 				}
 
 				//Iterate outputs and apply filters
@@ -286,10 +278,6 @@ void CaptureLoop::_captureLoopWasapi() {
 
 			swStart();
 
-			//Needed to get correct start for the ++pBuffer loops.
-			--pCaptureBuffer;
-			--pRenderBuffer;
-
 			//Iterate all capture frames
 			for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
 				//Set buffer default value to 0 so we can add/mix values to it later
@@ -297,13 +285,13 @@ void CaptureLoop::_captureLoopWasapi() {
 
 				//Iterate inputs and route samples to outputs
 				for (Input * const pInput : *_pInputs) {
-					pInput->route(*++pCaptureBuffer, renderBlockBuffer);
+					pInput->route(*pCaptureBuffer++, renderBlockBuffer);
 				}
 
 				//Iterate outputs and apply filters
                 pRenderBlockBuffer = renderBlockBuffer - 1;
 				for (Output * const pOutput : *_pOutputs) {
-					*++pRenderBuffer = (float)pOutput->process(*++pRenderBlockBuffer);
+					*pRenderBuffer++ = (float)pOutput->process(*++pRenderBlockBuffer);
 				}
 			}
 

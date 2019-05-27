@@ -229,14 +229,14 @@ void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
         return;
      }
 
-    //double * const pReadBuffer = _getReadBuffer();
-     double * pReadBuffer = _getReadBuffer();
+    double * const pReadBuffer = _getReadBuffer();
 
+     /*double * pReadBuffer = _getReadBuffer();
     if (!pReadBuffer) {
         LOG_INFO("No read buffer. Sleep and try again");
         Date::sleepMilli();
         pReadBuffer = _getReadBuffer();
-    }
+    }*/
 
     if (pReadBuffer) {
         for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Log.h"
-
 //#define DEBUG_LOG
 
 #ifdef DEBUG_LOG

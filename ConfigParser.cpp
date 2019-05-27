@@ -22,8 +22,12 @@ void Config::parseDevices() {
     }
     //Devices already set in config.
     else {
-        _captureDeviceName = getTextValue(pDevicesNode, "capture", "devices");
-        _renderDeviceName = getTextValue(pDevicesNode, "render", "devices");
+        path = "devices";
+        _captureDeviceName = getTextValue(pDevicesNode, "capture", path);
+        _renderDeviceName = getTextValue(pDevicesNode, "render", path);
+        _useAsioRenderDevice = tryGetBoolValue(pDevicesNode, "renderAsio", path);
+        _asioBufferSize = tryGetIntValue(pDevicesNode, "asioBufferSize", path);
+        _asioNumChannels = tryGetIntValue(pDevicesNode, "asioNumChannels", path);
     }
 }
 

@@ -18,7 +18,9 @@ ASIOChannelInfo* _pChannelInfos = nullptr;
 std::string *_pDriverName = nullptr;
 std::vector<double*> *_pUsedBuffers = nullptr;
 std::vector<double*> *_pUnusedBuffers = nullptr;
+double *_pCurrentWriteBuffer = nullptr;
 std::atomic<bool> _running = false;
+std::atomic<bool> _throwError = false;
 bool _outputReady = false;
 long _numInputChannels = 0;
 long _numOutputChannels = 0;
@@ -32,8 +34,11 @@ long _granularity = 0;
 long _bufferSize = 0;
 long _inputLatency = 0;
 long _outputLatency = 0;
-double _sampleRate = 0.0;
 long _bufferByteSize = 0;
+long _currentWriteBufferCapacity = 0;
+long _currentWriteBufferSize = 0;
+double _sampleRate = 0.0;
+Error _error;
 
 //#include <mutex>
 //std::mutex _usedBuffersLock, _unusedBuffersLock;
@@ -73,18 +78,22 @@ void AsioDevice::initRenderService(const std::string &dName, const long sampleRa
     _callbacks.bufferSwitch = &_bufferSwitch;
     _pUsedBuffers = new std::vector<double*>;
     _pUnusedBuffers = new std::vector<double*>;
+    _pCurrentWriteBuffer = _getWriteBuffer();
+    _currentWriteBufferCapacity = _numChannels * _bufferSize;
+    _currentWriteBufferSize = 0;
+    _throwError = false;
 
     //Create buffer info per channel.
     _pBufferInfos = new ASIOBufferInfo[_numChannels];
-    for (int i = 0; i < _numChannels; ++i) {
-        _pBufferInfos[i].channelNum = i;
+    for (size_t i = 0; i < _numChannels; ++i) {
+        _pBufferInfos[i].channelNum = (long)i;
         _pBufferInfos[i].buffers[0] = _pBufferInfos[i].buffers[1] = nullptr;
         _pBufferInfos[i].isInput = ASIOFalse;
     }
 
     //Get channel infos.
     _pChannelInfos = new ASIOChannelInfo[_numChannels];
-    for (int i = 0; i < _numChannels; ++i) {
+    for (size_t i = 0; i < _numChannels; ++i) {
         _pChannelInfos[i].channel = _pBufferInfos[i].channelNum;
         _pChannelInfos[i].isInput = _pBufferInfos[i].isInput;
         _assertAsio(ASIOGetChannelInfo(&_pChannelInfos[i]));
@@ -99,19 +108,21 @@ void AsioDevice::destroy() {
     }
     delete _pUsedBuffers;
     delete _pUnusedBuffers;
+    delete[] _pCurrentWriteBuffer;
     delete[] _pBufferInfos;
     delete[] _pChannelInfos;
     delete _pDriverName;
     delete asioDrivers;
     _pUsedBuffers = nullptr;
     _pUnusedBuffers = nullptr;
+    _pCurrentWriteBuffer = nullptr;
     _pBufferInfos = nullptr;
     _pChannelInfos = nullptr;
     _pDriverName = nullptr;
     asioDrivers = nullptr;
 }
 
-void AsioDevice::startRenderService() {
+void AsioDevice::startService() {
     //Create buffers and connect callbacks.
     _assertAsio(ASIOCreateBuffers(_pBufferInfos, _numChannels, _bufferSize, &_callbacks));
     //Latencies are dependent on the used buffer size so have to be fetched after create buffers.
@@ -120,7 +131,7 @@ void AsioDevice::startRenderService() {
     _assertAsio(ASIOStart());
 }
 
-void AsioDevice::stopRenderService() {
+void AsioDevice::stopService() {
     _assertAsio(ASIOStop());
     _assertAsio(ASIODisposeBuffers());
     _running = false;
@@ -130,6 +141,8 @@ void AsioDevice::stopRenderService() {
 void AsioDevice::reset() {
     LOG_INFO("reset()");
 
+    //Empty current write buffer.
+    _currentWriteBufferSize = 0;
     //Move all buffers to unused list.
     _usedBuffersLock.lock();
     _unusedBuffersLock.lock();
@@ -165,27 +178,19 @@ const bool AsioDevice::isRunning() {
     return _running;
 }
 
-double * const AsioDevice::getWriteBuffer() {
-    //TODO fetch error here
-
-    _unusedBuffersLock.lock();
-    //Check for available buffers.
-    if (_pUnusedBuffers->size() > 0) {
-        double* pBuffer = _pUnusedBuffers->back();
-        _pUnusedBuffers->pop_back();
-        _unusedBuffersLock.unlock();
-        return pBuffer;
+void AsioDevice::throwError() {
+    if (_throwError) {
+        throw _error;
     }
-    _unusedBuffersLock.unlock();
-    //Create new buffer.
-    LOG_INFO("Create buffer");
-    return new double[_numChannels * _bufferSize];
 }
 
-void AsioDevice::addWriteBuffer(double * const pBuffer) {
-    _usedBuffersLock.lock();
-    _pUsedBuffers->insert(_pUsedBuffers->begin(), pBuffer);
-    _usedBuffersLock.unlock();
+void AsioDevice::addSample(const double sample) {
+    _pCurrentWriteBuffer[_currentWriteBufferSize++] = sample;
+    if (_currentWriteBufferSize == _currentWriteBufferCapacity) {
+        _addWriteBuffer(_pCurrentWriteBuffer);
+        _pCurrentWriteBuffer = _getWriteBuffer();
+        _currentWriteBufferSize = 0;
+    }
 }
 
 void AsioDevice::printInfo() {
@@ -198,45 +203,20 @@ void AsioDevice::printInfo() {
     LOG_INFO("ASIOGetLatencies (input: %d, output: %d)\n", _inputLatency, _outputLatency);
     LOG_INFO("ASIOOutputReady(); - %s\n", _outputReady ? "Supported" : "Not supported");
     if (_pChannelInfos) {
-        for (int i = 0; i < _numOutputChannels; ++i) {
+        for (size_t i = 0; i < _numOutputChannels; ++i) {
             const ASIOChannelInfo &c = _pChannelInfos[i];
             LOG_INFO("ASIOGetChannelInfo(channel: %d, name: %s, group: %d, isActive: %d, isInput: %d, type: %d)\n", c.channel, c.name, c.channelGroup, c.isActive, c.isInput, c.type);
         }
     }
 }
 
-double * const AsioDevice::_getReadBuffer() {
-    //Wait for an available buffer.
-    double *pBuffer = nullptr;
-    _usedBuffersLock.lock();
-    if (_pUsedBuffers->size() > 0) {
-        pBuffer = _pUsedBuffers->back();
-        _pUsedBuffers->pop_back();
-    }
-    _usedBuffersLock.unlock();
-    return pBuffer;
-}
-
-void AsioDevice::_addReadBuffer(double * const pBuffer) {
-    _unusedBuffersLock.lock();
-    _pUnusedBuffers->push_back(pBuffer);
-    _unusedBuffersLock.unlock();
-}
-
 void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
-     if (!_running) {
-         _running = true;
+    if (!_running) {
+        _running = true;
         return;
-     }
+    }
 
     double * const pReadBuffer = _getReadBuffer();
-
-     /*double * pReadBuffer = _getReadBuffer();
-    if (!pReadBuffer) {
-        LOG_INFO("No read buffer. Sleep and try again");
-        Date::sleepMilli();
-        pReadBuffer = _getReadBuffer();
-    }*/
 
     if (pReadBuffer) {
         for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
@@ -274,14 +254,54 @@ long AsioDevice::_asioMessage(const long selector, const long value, void * cons
         return 2L;
         //Requests a driver reset. Return value is always 1L.
     case kAsioResetRequest:
-        LOG_ERROR("ASIO hardware is not available or has been reset.");
+        _error = Error("ASIO hardware is not available or has been reset.");
+        _throwError = true;
         return 1L;
         //The driver went out of sync, such that the timestamp is no longer valid.This is a request to re -start the engine and slave devices(sequencer). 1L if request is accepted or 0 otherwise.
     case kAsioResyncRequest:
-        LOG_ERROR("ASIO driver went out of sync.");
+        _error = Error("ASIO driver went out of sync.");
+        _throwError = true;
         return 1L;
     }
     return 0L;
+}
+
+double * const AsioDevice::_getWriteBuffer() {
+    _unusedBuffersLock.lock();
+    //Check for available buffers.
+    if (_pUnusedBuffers->size() > 0) {
+        double* pBuffer = _pUnusedBuffers->back();
+        _pUnusedBuffers->pop_back();
+        _unusedBuffersLock.unlock();
+        return pBuffer;
+    }
+    _unusedBuffersLock.unlock();
+    //Create new buffer.
+    return new double[_numChannels * _bufferSize];
+}
+
+void AsioDevice::_addWriteBuffer(double * const pBuffer) {
+    _usedBuffersLock.lock();
+    _pUsedBuffers->insert(_pUsedBuffers->begin(), pBuffer);
+    _usedBuffersLock.unlock();
+}
+
+double * const AsioDevice::_getReadBuffer() {
+    //Wait for an available buffer.
+    double *pBuffer = nullptr;
+    _usedBuffersLock.lock();
+    if (_pUsedBuffers->size() > 0) {
+        pBuffer = _pUsedBuffers->back();
+        _pUsedBuffers->pop_back();
+    }
+    _usedBuffersLock.unlock();
+    return pBuffer;
+}
+
+void AsioDevice::_addReadBuffer(double * const pBuffer) {
+    _unusedBuffersLock.lock();
+    _pUnusedBuffers->push_back(pBuffer);
+    _unusedBuffersLock.unlock();
 }
 
 void AsioDevice::_loadDriver(const std::string &dName) {

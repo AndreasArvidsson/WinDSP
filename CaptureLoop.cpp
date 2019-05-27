@@ -25,14 +25,14 @@ Stopwatch sw("Render", 10000);
 #define swEnd() (void)0
 #endif
 
-const Config *_pConfig;
+const Config *_pConfig = nullptr;
 const std::vector<Input*> *_pInputs = nullptr;
 const std::vector<Output*> *_pOutputs = nullptr;
 AudioDevice *_pCaptureDevice = nullptr;
 AudioDevice *_pRenderDevice = nullptr;
-std::thread _captureThread;
+bool *_pUsedChannels = nullptr;
 std::atomic<bool> _run = false;
-bool *_pUsedChannels;
+std::thread _captureThread;
 
 void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice) {
 	_pConfig = pConfig;
@@ -49,7 +49,7 @@ void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, Audio
 
 void CaptureLoop::destroy() {
     if (_pConfig->useAsioRenderDevice()) {
-        AsioDevice::stopRenderService();
+        AsioDevice::stopService();
         AsioDevice::destroy();
     }
 	delete[] _pUsedChannels;
@@ -65,10 +65,10 @@ void CaptureLoop::run() {
 	_pCaptureDevice->startService();
 
     if (_pConfig->useAsioRenderDevice()) {
+		//Asio rendering is started in a new thread by the driver.
+        AsioDevice::startService();
         //Start capturing in a new thread.
         _captureThread = std::thread(_captureLoopAsio);
-
-        AsioDevice::startRenderService();
     }
     else {
         //Start wasapi render device.
@@ -79,6 +79,9 @@ void CaptureLoop::run() {
 
 	size_t count = 0;
 	while (_run) {
+        //Asio renderer operates in its on thread context and cant directly throw exceptions.
+        AsioDevice::throwError();
+
 		//Check if config file has changed.
 		_checkConfig();
 
@@ -111,14 +114,17 @@ void CaptureLoop::run() {
 }
 
 void CaptureLoop::_captureLoopAsio() {
+    //Used to temporarily store sample(for all out channels) while they are being processed.
+    double renderBlockBuffer[32];
     const size_t nChannelsIn = _pInputs->size();
     const size_t nChannelsOut = _pOutputs->size();
     //The size of all sample frames for all channels with the same sample index/timestamp
-    const size_t bufferByteSize = sizeof(double) * nChannelsOut * AsioDevice::getBufferSize();
-    UINT32 sampleIndex, samplesAvailable;
+    const size_t renderBlockSize = sizeof(double) * nChannelsOut;
+    //UINT32 sampleIndex, samplesAvailable;
+	UINT32 samplesAvailable, samplesLeft;
     DWORD flags;
     float *pCaptureBuffer;
-    double *pRenderBuffer, *pBuffer;
+    double *pRenderBlockBuffer;
     bool silent = true;
     bool first = true;
 
@@ -146,11 +152,11 @@ void CaptureLoop::_captureLoopAsio() {
                 }
                 else if (!first) {
                     if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-                        AsioDevice::reset();
-                        assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
                         if (_pConfig->inDebug()) {
                             LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
                         }
+                        AsioDevice::reset();
+                        assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
                         break;
                     }
                     if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR && _pConfig->inDebug()) {
@@ -162,7 +168,6 @@ void CaptureLoop::_captureLoopAsio() {
             //Was silent before.
             if (silent) {
                 silent = false;
-
                 //First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
                 //Need to flush buffer of bad data or we can get glitches.
                 if (first) {
@@ -173,33 +178,33 @@ void CaptureLoop::_captureLoopAsio() {
                 }
             }
 
-            //Store reference to start of buffer. Used in addWriteBuffer below.
-            pRenderBuffer = pBuffer = AsioDevice::getWriteBuffer();
-
-            swEnd();
             swStart();
-
-            //Set buffer default value to 0 so we can add/mix values to it later
-            memset(pRenderBuffer, 0, bufferByteSize);
 
             //Needed to get correct start for the ++pBuffer loops.
             --pCaptureBuffer;
 
             //Iterate all capture frames
-            for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
-                //Iterate inputs and route samples to outputs
-                for (Input * const pInput : *_pInputs) {
-                    pInput->route(*++pCaptureBuffer, pRenderBuffer);
-                }
+			//for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
+			//samplesLeft = samplesAvailable;
+			///while(samplesLeft--) {
+			samplesLeft = samplesAvailable + 1;
+			while(--samplesLeft) {
+				//Set buffer default value to 0 so we can add/mix values to it later
+				memset(renderBlockBuffer, 0, renderBlockSize);
 
-                //Iterate outputs and apply filters
-                for (Output * const pOutput : *_pOutputs) {
-                    *pRenderBuffer++ = pOutput->process(*pRenderBuffer);
-                }
+				//Iterate inputs and route samples to outputs
+				for (Input * const pInput : *_pInputs) {
+					pInput->route(*++pCaptureBuffer, renderBlockBuffer);
+				}
+
+				//Iterate outputs and apply filters
+				pRenderBlockBuffer = renderBlockBuffer - 1;
+				for (Output * const pOutput : *_pOutputs) {
+					AsioDevice::addSample(pOutput->process(*++pRenderBlockBuffer));
+				}
             }
 
-            //Release render buffer.
-            AsioDevice::addWriteBuffer(pBuffer);
+			swEnd();
 
             //Release capture buffer.
             assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
@@ -260,7 +265,6 @@ void CaptureLoop::_captureLoopWasapi() {
 				silent = false;
 				//Need to flush render buffer or a glitch kind of sound can occour after silence.
 				_pRenderDevice->flushRenderBuffer();
-
 				//First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
 				//Need to flush buffer of bad data or we can get glitches.
 				if (first) {

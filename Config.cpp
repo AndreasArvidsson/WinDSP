@@ -6,8 +6,8 @@
 
 Config::Config(const std::string &path) {
     _configFile = path;
-    _hide = _minimize = _useConditionalRouting = _startWithOS = _addAutoGain = _debug = false;
-    _sampleRate = _numChannelsIn = _numChannelsOut = 0;
+    _hide = _minimize = _useConditionalRouting = _startWithOS = _addAutoGain = _debug = _useAsioRenderDevice = false;
+    _sampleRate = _numChannelsIn = _numChannelsOut = _asioBufferSize = _asioNumChannels = 0;
     _lastModified = 0;
     _pLpFilter = _pHpFilter = nullptr;
     load();
@@ -103,8 +103,15 @@ const bool Config::inDebug() const {
 }
 
 const bool Config::useAsioRenderDevice() const {
-    //TODO
-    return true;
+    return _useAsioRenderDevice;
+}
+
+const uint32_t Config::getAsioBufferSize() const {
+    return _asioBufferSize;
+}
+
+const uint32_t Config::getAsioNumChannels() const {
+    return _asioNumChannels;
 }
 
 const bool Config::hasGainFilter(const std::vector<Filter*> &filters) const {

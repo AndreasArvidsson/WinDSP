@@ -127,25 +127,18 @@ void run() {
 	*/
 
 	const std::string captureDeviceName = pConfig->getCaptureDeviceName();
-	//const std::string renderDeviceName = pConfig->getRenderDeviceName();
-    
-    std::string renderDeviceName;
-    if (pConfig->useAsioRenderDevice()) {
-        renderDeviceName = "Focusrite USB ASIO";
-    }
-    else {
-        renderDeviceName = pConfig->getRenderDeviceName();
-    }
+	const std::string renderDeviceName = pConfig->getRenderDeviceName();
 
-
+	const std::string renderPrefix = pConfig->useAsioRenderDevice() ? " (ASIO)" : "";
 	LOG_INFO("----------------------------------------------");
 	LOG_INFO("Starting DSP service @ %s", Date::getLocalDateTimeString().c_str());
 	LOG_INFO("Capture: %s", captureDeviceName.c_str());
-	LOG_INFO("Render: %s", renderDeviceName.c_str());
+	LOG_INFO("Render%s: %s", renderPrefix.c_str(), renderDeviceName.c_str());
 	if (pConfig->hasDescription()) {
 		LOG_INFO("%s", pConfig->getDescription().c_str());
 	}
 	LOG_INFO("----------------------------------------------\n");
+
 
 	/*
 	 * Create and initalize devices and validate device settings
@@ -153,7 +146,7 @@ void run() {
 
 	pCaptureDevice = AudioDevice::initDevice(captureDeviceName);
 	pCaptureDevice->initCaptureService();
-	const WAVEFORMATEX *pCaptureFormat = pCaptureDevice->getFormat();
+	const WAVEFORMATEX * const pCaptureFormat = pCaptureDevice->getFormat();
     //Sample buffers must contains a 32bit float. All code depends on it.
     if (pCaptureFormat->wBitsPerSample != 32) {
         throw Error("Bit depth doesnt match float(32), Found(%d)", pCaptureFormat->wBitsPerSample);
@@ -164,8 +157,8 @@ void run() {
     //ASIO render device.
     if (pConfig->useAsioRenderDevice()) {
         const long sampleRate = pCaptureFormat->nSamplesPerSec;
-        const long bufferSize = pCaptureDevice->getEngineBufferSize();
-        const long numChannels = pCaptureDevice->getFormat()->nChannels;
+        const long bufferSize = pConfig->getAsioBufferSize() > 0 ? pConfig->getAsioBufferSize() : pCaptureDevice->getEngineBufferSize();
+        const long numChannels = pConfig->getAsioNumChannels() > 0 ? pConfig->getAsioNumChannels() : pCaptureDevice->getFormat()->nChannels;
         AsioDevice::initRenderService(renderDeviceName, sampleRate, bufferSize, numChannels);
         renderNumChannels = AsioDevice::getNumChannels();
     }
@@ -173,7 +166,7 @@ void run() {
     else {
         pRenderDevice = AudioDevice::initDevice(renderDeviceName);
         pRenderDevice->initRenderService();
-        const WAVEFORMATEX *pRenderFormat = pRenderDevice->getFormat();
+        const WAVEFORMATEX * const pRenderFormat = pRenderDevice->getFormat();
         renderNumChannels = pRenderFormat->nChannels;
         //The application have no resampler. Sample rate and bit depth must be a match.
         if (pCaptureFormat->nSamplesPerSec != pRenderFormat->nSamplesPerSec) {
@@ -186,6 +179,7 @@ void run() {
             throw Error("Format tag missmatch: Capture(%d), Render(%d)", pCaptureFormat->wFormatTag, pRenderFormat->wFormatTag);
         }
     }
+
 
 	/*
 	* Init I/O and filters

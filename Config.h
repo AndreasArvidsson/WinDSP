@@ -40,6 +40,8 @@ public:
     const bool hasDescription() const;
     const bool inDebug() const;
     const bool useAsioRenderDevice() const;
+    const uint32_t getAsioBufferSize() const;
+    const uint32_t getAsioNumChannels() const;
 
     inline const bool Config::hasChanged() const {
         return _lastModified != _configFile.getLastModifiedTime();
@@ -56,9 +58,9 @@ private:
     File _configFile;
     JsonNode *_pJsonNode, *_pLpFilter, *_pHpFilter;
     std::string _captureDeviceName, _renderDeviceName;
-    uint32_t _sampleRate, _numChannelsIn, _numChannelsOut;
+    uint32_t _sampleRate, _numChannelsIn, _numChannelsOut, _asioBufferSize, _asioNumChannels;
     time_t _lastModified;
-    bool _hide, _minimize, _useConditionalRouting, _startWithOS, _addAutoGain, _debug;
+    bool _hide, _minimize, _useConditionalRouting, _startWithOS, _addAutoGain, _debug, _useAsioRenderDevice;
 
     /* ********* Config.cpp ********* */
 

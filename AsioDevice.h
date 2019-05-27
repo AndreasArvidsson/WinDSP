@@ -42,5 +42,4 @@ namespace AsioDevice {
     void _assertSampleType(const ASIOSampleType type);
     const std::string _asioSampleType(const ASIOSampleType type);
     const std::string _asioResult(const ASIOError error);
-    
 }

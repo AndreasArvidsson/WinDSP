@@ -80,8 +80,8 @@ void AsioDevice::initRenderService(const std::string &dName, const long sampleRa
     _pUsedBuffers = new std::vector<double*>;
     _pUnusedBuffers = new std::vector<double*>;
     _pCurrentWriteBuffer = _getWriteBuffer();
-    _currentWriteBufferCapacity = _numChannels * _bufferSize;
-    _currentWriteBufferSize = 0;
+    _currentWriteBufferCapacity = _numChannels * _bufferSize - 1; //Compensate for ++var operation.
+    _currentWriteBufferSize = -1;
     _throwError = false;
 
     //Create buffer info per channel.
@@ -143,7 +143,7 @@ void AsioDevice::reset() {
     __LOG_INFO__("reset()");
 
     //Empty current write buffer.
-    _currentWriteBufferSize = 0;
+    _currentWriteBufferSize = -1;
     //Move all buffers to unused list.
     _usedBuffersLock.lock();
     _unusedBuffersLock.lock();
@@ -186,11 +186,11 @@ void AsioDevice::throwError() {
 }
 
 void AsioDevice::addSample(const double sample) {
-    _pCurrentWriteBuffer[_currentWriteBufferSize++] = sample;
+    _pCurrentWriteBuffer[++_currentWriteBufferSize] = sample;
     if (_currentWriteBufferSize == _currentWriteBufferCapacity) {
         _releaseWriteBuffer(_pCurrentWriteBuffer);
         _pCurrentWriteBuffer = _getWriteBuffer();
-        _currentWriteBufferSize = 0;
+        _currentWriteBufferSize = -1;
     }
 }
 

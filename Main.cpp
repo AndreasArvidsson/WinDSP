@@ -157,7 +157,7 @@ void run() {
     //ASIO render device.
     if (pConfig->useAsioRenderDevice()) {
         const long sampleRate = pCaptureFormat->nSamplesPerSec;
-        const long bufferSize = pConfig->getAsioBufferSize() > 0 ? pConfig->getAsioBufferSize() : pCaptureDevice->getEngineBufferSize();
+        const long bufferSize = pConfig->getAsioBufferSize();
         const long numChannels = pConfig->getAsioNumChannels() > 0 ? pConfig->getAsioNumChannels() : pCaptureDevice->getFormat()->nChannels;
         AsioDevice::initRenderService(renderDeviceName, sampleRate, bufferSize, numChannels);
         renderNumChannels = AsioDevice::getNumChannels();

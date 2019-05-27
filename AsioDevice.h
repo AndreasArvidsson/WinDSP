@@ -33,12 +33,14 @@ namespace AsioDevice {
     void _bufferSwitch(const long asioBufferIndex, const ASIOBool);
     long _asioMessage(const long selector, const long value, void * const message, double * const opt);
     double * const _getWriteBuffer();
-    void _addWriteBuffer(double * const pBuffer);
     double * const _getReadBuffer();
-    void _addReadBuffer(double * const pBuffer);
+    void _releaseWriteBuffer(double * const pBuffer);
+    void _releaseReadBuffer(double * const pBuffer);
+    void _renderSilence(const long asioBufferIndex);
     void _loadDriver(const std::string &driverName);
     void _assertAsio(const ASIOError error);
     void _assertSampleType(const ASIOSampleType type);
     const std::string _asioSampleType(const ASIOSampleType type);
     const std::string _asioResult(const ASIOError error);
+    
 }

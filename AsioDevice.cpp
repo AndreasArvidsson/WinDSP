@@ -6,6 +6,10 @@
 #include "Date.h"
 #include "SpinLock.h"
 
+//TODO
+#include "Log.h"
+int numBuffers = 0;
+
 #define MAX_INT32 2147483647.0
 
 //External references
@@ -184,7 +188,7 @@ void AsioDevice::throwError() {
 void AsioDevice::addSample(const double sample) {
     _pCurrentWriteBuffer[_currentWriteBufferSize++] = sample;
     if (_currentWriteBufferSize == _currentWriteBufferCapacity) {
-        _addWriteBuffer(_pCurrentWriteBuffer);
+        _releaseWriteBuffer(_pCurrentWriteBuffer);
         _pCurrentWriteBuffer = _getWriteBuffer();
         _currentWriteBufferSize = 0;
     }
@@ -215,6 +219,7 @@ void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
 
     double * const pReadBuffer = _getReadBuffer();
 
+    //Read buffer available. Send data to render buffer.
     if (pReadBuffer) {
         for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
             int * const pRenderBuffer = (int*)_pBufferInfos[channelIndex].buffers[asioBufferIndex];
@@ -222,13 +227,11 @@ void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
                 pRenderBuffer[sampleIndex] = (int)(MAX_INT32 * pReadBuffer[sampleIndex * _numChannels + channelIndex]);
             }
         }
-        _addReadBuffer(pReadBuffer);
+        _releaseReadBuffer(pReadBuffer);
     }
+    //No data available. Just render silence.
     else {
-        __LOG_INFO__("Render silence");
-        for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
-            memset((int*)_pBufferInfos[channelIndex].buffers[asioBufferIndex], 0, _bufferByteSize);
-        }
+        _renderSilence(asioBufferIndex);
     }
 
     //If available this can reduce latency.
@@ -274,13 +277,8 @@ double * const AsioDevice::_getWriteBuffer() {
     }
     _unusedBuffersLock.unlock();
     //Create new buffer.
+    __LOG_INFO__("Create buffer: %d", ++numBuffers);
     return new double[_numChannels * _bufferSize];
-}
-
-void AsioDevice::_addWriteBuffer(double * const pBuffer) {
-    _usedBuffersLock.lock();
-    _pUsedBuffers->insert(_pUsedBuffers->begin(), pBuffer);
-    _usedBuffersLock.unlock();
 }
 
 double * const AsioDevice::_getReadBuffer() {
@@ -295,10 +293,23 @@ double * const AsioDevice::_getReadBuffer() {
     return pBuffer;
 }
 
-void AsioDevice::_addReadBuffer(double * const pBuffer) {
+void AsioDevice::_releaseWriteBuffer(double * const pBuffer) {
+    _usedBuffersLock.lock();
+    _pUsedBuffers->insert(_pUsedBuffers->begin(), pBuffer);
+    _usedBuffersLock.unlock();
+}
+
+void AsioDevice::_releaseReadBuffer(double * const pBuffer) {
     _unusedBuffersLock.lock();
     _pUnusedBuffers->push_back(pBuffer);
     _unusedBuffersLock.unlock();
+}
+
+void AsioDevice::_renderSilence(const long asioBufferIndex) {
+    //__LOG_INFO__("Render silence");
+    for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
+        memset((int*)_pBufferInfos[channelIndex].buffers[asioBufferIndex], 0, _bufferByteSize);
+    }
 }
 
 void AsioDevice::_loadDriver(const std::string &dName) {

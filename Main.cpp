@@ -21,7 +21,7 @@
 #include "Str.h"
 #include "AsioDevice.h"
 
-#define VERSION "0.20.0b"
+#define VERSION "0.21.0b"
 
 #ifdef DEBUG
 #include "MemoryManager.h"
@@ -34,6 +34,7 @@ char configFileNumber = '0';
 Config *pConfig = nullptr;
 AudioDevice *pCaptureDevice = nullptr;
 AudioDevice *pRenderDevice = nullptr;
+CaptureLoop *pCaptureLoop = nullptr;
 
 LONG_PTR CALLBACK trayIconCallback(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 	if (iMsg == TRAY_ICON_MSG && lParam == WM_LBUTTONDBLCLK) {
@@ -89,8 +90,8 @@ const bool checkInput(const char input) {
 }
 
 void clearData() {
-	CaptureLoop::stop();
-	CaptureLoop::destroy();
+    pCaptureLoop->stop();
+    delete pCaptureLoop;
 	delete pConfig;
 	delete pCaptureDevice;
 	delete pRenderDevice;
@@ -129,16 +130,6 @@ void run() {
 	const std::string captureDeviceName = pConfig->getCaptureDeviceName();
 	const std::string renderDeviceName = pConfig->getRenderDeviceName();
 
-	const std::string renderPrefix = pConfig->useAsioRenderDevice() ? " (ASIO)" : "";
-	LOG_INFO("----------------------------------------------");
-	LOG_INFO("Starting DSP service @ %s", Date::getLocalDateTimeString().c_str());
-	LOG_INFO("Capture: %s", captureDeviceName.c_str());
-	LOG_INFO("Render%s: %s", renderPrefix.c_str(), renderDeviceName.c_str());
-	if (pConfig->hasDescription()) {
-		LOG_INFO("%s", pConfig->getDescription().c_str());
-	}
-	LOG_INFO("----------------------------------------------\n");
-
 
 	/*
 	 * Create and initalize devices and validate device settings
@@ -157,7 +148,7 @@ void run() {
     //ASIO render device.
     if (pConfig->useAsioRenderDevice()) {
         renderNumChannels = pConfig->getAsioNumChannels() > 0 ? pConfig->getAsioNumChannels() : pCaptureDevice->getFormat()->nChannels;
-        AsioDevice::initRenderService(renderDeviceName, pCaptureFormat->nSamplesPerSec, pConfig->getAsioBufferSize(), renderNumChannels);
+        AsioDevice::initRenderService(pConfig, renderDeviceName, pCaptureFormat->nSamplesPerSec, pConfig->getAsioBufferSize(), renderNumChannels);
     }
     //WASAPI render device.
     else {
@@ -186,12 +177,30 @@ void run() {
 	pConfig->init(pCaptureFormat->nSamplesPerSec, pCaptureFormat->nChannels, renderNumChannels);
 
 
+    /*
+     * Print data to the user.
+     */
+
+    const std::string renderPrefix = pConfig->useAsioRenderDevice() ? " (ASIO)" : "";
+    LOG_INFO("----------------------------------------------");
+    LOG_INFO("Starting DSP service @ %s", Date::getLocalDateTimeString().c_str());
+    LOG_INFO("Capture: %s", captureDeviceName.c_str());
+    LOG_INFO("Render%s: %s", renderPrefix.c_str(), renderDeviceName.c_str());
+    if (pConfig->hasDescription()) {
+        LOG_INFO("%s", pConfig->getDescription().c_str());
+    }
+    LOG_INFO("----------------------------------------------\n");
+    if (pConfig->inDebug()) {
+        pConfig->printConfig();
+    }
+
+
 	/*
 	* Start capturing data
 	*/
 
-	CaptureLoop::init(pConfig, pCaptureDevice, pRenderDevice);
-	CaptureLoop::run();
+    pCaptureLoop = new CaptureLoop(pConfig, pCaptureDevice, pRenderDevice);
+    pCaptureLoop->run();
 }
 
 int main(int argc, char **argv) {

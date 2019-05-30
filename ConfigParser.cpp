@@ -37,6 +37,8 @@ void Config::parseMisc() {
     _minimize = tryGetBoolValue(_pJsonNode, "minimize", "");
     //Parse startup
     _startWithOS = tryGetBoolValue(_pJsonNode, "startWithOS", "");
+    //Parse debug
+    _debug = tryGetBoolValue(_pJsonNode, "debug", "");
 }
 
 void Config::parseRouting() {

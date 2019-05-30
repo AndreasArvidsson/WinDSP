@@ -32,13 +32,8 @@ void Config::init(const uint32_t sampleRate, const uint32_t numChannelsIn, const
     _numChannelsIn = numChannelsIn;
     _numChannelsOut = numChannelsOut;
     _useConditionalRouting = false;
-    _debug = tryGetBoolValue(_pJsonNode, "debug", "");
     parseRouting();
     parseOutputs();
-
-    if (_debug) {
-        printConfig();
-    }
 }
 
 const std::string Config::getCaptureDeviceName() const {

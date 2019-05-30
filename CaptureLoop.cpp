@@ -7,11 +7,11 @@
 #include "Config.h"
 #include "TrayIcon.h"
 #include "OS.h"
+#include "Visibility.h"
 #include "AudioDevice.h"
+#include "AsioDevice.h"
 #include "Input.h"
 #include "Output.h"
-#include "Visibility.h"
-#include "AsioDevice.h"
 
 //#define PERFORMANCE_LOG
 
@@ -25,16 +25,7 @@ Stopwatch sw("Render", 5000);
 #define swEnd() (void)0
 #endif
 
-const Config *_pConfig = nullptr;
-const std::vector<Input*> *_pInputs = nullptr;
-const std::vector<Output*> *_pOutputs = nullptr;
-AudioDevice *_pCaptureDevice = nullptr;
-AudioDevice *_pRenderDevice = nullptr;
-bool *_pUsedChannels = nullptr;
-std::atomic<bool> _run = false;
-std::thread _captureThread;
-
-void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice) {
+CaptureLoop::CaptureLoop(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice) {
 	_pConfig = pConfig;
 	_pInputs = pConfig->getInputs();
 	_pOutputs = pConfig->getOutputs();
@@ -47,7 +38,7 @@ void CaptureLoop::init(const Config *pConfig, AudioDevice *pCaptureDevice, Audio
 	Condition::init(_pUsedChannels);
 }
 
-void CaptureLoop::destroy() {
+CaptureLoop::~CaptureLoop() {
     if (_pConfig->useAsioRenderDevice()) {
         AsioDevice::stopService();
         AsioDevice::destroy();
@@ -68,13 +59,13 @@ void CaptureLoop::run() {
 		//Asio rendering is started in a new thread by the driver.
         AsioDevice::startService();
         //Start capturing in a new thread.
-        _captureThread = std::thread(_captureLoopAsio);
+        _captureThread = std::thread(&CaptureLoop::_captureLoopAsio, this);
     }
     else {
         //Start wasapi render device.
         _pRenderDevice->startService();
         //Start capturing in a new thread.
-        _captureThread = std::thread(_captureLoopWasapi);
+        _captureThread = std::thread(&CaptureLoop::_captureLoopWasapi, this);
     }
 
 	size_t count = 0;
@@ -129,7 +120,6 @@ void CaptureLoop::_captureLoopAsio() {
 
     //Wait until ASIO service has started.
     while (!AsioDevice::isRunning());
-    _pCaptureDevice->flushCaptureBuffer();
 
     while (_run) {
         //Check for samples in capture buffer.
@@ -149,19 +139,27 @@ void CaptureLoop::_captureLoopAsio() {
                     assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
                     break;
                 }
-                else if (!first) {
+                else if (!first && _pConfig->inDebug()) {
                     if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-                        if (_pConfig->inDebug()) {
-                            LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
-                        }
-                        AsioDevice::reset();
-                        assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
-                        break;
+                        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
                     }
-                    if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR && _pConfig->inDebug()) {
+                    if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
                         LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
                     }
                 }
+                //else if (!first) {
+                //    if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+                //        if (_pConfig->inDebug()) {
+                //            LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                //        }
+                //        AsioDevice::reset();
+                //     /*   assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
+                //        break;*/
+                //    }
+                //    if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR && _pConfig->inDebug()) {
+                //        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                //    }
+                //}
             }
 
             //Was silent before.
@@ -268,10 +266,7 @@ void CaptureLoop::_captureLoopWasapi() {
 			}
 
 			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
-			while (samplesAvailable > _pRenderDevice->getBufferFrameCountAvailable()) {
-				//Short sleep just to not busy wait all resources.
-				Date::sleepMilli();
-			}
+            while (samplesAvailable > _pRenderDevice->getBufferFrameCountAvailable());
 
 			//Get render buffer
 			assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, samplesAvailable));

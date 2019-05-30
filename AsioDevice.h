@@ -11,9 +11,11 @@
 #include "asiosys.h"
 #include "asio.h"
 
+class Config;
+
 namespace AsioDevice {
     //Public
-    void initRenderService(const std::string &driverName, const long sampleRate, const long bufferSize = 0, const long numChannels = 0);
+    void initRenderService(const Config *pConfig, const std::string &driverName, const long sampleRate, const long bufferSize = 0, const long numChannels = 0);
     void destroy();
     void startService();
     void stopService();

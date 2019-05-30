@@ -110,11 +110,13 @@ void AsioDevice::destroy() {
 }
 
 void AsioDevice::startService() {
-
-    _pCurrentWriteBuffer = _getWriteBuffer();
-    _currentWriteBufferCapacity = _numChannels * _bufferSize - 1; //Compensate for ++var operation.
+    //Create buffer first time.
+    if (!_pCurrentWriteBuffer) {
+        _pCurrentWriteBuffer = _getWriteBuffer();
+        _currentWriteBufferCapacity = _numChannels * _bufferSize - 1;
+    }
+    //Empty current write buffer. Compensate for ++var operation.
     _currentWriteBufferSize = -1;
-
     //Create buffers and connect callbacks.
     _assertAsio(ASIOCreateBuffers(_pBufferInfos, _numChannels, _bufferSize, &_callbacks));
     //Latencies are dependent on the used buffer size so have to be fetched after create buffers.
@@ -134,7 +136,7 @@ void AsioDevice::reset() {
     if (_pConfig->inDebug()) {
         LOG_INFO("%s: Reset ASIO", Date::getLocalDateTimeString().c_str());
     }
-    //Empty current write buffer.
+    //Empty current write buffer. Compensate for ++var operation.
     _currentWriteBufferSize = -1;
     //Move all buffers to unused list.
     _usedBuffersLock.lock();
@@ -257,7 +259,8 @@ long AsioDevice::_asioMessage(const long selector, const long value, void * cons
         _error = Error("ASIO hardware is not available or has been reset.");
         _throwError = true;
         return 1L;
-        //The driver went out of sync, such that the timestamp is no longer valid.This is a request to re -start the engine and slave devices(sequencer). 1L if request is accepted or 0 otherwise.
+        //The driver went out of sync, such that the timestamp is no longer valid.
+        //This is a request to re -start the engine and slave devices(sequencer). 1L if request is accepted or 0 otherwise.
     case kAsioResyncRequest:
         _error = Error("ASIO driver went out of sync.");
         _throwError = true;
@@ -277,7 +280,9 @@ double * const AsioDevice::_getWriteBuffer() {
     }
     _unusedBuffersLock.unlock();
     if (_pConfig->inDebug()) {
-        LOG_INFO("%s: Create ASIO buffer: %d", Date::getLocalDateTimeString().c_str(), ++_numBuffers);
+        ++_numBuffers;
+        LOG_INFO("%s: Create ASIO buffer: %d(%.1fms)", Date::getLocalDateTimeString().c_str(),
+            _numBuffers, _numBuffers * 1000.0 * _bufferSize / _sampleRate);
     }
     //Create new buffer.
     return new double[_numChannels * _bufferSize];
@@ -307,7 +312,7 @@ void AsioDevice::_releaseReadBuffer(double * const pBuffer) {
     _unusedBuffersLock.unlock();
 }
 
-void AsioDevice::_renderSilence(const long asioBufferIndex) {    
+void AsioDevice::_renderSilence(const long asioBufferIndex) {
     for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
         memset((int*)_pBufferInfos[channelIndex].buffers[asioBufferIndex], 0, _bufferByteSize);
     }

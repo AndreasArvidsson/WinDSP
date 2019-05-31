@@ -205,7 +205,6 @@ void AsioDevice::printInfo() {
     }
 }
 
-bool hasAudio = false;
 void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
     if (!_running) {
         _running = true;
@@ -213,15 +212,8 @@ void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
 
     double * const pReadBuffer = _getReadBuffer();
 
-    //double *pReadBuffer;
-    //do {
-    //    pReadBuffer  = _getReadBuffer();
-    //} while(!pReadBuffer && hasAudio);
-
     //Read buffer available. Send data to render buffer.
     if (pReadBuffer) {
-        hasAudio = true;
-
         for (size_t channelIndex = 0; channelIndex < _numChannels; ++channelIndex) {
             int * const pRenderBuffer = (int*)_pBufferInfos[channelIndex].buffers[asioBufferIndex];
             for (size_t sampleIndex = 0; sampleIndex < _bufferSize; ++sampleIndex) {
@@ -232,7 +224,6 @@ void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
     }
     //No data available. Just render silence.
     else {
-        //__LOG_INFO__("Render silence");
         _renderSilence(asioBufferIndex);
     }
 

@@ -1,11 +1,10 @@
 #pragma once
-//#include <vector>
 #include <deque>
 #include <thread>
 #include "SpinLock.h"
 
 enum class LogSeverity {
-    DEBUG, INFO, WARN, ERR
+    S_DEBUG, S_INFO, S_WARN, S_ERROR
 };
 
 class LogLine {
@@ -19,8 +18,6 @@ public:
 
 };
 
-//#define DEBUG_LOG
-
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
 
 #undef LOG_INFO
@@ -28,21 +25,22 @@ public:
 #undef LOG_ERROR
 #undef LOG_NL
 
-#define LOG_DEBUG(str, ...) WinDSPLog::log(LogSeverity::DEBUG, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
-#define LOG_INFO(str, ...)	WinDSPLog::log(LogSeverity::INFO, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
-#define LOG_WARN(str, ...)  WinDSPLog::log(LogSeverity::WARN, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
-#define LOG_ERROR(str, ...) WinDSPLog::log(LogSeverity::ERR, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
-#define LOG_NL()			WinDSPLog::log(LogSeverity::INFO, __FILENAME__, __LINE__, "")
+#define LOG_DEBUG(str, ...) WinDSPLog::log(LogSeverity::S_DEBUG, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
+#define LOG_INFO(str, ...)	WinDSPLog::log(LogSeverity::S_INFO, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
+#define LOG_WARN(str, ...)  WinDSPLog::log(LogSeverity::S_WARN, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
+#define LOG_ERROR(str, ...) WinDSPLog::log(LogSeverity::S_ERROR, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
+#define LOG_NL()			WinDSPLog::log(LogSeverity::S_INFO, __FILENAME__, __LINE__, "")
 
 class WinDSPLog {
 public:
     static void init();
-    //static void log(const char* type, const char* file, unsigned int line, const char *str, ...);
+    static void destroyStatic();
+    static void setLogToFile(const bool logToFile);
     static void log(const LogSeverity severity, const char * const fileName, const unsigned int line, const char *str, ...);
     static void flush();
 
 private:
-    static std::deque<LogLine> _buffer;
+    static std::deque<LogLine> *_pBuffer;
     static SpinLock _lock;
     static std::thread::id _mainThreadId;
     static bool _logToFile;

@@ -167,8 +167,8 @@ void AudioDevice::printInfo() const {
 	assert(_pAudioClient->GetDevicePeriod(&engineTime, &minTime));
 	UINT32 default_, fundamental, min, max;
 	assert(_pAudioClient->GetSharedModeEnginePeriod(_pFormat, &default_, &fundamental, &min, &max));
-	LOG_INFO("hw min = %f, engine = %f, buffer = %f\n", minTime / 10000.0, engineTime / 10000.0, 1000.0 * _bufferSize / _pFormat->nSamplesPerSec);
-	LOG_INFO("default = %d, fundamental = %d, min = %d, max = %d, current = %d, buffer = %d\n", default_, fundamental, min, max, _bufferSize, _bufferSize);
+	LOG_INFO("hw min = %f, engine = %f, buffer = %f", minTime / 10000.0, engineTime / 10000.0, 1000.0 * _bufferSize / _pFormat->nSamplesPerSec);
+	LOG_INFO("default = %d, fundamental = %d, min = %d, max = %d, current = %d, buffer = %d", default_, fundamental, min, max, _bufferSize, _bufferSize);
 }
 
 const std::string AudioDevice::getId() {

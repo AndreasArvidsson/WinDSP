@@ -31,6 +31,7 @@ CaptureLoop::CaptureLoop(const Config *pConfig, AudioDevice *pCaptureDevice, Aud
 	_pOutputs = pConfig->getOutputs();
 	_pCaptureDevice = pCaptureDevice;
 	_pRenderDevice = pRenderDevice;
+    _run = false;
 
 	//Initialize conditions
 	_pUsedChannels = new bool[_pInputs->size()];

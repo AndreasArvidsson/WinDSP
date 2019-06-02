@@ -59,17 +59,25 @@ void updateStartWithOS() {
 	}
 }
 
+const std::string getTitle() {
+    return String::format("WinDSP %s%s", VERSION, PROFILE);
+}
+
 void setTitle() {
-    const std::string title = String::format("WinDSP %s%s", VERSION, PROFILE);
+    const std::string title = getTitle();
 	SetConsoleTitle(title.c_str());
-	LOG_INFO("----------------------------------------------");
-	LOG_INFO("\t%s", title.c_str());
-#ifdef DEBUG_LOG
-	LOG_INFO("\tLog file: %s", LOG_FILE);
-#endif
-	LOG_INFO("----------------------------------------------");
-    LOG_NL();
 	TrayIcon::init(trayIconCallback, IDI_ICON1, title);
+}
+
+void logTitle() {
+    LOG_NL();
+    LOG_INFO("----------------------------------------------");
+    LOG_INFO("\t%s", getTitle().c_str());
+#ifdef DEBUG_LOG
+    LOG_INFO("\tLog file: %s", LOG_FILE);
+#endif
+    LOG_INFO("----------------------------------------------");
+    LOG_NL();
 }
 
 const std::string getConfigFileName() {
@@ -84,14 +92,17 @@ const std::string getConfigFileName() {
 const bool checkInput(const char input) {
 	if (input) {
 		configFileNumber = input;
-		LOG_INFO("Switching to config file '%s'\n", getConfigFileName().c_str());
+		LOG_INFO("Switching to config file '%s'", getConfigFileName().c_str());
+        LOG_NL();
 		return true;
 	}
 	return false;
 }
 
 void clearData() {
-    pCaptureLoop->stop();
+    if (pCaptureLoop) {
+        pCaptureLoop->stop();
+    }
     delete pCaptureLoop;
 	delete pConfig;
 	delete pCaptureDevice;
@@ -101,6 +112,7 @@ void clearData() {
 	pRenderDevice = nullptr;
 	AudioDevice::destroyStatic();
 	JsonNode::destroyStatic();
+    WinDSPLog::destroyStatic();
 
 #ifdef DEBUG_MEMORY
 	//Check for memory leaks
@@ -116,6 +128,9 @@ void run() {
 
 	//Load config file
 	pConfig = new Config(configPath);
+
+    WinDSPLog::init();
+    logTitle();
 
 	//Update start with OS.
 	updateStartWithOS();
@@ -173,6 +188,7 @@ void run() {
 	* Init I/O and filters
 	*/
 
+
 	//Read config and get I/O instances with filters 
 	pConfig->init(pCaptureFormat->nSamplesPerSec, pCaptureFormat->nChannels, renderNumChannels);
 
@@ -208,7 +224,6 @@ void run() {
 }
 
 int main(int argc, char **argv) {
-    WinDSPLog::init();
 	setTitle();
 
 	//Very important for filter performance.
@@ -221,14 +236,17 @@ int main(int argc, char **argv) {
 			run();
 		}
 		catch (const ConfigChangedException &e) {
+            WinDSPLog::flush();
 			if (!checkInput(e.getInput())) {
-				LOG_INFO("Config file changed. Restarting...\n");
+				LOG_INFO("Config file changed. Restarting...");
+                LOG_NL();
 			}
 		}
 		//Keep trying for the service to come back
 		catch (const std::exception &e) {
 			Visibility::show(true);
-			LOG_ERROR("ERROR: %s\n", e.what());
+            WinDSPLog::flush();
+			LOG_ERROR("ERROR: %s", e.what());
 
 			//Wait before trying again.
 			waiting = 20;

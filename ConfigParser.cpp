@@ -39,6 +39,8 @@ void Config::parseMisc() {
     _startWithOS = tryGetBoolValue(_pJsonNode, "startWithOS", "");
     //Parse debug
     _debug = tryGetBoolValue(_pJsonNode, "debug", "");
+    //Log to file in debug mode.
+    WinDSPLog::setLogToFile(_debug);
 }
 
 void Config::parseRouting() {
@@ -193,31 +195,38 @@ void Config::setDevices() {
     size_t selectedIndex;
     bool isOk;
     do {
-        LOG_INFO("Available capture devices:\n");
+        LOG_INFO("Available capture devices:");
+        LOG_NL();
         for (size_t i = 0; i < wasapiDevices.size(); ++i) {
-            LOG_INFO("%zu: %s\n", i + 1, wasapiDevices[i].c_str());
+            LOG_INFO("%zu: %s", i + 1, wasapiDevices[i].c_str());
         }
         //Make selection
         selectedIndex = getSelection(1, wasapiDevices.size());
         _captureDeviceName = wasapiDevices[selectedIndex - 1];
 
-        LOG_INFO("\nAvailable render devices:\n");
+        LOG_NL();
+        LOG_INFO("Available render devices:");
+        LOG_NL();
         size_t index = 1;
         for (size_t i = 0; i < wasapiDevices.size(); ++i, ++index) {
             //Cant reuse capture device.
             if (index != selectedIndex) {
-                LOG_INFO("%zu: %s\n", index, wasapiDevices[i].c_str());
+                LOG_INFO("%zu: %s", index, wasapiDevices[i].c_str());
             }
         }
         //Make selection
         selectedIndex = getSelection(1, wasapiDevices.size(), selectedIndex);
 
         //Query if selection is ok.
-        LOG_INFO("\nSelected devices:\n");
-        LOG_INFO("Capture: %s\n", _captureDeviceName.c_str());
+        LOG_NL();
+        LOG_INFO("Selected devices:");
+        LOG_NL();
+        LOG_INFO("Capture: %s", _captureDeviceName.c_str());
         _renderDeviceName = wasapiDevices[selectedIndex - 1];
-        LOG_INFO("Render: %s\n", _renderDeviceName.c_str());
-        LOG_INFO("\nPress 1 to continue or 0 to re-select\n");
+        LOG_INFO("Render: %s", _renderDeviceName.c_str());
+        LOG_NL();
+        LOG_INFO("Press 1 to continue or 0 to re-select");
+        LOG_NL();
         isOk = getSelection(0, 1) == 1;
         LOG_NL();
     } while (!isOk);

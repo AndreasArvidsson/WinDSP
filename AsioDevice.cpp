@@ -135,7 +135,7 @@ void AsioDevice::stopService() {
 
 void AsioDevice::reset() {
     if (_pConfig->inDebug()) {
-        LOG_DEBUG("%s: Reset ASIO",);
+        LOG_DEBUG("Reset ASIO");
     }
     //Empty current write buffer. Compensate for ++var operation.
     _currentWriteBufferSize = -1;
@@ -190,18 +190,18 @@ void AsioDevice::addSample(const double sample) {
 }
 
 void AsioDevice::printInfo() {
-    LOG_INFO("asioVersion: %d\n", _asioVersion);
-    LOG_INFO("driverVersion: %d\n", _driverVersion);
-    LOG_INFO("Name: %s\n", _pDriverName->c_str());
-    LOG_INFO("ASIOGetChannels (inputs: %d, outputs: %d) - numChannels: %d\n", _numInputChannels, _numOutputChannels, _numChannels);
-    LOG_INFO("ASIOGetBufferSize (min: %d, max: %d, preferred: %d, granularity: %d)\n", _minSize, _maxSize, _preferredSize, _granularity);
-    LOG_INFO("ASIOGetSampleRate (sampleRate: %d)\n", (int)_sampleRate);
-    LOG_INFO("ASIOGetLatencies (input: %d, output: %d)\n", _inputLatency, _outputLatency);
-    LOG_INFO("ASIOOutputReady(); - %s\n", _outputReady ? "Supported" : "Not supported");
+    LOG_INFO("asioVersion: %d", _asioVersion);
+    LOG_INFO("driverVersion: %d", _driverVersion);
+    LOG_INFO("Name: %s", _pDriverName->c_str());
+    LOG_INFO("ASIOGetChannels (inputs: %d, outputs: %d) - numChannels: %d", _numInputChannels, _numOutputChannels, _numChannels);
+    LOG_INFO("ASIOGetBufferSize (min: %d, max: %d, preferred: %d, granularity: %d)", _minSize, _maxSize, _preferredSize, _granularity);
+    LOG_INFO("ASIOGetSampleRate (sampleRate: %d)", (int)_sampleRate);
+    LOG_INFO("ASIOGetLatencies (input: %d, output: %d)", _inputLatency, _outputLatency);
+    LOG_INFO("ASIOOutputReady(); - %s", _outputReady ? "Supported" : "Not supported");
     if (_pChannelInfos) {
         for (size_t i = 0; i < _numOutputChannels; ++i) {
             const ASIOChannelInfo &c = _pChannelInfos[i];
-            LOG_INFO("ASIOGetChannelInfo(channel: %d, name: %s, group: %d, isActive: %d, isInput: %d, type: %d)\n", c.channel, c.name, c.channelGroup, c.isActive, c.isInput, c.type);
+            LOG_INFO("ASIOGetChannelInfo(channel: %d, name: %s, group: %d, isActive: %d, isInput: %d, type: %d)", c.channel, c.name, c.channelGroup, c.isActive, c.isInput, c.type);
         }
     }
 }

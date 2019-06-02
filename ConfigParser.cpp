@@ -226,7 +226,6 @@ void Config::setDevices() {
         LOG_INFO("Render: %s", _renderDeviceName.c_str());
         LOG_NL();
         LOG_INFO("Press 1 to continue or 0 to re-select");
-        LOG_NL();
         isOk = getSelection(0, 1) == 1;
         LOG_NL();
     } while (!isOk);

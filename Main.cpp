@@ -126,10 +126,13 @@ void clearData() {
 void run() {
 	const std::string configPath = OS::getExeDirPath() + getConfigFileName();
 
+    //Init log with this thread.
+    WinDSPLog::init();
+
 	//Load config file
 	pConfig = new Config(configPath);
 
-    WinDSPLog::init();
+    //Log title to console.
     logTitle();
 
 	//Update start with OS.

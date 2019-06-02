@@ -105,8 +105,7 @@ void Config::parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiq
         }
         return;
     }
-    std::string typeStr;
-    const FilterType type = getFilterType(pFilterNode, "type", typeStr, path);
+    const FilterType type = getFilterType(pFilterNode, "type", path);
     switch (type) {
     case FilterType::LOW_PASS:
     case FilterType::HIGH_PASS: {
@@ -139,15 +138,14 @@ void Config::parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiq
         parseFir(filters, pFilterNode, path);
         break;
     default:
-        throw Error("Config(%s) - Unknown filter type '%s'", path.c_str(), typeStr.c_str());
+        throw Error("Config(%s) - Unknown filter type '%s'", path.c_str(), FilterTypes::toString(type).c_str());
     };
 }
 
 void Config::parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
-    std::string subTypeStr;
-    const SubType subType = getSubType(pFilterNode, "subType", subTypeStr, path);
+    const SubType subType = getSubType(pFilterNode, "subType", path);
     const double freq = getDoubleValue(pFilterNode, "freq", path);
-    const int order = getIntValue(pFilterNode, "order", path);
+    const uint8_t order = (uint8_t)getIntValue(pFilterNode, "order", path);
     switch (subType) {
     case SubType::BUTTERWORTH:
         pFilterBiquad->addCrossover(isLowPass, freq, CrossoverType::Butterworth, order, getQOffset(pFilterNode, path));
@@ -162,7 +160,7 @@ void Config::parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, c
         pFilterBiquad->addCrossover(isLowPass, freq, getQValues(pFilterNode, order, path));
         break;
     default:
-        throw Error("Config(%s) - Unknown crossover sub type %d", path.c_str(), subTypeStr.c_str());
+        throw Error("Config(%s) - Unknown crossover sub type %d", path.c_str(), SubTypes::toString(subType).c_str());
     }
 }
 

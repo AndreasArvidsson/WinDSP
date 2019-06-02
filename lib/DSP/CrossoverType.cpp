@@ -81,9 +81,9 @@ const std::vector<double> CrossoverTypes::getQValues(const CrossoverType type, c
 		break;
 
 	default:
-		throw Error("Unknown crossover type: %s", toString(type));
+		throw Error("Unknown crossover type: %s", toString(type).c_str());
 	}
-	throw Error("Crossover type '%s' have no order '%d'", toString(type), order);
+	throw Error("Crossover type '%s' have no order '%d'", toString(type).c_str(), order);
 }
 
 const std::vector<double> CrossoverTypes::getQValues(const CrossoverType type, const uint8_t order, const double qOffset) {

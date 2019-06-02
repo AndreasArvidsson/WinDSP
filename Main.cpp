@@ -226,7 +226,7 @@ void run() {
     pCaptureLoop->run();
 }
 
-int main(int argc, char **argv) {
+void main() {
 	setTitle();
 
 	//Very important for filter performance.
@@ -269,6 +269,4 @@ int main(int argc, char **argv) {
 			checkInput(Keyboard::getDigit());
 		}
 	}
-
-	return EXIT_SUCCESS;
 }

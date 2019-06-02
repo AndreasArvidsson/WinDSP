@@ -84,7 +84,7 @@ private:
     const std::unordered_map<Channel, SpeakerType> parseChannels(const JsonNode *pBasicNode, const double stereoBass, std::vector<Channel> &subs, std::vector<Channel> &subLs, std::vector<Channel> &subRs, std::vector<Channel> &smalls, const std::string &path);
     void parseChannel(std::unordered_map<Channel, SpeakerType> &result, const JsonNode *pNode, const std::string &field, const std::vector<Channel> &channels, const std::vector<SpeakerType> &allowed, const std::string &path) const;
     const std::vector<Channel> getChannelsByType(const std::unordered_map<Channel, SpeakerType> &channelsMap, const SpeakerType targetType) const;
-    const double getLfeGain(const JsonNode *pBasicNode, const bool useSubwoofers, const bool stereoBass, const bool hasSmalls, const std::string &path) const;
+    const double getLfeGain(const JsonNode *pBasicNode, const bool useSubwoofers, const bool hasSmalls, const std::string &path) const;
     void routeChannels(const std::unordered_map<Channel, SpeakerType> &channelsMap, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain);
     void addBassRoute(Input *pInput, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain) const;
     void addSwRoute(Input *pInput, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double gain) const;
@@ -169,11 +169,8 @@ private:
     const int getIntValue(const JsonNode *pNode, const size_t index, const std::string &path) const;
     const int validateIntValue(const JsonNode *pNode, const std::string &path, const bool optional = false) const;
     const SpeakerType getSpeakerType(const JsonNode *pNode, const std::string &field, const std::string &path) const;
-    const SpeakerType getSpeakerType(const JsonNode *pNode, const std::string &field, std::string &textOut, const std::string &path) const;
     const FilterType getFilterType(const JsonNode *pNode, const std::string &field, const std::string &path) const;
-    const FilterType getFilterType(const JsonNode *pNode, const std::string &field, std::string &textOut, const std::string &path) const;
     const SubType getSubType(const JsonNode *pNode, const std::string &field, const std::string &path) const;
-    const SubType getSubType(const JsonNode *pNode, const std::string &field, std::string &textOut, const std::string &path) const;
 
     /* ********* MISC ********* */
 

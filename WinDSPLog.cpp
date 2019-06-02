@@ -33,7 +33,7 @@ void WinDSPLog::setLogToFile(const bool logToFile) {
     }
 }
 
-void WinDSPLog::log(const LogSeverity severity, const char * const fileName, const unsigned int lineNumber, const char *const str, ...) {
+void WinDSPLog::log(const LogSeverity severity, const std::string &fileName, const unsigned int lineNumber, const char * const str, ...) {
     //Apply argument to user string.
     va_list ap;
     char text[BUFFER_SIZE];
@@ -68,7 +68,7 @@ void WinDSPLog::flush() {
 void WinDSPLog::logLine(const LogSeverity severity, const std::string &timestamp, const std::string &fileName, const unsigned int lineNumber, const std::string &text) {
     switch (severity) {
     case LogSeverity::S_DEBUG:
-        printf("%s | %s | %s\n", timestamp.c_str(), getSeverityText(severity), text.c_str());
+        printf("%s | %s | %s\n", timestamp.c_str(), getSeverityText(severity).c_str(), text.c_str());
         break;
     case LogSeverity::S_INFO:
         printf("%s\n", text.c_str());

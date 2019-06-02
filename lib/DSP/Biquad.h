@@ -27,18 +27,18 @@ public:
 
 	//Transposed direct form II 
 	inline const double process(const double data) {
-		const double out = data * b0 + z1;
-		z1 = data * b1 - out * a1 + z2;
-		z2 = data * b2 - out * a2;
+		const double out = data * _b0 + _z1;
+        _z1 = data * _b1 - out * _a1 + _z2;
+        _z2 = data * _b2 - out * _a2;
 		return out;
 	}
 
 	inline void reset() {
-		z1 = z2 = 0;
+        _z1 = _z2 = 0;
 	}
 
 private:
-	double b0, b1, b2, a0, a1, a2, z1, z2;
+	double _b0, _b1, _b2, _a0, _a1, _a2, _z1, _z2;
 
 	double getOmega(const uint32_t sampleRate, const double frequency) const;
 	double getAlpha(const double w0, const double q) const;

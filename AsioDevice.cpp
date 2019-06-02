@@ -34,13 +34,13 @@ SpinLock _usedBuffersLock, _unusedBuffersLock;
 
 std::vector<std::string> AsioDevice::getDeviceNames() {
     std::vector<std::string> result;
-    AsioDrivers asioDrivers;
+    AsioDrivers drivers;
     const int max = 128;
     char **driverNames = new char*[max];
     for (int i = 0; i < max; ++i) {
         driverNames[i] = new char[32];
     }
-    const long numberOfAvailableDrivers = asioDrivers.getDriverNames(driverNames, max);
+    const long numberOfAvailableDrivers = drivers.getDriverNames(driverNames, max);
     for (int i = 0; i < numberOfAvailableDrivers; ++i) {
         result.push_back(driverNames[i]);
     }
@@ -235,7 +235,7 @@ void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
     }
 }
 
-long AsioDevice::_asioMessage(const long selector, const long value, void * const message, double * const opt) {
+long AsioDevice::_asioMessage(const long selector, const long value, void * const, double * const) {
     switch (selector) {
     case kAsioSelectorSupported:
         switch (value) {

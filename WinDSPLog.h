@@ -36,7 +36,7 @@ public:
     static void init();
     static void destroyStatic();
     static void setLogToFile(const bool logToFile);
-    static void log(const LogSeverity severity, const char * const fileName, const unsigned int line, const char *str, ...);
+    static void log(const LogSeverity severity, const std::string &fileName, const unsigned int line, const char * const str, ...);
     static void flush();
 
 private:

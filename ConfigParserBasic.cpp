@@ -21,7 +21,7 @@ void Config::parseBasic() {
     std::vector<Channel> subs, subLs, subRs, smalls;
     const std::unordered_map<Channel, SpeakerType> channelsMap = parseChannels(pBasicNode, stereoBass, subs, subLs, subRs, smalls, path);
     const bool useSubwoofers = getUseSubwoofers(subs, subLs, subRs);
-    const double lfeGain = getLfeGain(pBasicNode, useSubwoofers, stereoBass, smalls.size(), path);
+    const double lfeGain = getLfeGain(pBasicNode, useSubwoofers, smalls.size(), path);
 
     //Parse crossover config
     parseBasicCrossovers(pBasicNode, channelsMap, path);
@@ -277,11 +277,10 @@ const std::unordered_map<Channel, SpeakerType> Config::parseChannels(const JsonN
 void Config::parseChannel(std::unordered_map<Channel, SpeakerType> &result, const JsonNode *pNode, const std::string &field, const std::vector<Channel> &channels, const std::vector<SpeakerType> &allowed, const std::string &path) const {
     //Use give value
     if (pNode->has(field)) {
-        std::string typeStr;
-        const SpeakerType type = getSpeakerType(pNode, field, typeStr, path);
+        const SpeakerType type = getSpeakerType(pNode, field, path);
         const std::string myPath = path + "/" + field;
         if (std::find(allowed.begin(), allowed.end(), type) == allowed.end()) {
-            throw Error("Config(%s) - Speaker type '%s' is not allowed", myPath.c_str(), typeStr.c_str());
+            throw Error("Config(%s) - Speaker type '%s' is not allowed", myPath.c_str(), SpeakerTypes::toString(type).c_str());
         }
         for (const Channel channel : channels) {
             //Set default off in case contiue below is triggered.
@@ -368,7 +367,7 @@ const std::vector<Channel> Config::getChannelsByType(const std::unordered_map<Ch
     return result;
 }
 
-const double Config::getLfeGain(const JsonNode *pBasicNode, const bool useSubwoofers, const bool stereoBass, const bool hasSmalls, const std::string &path) const {
+const double Config::getLfeGain(const JsonNode *pBasicNode, const bool useSubwoofers, const bool hasSmalls, const std::string &path) const {
     const double lfeGain = tryGetDoubleValue(pBasicNode, "lfeGain", path);
     if (useSubwoofers) {
         //Playing subwoofer and no small speakers. IE LFE is not going to get mixed with other channels.

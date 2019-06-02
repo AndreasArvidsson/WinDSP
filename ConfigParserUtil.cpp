@@ -239,11 +239,6 @@ const int Config::validateIntValue(const JsonNode *pNode, const std::string &pat
 /* ***** ENUM ***** */
 
 const SpeakerType Config::getSpeakerType(const JsonNode *pNode, const std::string &field, const std::string &path) const {
-    std::string textOut;
-    return getSpeakerType(pNode, field, textOut, path);
-}
-
-const SpeakerType Config::getSpeakerType(const JsonNode *pNode, const std::string &field, std::string &textOut, const std::string &path) const {
     const std::string str = getTextValue(pNode, field, path);
     try {
         return SpeakerTypes::fromString(str);
@@ -254,11 +249,6 @@ const SpeakerType Config::getSpeakerType(const JsonNode *pNode, const std::strin
 }
 
 const FilterType Config::getFilterType(const JsonNode *pNode, const std::string &field, const std::string &path) const {
-    std::string textOut;
-    return getFilterType(pNode, field, textOut, path);
-}
-
-const FilterType Config::getFilterType(const JsonNode *pNode, const std::string &field, std::string &textOut, const std::string &path) const {
     const std::string str = getTextValue(pNode, field, path);
     try {
         return FilterTypes::fromString(str);
@@ -269,11 +259,6 @@ const FilterType Config::getFilterType(const JsonNode *pNode, const std::string 
 }
 
 const SubType Config::getSubType(const JsonNode *pNode, const std::string &field, const std::string &path) const {
-    std::string textOut;
-    return getSubType(pNode, field, textOut, path);
-}
-
-const SubType Config::getSubType(const JsonNode *pNode, const std::string &field, std::string &textOut, const std::string &path) const {
     const std::string str = getTextValue(pNode, field, path);
     try {
         return SubTypes::fromString(str);

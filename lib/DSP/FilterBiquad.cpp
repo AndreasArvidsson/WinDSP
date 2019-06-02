@@ -3,6 +3,10 @@
 #include "CrossoverType.h"
 #include "Str.h"
 
+#ifndef LOG_INFO
+#include "Log.h"
+#endif
+
 FilterBiquad::FilterBiquad(const uint32_t sampleRate) {
 	_sampleRate = sampleRate;
 }
@@ -161,10 +165,10 @@ const std::vector<std::vector<double>> FilterBiquad::getFrequencyResponse(const 
 void FilterBiquad::printCoefficients(const bool miniDSPFormat) const {
     int index = 1;
     for (const Biquad &biquad : _biquads) {
-        printf("biquad%d,\n", index++);
+        LOG_INFO("biquad%d,", index++);
         biquad.printCoefficients(miniDSPFormat);
     }
-    printf("\n");
+    LOG_NL();
 }
 
 const std::string FilterBiquad::toString() const {

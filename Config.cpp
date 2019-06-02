@@ -3,6 +3,7 @@
 #include "Input.h"
 #include "Output.h"
 #include "FilterGain.h"
+#include "WinDSPLog.h"
 
 Config::Config(const std::string &path) {
     _configFile = path;
@@ -127,36 +128,49 @@ const bool Config::hasGainFilter(const std::vector<Filter*> &filters) const {
 }
 
 void Config::printConfig() const {
-    printf("***** Inputs *****\n");
+    LOG_INFO("***** Inputs *****");
     for (const Input *pI : _inputs) {
-        printf("%s", Channels::toString(pI->getChannel()).c_str());
+        bool first = true;
         for (const Route *pR : pI->getRoutes()) {
-            printf("\t");
-            printRouteConfig(pR->getChannel(), pR->getFilters(), {}, pR->hasConditions());
+            std::string prefix = "";
+            if (first) {
+                first = false;
+                prefix = Channels::toString(pI->getChannel());
+            }
+            else {
+                prefix = " ";
+            }
+            prefix += "\t";
+            printRouteConfig(prefix, pR->getChannel(), pR->getFilters(), {}, pR->hasConditions());
         }
     }
-    printf("\n");
+    LOG_NL();
 
-    printf("***** Outputs *****\n");
+    LOG_INFO("***** Outputs *****");
     for (const Output *pO : _outputs) {
-        printRouteConfig(pO->getChannel(), pO->getFilters(), pO->getPostFilters());
+        printRouteConfig("",pO->getChannel(), pO->getFilters(), pO->getPostFilters());
     }
-    printf("\n");
+    LOG_NL();
 }
 
-void Config::printRouteConfig(const Channel channel, const std::vector<Filter*> &filters, const std::vector<Filter*> &postFilters, const bool hasConditions) const {
-    printf("%s", Channels::toString(channel).c_str());
+void Config::printRouteConfig(const std::string &prefix, const Channel channel, const std::vector<Filter*> &filters, const std::vector<Filter*> &postFilters, const bool hasConditions) const {
+    std::string str = prefix;
+    str += Channels::toString(channel).c_str();
     if (hasConditions) {
-        printf("\t[ Cond ]");
+        str += "\t[ Cond ]";
     }
     if (filters.size() + postFilters.size()) {
-        printf("\t");
+        str += "\t";
         for (const Filter *pFilter : filters) {
-            printf("[ %s ] ", pFilter->toString().c_str());
+            str += "[ ";
+            str += pFilter->toString().c_str();
+            str += " ]";
         }
         for (const Filter *pFilter : postFilters) {
-            printf("[ %s ] ", pFilter->toString().c_str());
+            str += "[ ";
+            str += pFilter->toString().c_str();
+            str += " ]";
         }
     }
-    printf("\n");
+    LOG_INFO(str.c_str());
 }

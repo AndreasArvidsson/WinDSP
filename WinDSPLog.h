@@ -1,32 +1,54 @@
 #pragma once
+//#include <vector>
+#include <deque>
+#include <thread>
+#include "SpinLock.h"
+
+enum class LogSeverity {
+    DEBUG, INFO, WARN, ERR
+};
+
+class LogLine {
+public:
+    LogSeverity severity;
+    std::string timestamp, fileName, text;
+    unsigned int lineNumber;
+
+    LogLine(const LogSeverity severity, const std::string &timestamp, const std::string &fileName, const unsigned int lineNumber, const std::string &text) :
+        severity(severity), timestamp(timestamp), fileName(fileName), lineNumber(lineNumber), text(text) {}
+
+};
 
 //#define DEBUG_LOG
 
-#ifdef DEBUG_LOG
-#include "Log.h"
-#endif
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
 
 #undef LOG_INFO
 #undef LOG_WARN
 #undef LOG_ERROR
 #undef LOG_NL
 
-#ifdef DEBUG_LOG
-#define LOG_FILE "WinDSP_log.txt"
-#define LOG_INFO(str, ...)	printf(str,  ##__VA_ARGS__); printf("\n");	__LOG_INFO__(str,  ##__VA_ARGS__)
-#define LOG_WARN(str, ...)	printf(str,  ##__VA_ARGS__); printf("\n");	__LOG_WARN__(str,  ##__VA_ARGS__)
-#define LOG_ERROR(str, ...) printf(str,  ##__VA_ARGS__); printf("\n");	__LOG_ERROR__(str,  ##__VA_ARGS__)
-#define LOG_NL()			printf("\n");								__LOG_NL__()
-#else
-#define LOG_INFO(str, ...)	printf(str,  ##__VA_ARGS__); printf("\n")
-#define LOG_WARN(str, ...)  printf(str,  ##__VA_ARGS__); printf("\n\n")
-#define LOG_ERROR LOG_WARN
-#define LOG_NL()			printf("\n");
-#endif
+#define LOG_DEBUG(str, ...) WinDSPLog::log(LogSeverity::DEBUG, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
+#define LOG_INFO(str, ...)	WinDSPLog::log(LogSeverity::INFO, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
+#define LOG_WARN(str, ...)  WinDSPLog::log(LogSeverity::WARN, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
+#define LOG_ERROR(str, ...) WinDSPLog::log(LogSeverity::ERR, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
+#define LOG_NL()			WinDSPLog::log(LogSeverity::INFO, __FILENAME__, __LINE__, "")
 
-namespace WinDSPLog {
+class WinDSPLog {
+public:
+    static void init();
+    //static void log(const char* type, const char* file, unsigned int line, const char *str, ...);
+    static void log(const LogSeverity severity, const char * const fileName, const unsigned int line, const char *str, ...);
+    static void flush();
 
-    void configure();
+private:
+    static std::deque<LogLine> _buffer;
+    static SpinLock _lock;
+    static std::thread::id _mainThreadId;
+    static bool _logToFile;
 
-}
+    static void logLine(const LogSeverity severity, const std::string &timestamp, const std::string &fileName, const unsigned int line, const std::string &text);
+    static const std::string getSeverityText(const LogSeverity severity);
+
+};
 

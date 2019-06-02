@@ -67,7 +67,8 @@ void setTitle() {
 #ifdef DEBUG_LOG
 	LOG_INFO("\tLog file: %s", LOG_FILE);
 #endif
-	LOG_INFO("----------------------------------------------\n");
+	LOG_INFO("----------------------------------------------");
+    LOG_NL();
 	TrayIcon::init(trayIconCallback, IDI_ICON1, title);
 }
 
@@ -168,7 +169,6 @@ void run() {
         }
     }
 
-
 	/*
 	* Init I/O and filters
 	*/
@@ -192,7 +192,8 @@ void run() {
     if (pConfig->hasDescription()) {
         LOG_INFO("%s", pConfig->getDescription().c_str());
     }
-    LOG_INFO("----------------------------------------------\n");
+    LOG_INFO("----------------------------------------------");
+    LOG_NL();
     if (pConfig->inDebug()) {
         pConfig->printConfig();
     }
@@ -207,7 +208,7 @@ void run() {
 }
 
 int main(int argc, char **argv) {
-    WinDSPLog::configure();
+    WinDSPLog::init();
 	setTitle();
 
 	//Very important for filter performance.

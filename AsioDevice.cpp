@@ -1,9 +1,9 @@
 #include "AsioDevice.h"
 #include <atomic>
+#include <deque>
 #include "asiodrivers.h"
 #include "WinDSPLog.h"
 #include "Error.h"
-#include "Date.h"
 #include "SpinLock.h"
 #include "Config.h"
 
@@ -18,7 +18,8 @@ ASIOCallbacks _callbacks{ 0 };
 ASIOBufferInfo* _pBufferInfos = nullptr;
 ASIOChannelInfo* _pChannelInfos = nullptr;
 std::string *_pDriverName = nullptr;
-std::vector<double*> *_pUsedBuffers, *_pUnusedBuffers;
+std::deque<double*> *_pUsedBuffers;
+std::vector<double*> *_pUnusedBuffers;
 double *_pCurrentWriteBuffer = nullptr;
 const Config *_pConfig = nullptr;
 std::atomic<bool> _running = false;
@@ -63,7 +64,7 @@ void AsioDevice::initRenderService(const Config *pConfig, const std::string &dNa
     _bufferByteSize = _bufferSize * sizeof(int);
     _callbacks.asioMessage = &_asioMessage;
     _callbacks.bufferSwitch = &_bufferSwitch;
-    _pUsedBuffers = new std::vector<double*>;
+    _pUsedBuffers = new std::deque<double*>;
     _pUnusedBuffers = new std::vector<double*>;
     _pCurrentWriteBuffer = nullptr;
     _throwError = false;
@@ -134,7 +135,7 @@ void AsioDevice::stopService() {
 
 void AsioDevice::reset() {
     if (_pConfig->inDebug()) {
-        LOG_INFO("%s: Reset ASIO", Date::getLocalDateTimeString().c_str());
+        LOG_DEBUG("%s: Reset ASIO",);
     }
     //Empty current write buffer. Compensate for ++var operation.
     _currentWriteBufferSize = -1;
@@ -224,6 +225,7 @@ void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
     }
     //No data available. Just render silence.
     else {
+        //LOG_DEBUG("%s: Render silence");
         _renderSilence(asioBufferIndex);
     }
 
@@ -238,31 +240,48 @@ long AsioDevice::_asioMessage(const long selector, const long value, void * cons
     case kAsioSelectorSupported:
         switch (value) {
         case kAsioResetRequest:
+        case kAsioBufferSizeChange:
         case kAsioResyncRequest:
+        case kAsioLatenciesChanged:
+        case kAsioOverload:
             return 1L;
         }
         break;
-        //Ask the host application for its ASIO implementation. Host ASIO implementation version, 2 or higher 
     case kAsioEngineVersion:
         return 2L;
-        //Requests a driver reset. Return value is always 1L.
     case kAsioResetRequest:
-        _error = Error("ASIO hardware is not available or has been reset.");
+        _error = Error("ASIO buffer size changed");
         _throwError = true;
         return 1L;
-        //The driver went out of sync, such that the timestamp is no longer valid.
-        //This is a request to re -start the engine and slave devices(sequencer). 1L if request is accepted or 0 otherwise.
+    case kAsioBufferSizeChange:
+        _error = Error("ASIO hardware is not available or has been reset");
+        _throwError = true;
+        return 1L;
     case kAsioResyncRequest:
-        _error = Error("ASIO driver went out of sync.");
+        _error = Error("ASIO driver went out of sync");
         _throwError = true;
         return 1L;
+    case kAsioLatenciesChanged:
+        _error = Error("ASIO latencies changed");
+        _throwError = true;
+        return 1L;
+        //Dont support time info. Use regular bufferSwitch().
+    case kAsioSupportsTimeInfo:
+        return 0L;
+    case kAsioOverload:
+        _error = Error("ASIO overload");
+        _throwError = true;
+        return 1L;
+    }
+    if (_pConfig->inDebug()) {
+        LOG_DEBUG("asioMessage(%d, %d)", selector, value);
     }
     return 0L;
 }
 
 double * const AsioDevice::_getWriteBuffer() {
-    _unusedBuffersLock.lock();
     //Check for available buffers.
+    _unusedBuffersLock.lock();
     if (_pUnusedBuffers->size() > 0) {
         double* pBuffer = _pUnusedBuffers->back();
         _pUnusedBuffers->pop_back();
@@ -270,11 +289,17 @@ double * const AsioDevice::_getWriteBuffer() {
         return pBuffer;
     }
     _unusedBuffersLock.unlock();
+
     if (_pConfig->inDebug()) {
         ++_numBuffers;
-        LOG_INFO("%s: Create ASIO buffer: %d(%.1fms)", Date::getLocalDateTimeString().c_str(),
-            _numBuffers, _numBuffers * 1000.0 * _bufferSize / _sampleRate);
+        const double timeDelay = 1000.0 * _numBuffers * _bufferSize / _sampleRate;
+        LOG_DEBUG("Create ASIO buffer: %d(%.1fms)", _numBuffers, timeDelay);
+        if (timeDelay >= 40)  {
+            _error = Error("ASIO buffer delay %f", timeDelay);
+            _throwError = true;
+        }
     }
+
     //Create new buffer.
     return new double[_numChannels * _bufferSize];
 }
@@ -284,8 +309,8 @@ double * const AsioDevice::_getReadBuffer() {
     double *pBuffer = nullptr;
     _usedBuffersLock.lock();
     if (_pUsedBuffers->size() > 0) {
-        pBuffer = _pUsedBuffers->back();
-        _pUsedBuffers->pop_back();
+        pBuffer = _pUsedBuffers->front();
+        _pUsedBuffers->pop_front();
     }
     _usedBuffersLock.unlock();
     return pBuffer;
@@ -293,7 +318,7 @@ double * const AsioDevice::_getReadBuffer() {
 
 void AsioDevice::_releaseWriteBuffer(double * const pBuffer) {
     _usedBuffersLock.lock();
-    _pUsedBuffers->insert(_pUsedBuffers->begin(), pBuffer);
+    _pUsedBuffers->push_back(pBuffer);
     _usedBuffersLock.unlock();
 }
 

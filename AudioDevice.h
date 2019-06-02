@@ -11,7 +11,9 @@
 #pragma once
 #include <vector>
 #include "Audioclient.h"
-#include "ErrorMessages.h" //assert
+#include "Error.h"
+
+#define assert(hr) AudioDevice::assert(hr)
 
 struct IMMDevice;
 struct IMMDeviceEnumerator;
@@ -42,6 +44,12 @@ public:
 	const UINT32 getEngineBufferSize() const;
 	void flushCaptureBuffer() const;
 	void flushRenderBuffer() const;
+
+    inline void static assert(const HRESULT hr) {
+        if (FAILED(hr)) {
+            throw Error("WASAPI (0x%08x) %s", hr, hresult(hr).c_str());
+        }
+    }
 
 	inline const UINT32 getBufferFrameCountAvailable() const {
 		static UINT32 numFramesPadding;
@@ -100,10 +108,11 @@ private:
 	std::string _id, _name;
 	HANDLE _eventHandle;
 
+    static const std::string hresult(const HRESULT hr);
+
 	AudioDevice(IMMDevice *pDevice);
 	void initDefault();
 	void init(IMMDevice *pDevice);
 	void prepareService(const bool capture);
 
 };
-

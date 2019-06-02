@@ -109,7 +109,6 @@
     <ClCompile Include="ConfigParserBasic.cpp" />
     <ClCompile Include="ConfigParserFilter.cpp" />
     <ClCompile Include="ConfigParserUtil.cpp" />
-    <ClCompile Include="ErrorMessages.cpp" />
     <ClCompile Include="FilterType.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -129,7 +128,6 @@
     <ClInclude Include="Condition.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="ConfigChangedException.h" />
-    <ClInclude Include="ErrorMessages.h" />
     <ClInclude Include="FilterType.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Output.h" />

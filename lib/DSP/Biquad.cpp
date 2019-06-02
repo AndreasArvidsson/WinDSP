@@ -2,6 +2,10 @@
 #define _USE_MATH_DEFINES
 #include <math.h> // M_LN2
 
+#ifndef LOG_INFO
+#include "Log.h"
+#endif
+
 Biquad::Biquad() {
 	b0 = b1 = b2 = a0 = a1 = a2 = z1 = z2 = 0;
 }
@@ -193,9 +197,9 @@ const std::vector<std::vector<double>> Biquad::getFrequencyResponse(const uint32
 }
 
 void Biquad::printCoefficients(const bool miniDSPFormat) const {
-    printf("b0=%.15g,\n", b0);
-    printf("b1=%.15g,\n", b1);
-    printf("b2=%.15g,\n", b2);
-    printf("a1=%.15g,\n", miniDSPFormat ? -a1 : a1);
-    printf("a2=%.15g,\n", miniDSPFormat ? -a2 : a2);
+    LOG_INFO("b0=%.15g,", b0);
+    LOG_INFO("b1=%.15g,", b1);
+    LOG_INFO("b2=%.15g,", b2);
+    LOG_INFO("a1=%.15g,", miniDSPFormat ? -a1 : a1);
+    LOG_INFO("a2=%.15g,", miniDSPFormat ? -a2 : a2);
 }

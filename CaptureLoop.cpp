@@ -70,6 +70,9 @@ void CaptureLoop::run() {
 
 	size_t count = 0;
 	while (_run) {
+        //Dont print in other than main thread due top performance/latency issues.
+        WinDSPLog::flush();
+
         //Asio renderer operates in its on thread context and cant directly throw exceptions.
         AsioDevice::throwError();
 
@@ -141,23 +144,23 @@ void CaptureLoop::_captureLoopAsio() {
                 }
                 else if (!first && _pConfig->inDebug()) {
                     if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-                        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                        LOG_DEBUG("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", samplesAvailable);
                     }
                     if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
-                        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                        LOG_DEBUG("AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", samplesAvailable);
                     }
                 }
                 //else if (!first) {
                 //    if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
                 //        if (_pConfig->inDebug()) {
-                //            LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                //            LOG_DEBUG("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", samplesAvailable);
                 //        }
                 //        AsioDevice::reset();
                 //     /*   assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
                 //        break;*/
                 //    }
                 //    if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR && _pConfig->inDebug()) {
-                //        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                //        LOG_DEBUG("AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", samplesAvailable);
                 //    }
                 //}
             }
@@ -242,10 +245,10 @@ void CaptureLoop::_captureLoopWasapi() {
                 }
                 else if (!first && _pConfig->inDebug()) {
                     if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-                        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                        LOG_DEBUG("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", samplesAvailable);
                     }
                     if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) {
-                        LOG_WARN("%s: AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", Date::getLocalDateTimeString().c_str(), samplesAvailable);
+                        LOG_DEBUG("AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", samplesAvailable);
                     }
                 }
             }

@@ -250,7 +250,7 @@ long AsioDevice::_asioMessage(const long selector, const long value, void * cons
     case kAsioEngineVersion:
         return 2L;
     case kAsioResetRequest:
-        _error = Error("ASIO buffer size changed");
+        _error = Error("ASIO reset request");
         _throwError = true;
         return 1L;
     case kAsioBufferSizeChange:
@@ -283,21 +283,21 @@ double * const AsioDevice::_getWriteBuffer() {
     //Check for available buffers.
     _unusedBuffersLock.lock();
     if (_pUnusedBuffers->size() > 0) {
-        double* pBuffer = _pUnusedBuffers->back();
+        double * const pBuffer = _pUnusedBuffers->back();
         _pUnusedBuffers->pop_back();
         _unusedBuffersLock.unlock();
         return pBuffer;
     }
     _unusedBuffersLock.unlock();
-
-    if (_pConfig->inDebug()) {
-        ++_numBuffers;
-        const double timeDelay = 1000.0 * _numBuffers * _bufferSize / _sampleRate;
+ 
+    ++_numBuffers;
+    const double timeDelay = 1000.0 * _numBuffers * _bufferSize / _sampleRate;
+    if (timeDelay >= 40)  {
+        _error = Error("ASIO buffer delay %f", timeDelay);
+        _throwError = true;
+    }
+    else if (_pConfig->inDebug()) {
         LOG_DEBUG("Create ASIO buffer: %d(%.1fms)", _numBuffers, timeDelay);
-        if (timeDelay >= 40)  {
-            _error = Error("ASIO buffer delay %f", timeDelay);
-            _throwError = true;
-        }
     }
 
     //Create new buffer.
@@ -305,15 +305,15 @@ double * const AsioDevice::_getWriteBuffer() {
 }
 
 double * const AsioDevice::_getReadBuffer() {
-    //Wait for an available buffer.
-    double *pBuffer = nullptr;
     _usedBuffersLock.lock();
     if (_pUsedBuffers->size() > 0) {
-        pBuffer = _pUsedBuffers->front();
+        double * const pBuffer = _pUsedBuffers->front();
         _pUsedBuffers->pop_front();
+        _usedBuffersLock.unlock();
+        return pBuffer;
     }
     _usedBuffersLock.unlock();
-    return pBuffer;
+    return nullptr;
 }
 
 void AsioDevice::_releaseWriteBuffer(double * const pBuffer) {

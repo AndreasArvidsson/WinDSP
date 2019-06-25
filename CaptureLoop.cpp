@@ -151,19 +151,6 @@ void CaptureLoop::_captureLoopAsio() {
                         LOG_DEBUG("AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", samplesAvailable);
                     }
                 }
-                //else if (!first) {
-                //    if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-                //        if (_pConfig->inDebug()) {
-                //            LOG_DEBUG("AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY: %d", samplesAvailable);
-                //        }
-                //        AsioDevice::reset();
-                //     /*   assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
-                //        break;*/
-                //    }
-                //    if (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR && _pConfig->inDebug()) {
-                //        LOG_DEBUG("AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR: %d", samplesAvailable);
-                //    }
-                //}
             }
 
             //Was silent before.

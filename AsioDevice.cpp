@@ -134,9 +134,6 @@ void AsioDevice::stopService() {
 }
 
 void AsioDevice::reset() {
-    if (_pConfig->inDebug()) {
-        LOG_DEBUG("Reset ASIO");
-    }
     //Empty current write buffer. Compensate for ++var operation.
     _currentWriteBufferSize = -1;
     //Move all buffers to unused list.
@@ -225,7 +222,6 @@ void AsioDevice::_bufferSwitch(const long asioBufferIndex, const ASIOBool) {
     }
     //No data available. Just render silence.
     else {
-        //LOG_DEBUG("%s: Render silence");
         _renderSilence(asioBufferIndex);
     }
 
@@ -290,13 +286,9 @@ double * const AsioDevice::_getWriteBuffer() {
     }
     _unusedBuffersLock.unlock();
  
-    ++_numBuffers;
-    const double timeDelay = 1000.0 * _numBuffers * _bufferSize / _sampleRate;
-    if (timeDelay >= 40)  {
-        _error = Error("ASIO buffer delay %f", timeDelay);
-        _throwError = true;
-    }
-    else if (_pConfig->inDebug()) {
+    if (_pConfig->inDebug()) {
+        ++_numBuffers;
+        const double timeDelay = 1000.0 * _numBuffers * _bufferSize / _sampleRate;
         LOG_DEBUG("Create ASIO buffer: %d(%.1fms)", _numBuffers, timeDelay);
     }
 

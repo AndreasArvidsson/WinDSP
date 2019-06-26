@@ -7,6 +7,14 @@
 
 IMMDeviceEnumerator *AudioDevice::_pEnumerator = nullptr;
 bool AudioDevice::_initStatic = false;
+std::atomic<bool> AudioDevice::_throwError = false;
+Error AudioDevice::_error;
+
+void AudioDevice::throwError() {
+    if (_throwError) {
+        throw _error;
+    }
+}
 
 std::vector<std::string> AudioDevice::getDeviceNames() {
 	std::vector<std::string> result;

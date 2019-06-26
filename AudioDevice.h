@@ -10,6 +10,7 @@
 
 #pragma once
 #include <vector>
+#include <atomic>
 #include "Audioclient.h"
 #include "Error.h"
 
@@ -25,6 +26,7 @@ public:
 	static std::vector<std::string> getDeviceNames();
 	static std::string getDeviceName(IMMDevice *pDevice);
 	static AudioDevice* initDevice(const std::string &name);
+    static void throwError();
 
 	AudioDevice();
 	AudioDevice(const std::string &id);
@@ -47,7 +49,8 @@ public:
 
     inline void static assert(const HRESULT hr) {
         if (FAILED(hr)) {
-            throw Error("WASAPI (0x%08x) %s", hr, hresult(hr).c_str());
+            _error = Error("WASAPI (0x%08x) %s", hr, hresult(hr).c_str());
+            _throwError = true;
         }
     }
 
@@ -97,6 +100,8 @@ public:
 private:
 	static IMMDeviceEnumerator *_pEnumerator;
 	static bool _initStatic;
+    static std::atomic<bool> _throwError;
+    static Error _error;
 
 	IMMDevice *_pDevice;
 	IAudioClient3 *_pAudioClient;
@@ -114,5 +119,4 @@ private:
 	void initDefault();
 	void init(IMMDevice *pDevice);
 	void prepareService(const bool capture);
-
 };

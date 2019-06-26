@@ -76,6 +76,7 @@ void CaptureLoop::run() {
 
         //Asio renderer operates in its on thread context and cant directly throw exceptions.
         AsioDevice::throwError();
+        AudioDevice::throwError();
 
 		//Check if config file has changed.
 		_checkConfig();

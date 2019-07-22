@@ -1,4 +1,5 @@
 #include "Convert.h"
+#include <cmath> // std::pow
 
 #define INT24_MAX 8388607i32
 #define UINT24_TO_INT24 16777216i32

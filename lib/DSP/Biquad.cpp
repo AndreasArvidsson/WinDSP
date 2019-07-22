@@ -1,6 +1,7 @@
 #include "Biquad.h"
 #define _USE_MATH_DEFINES
 #include <math.h> // M_LN2
+#include <cmath> // std::pow
 
 #ifndef LOG_INFO
 #include "Log.h"

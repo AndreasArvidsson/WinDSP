@@ -11,6 +11,7 @@
 #pragma once
 #include <vector>
 #include <atomic>
+#include <string>
 #include "Audioclient.h"
 #include "Error.h"
 

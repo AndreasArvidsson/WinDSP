@@ -8,6 +8,7 @@
 
 #pragma once
 #include <vector>
+#include <string>
 #include "asiosys.h"
 #include "asio.h"
 

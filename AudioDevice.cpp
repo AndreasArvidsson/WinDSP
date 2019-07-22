@@ -2,6 +2,7 @@
 #include "Mmdeviceapi.h"
 #include "Functiondiscoverykeys_devpkey.h" //PKEY_Device_FriendlyName
 #include "WinDSPLog.h"
+#include "Str.h"
 
 #define SAFE_RELEASE(punk) if ((punk) != NULL) { (punk)->Release(); (punk) = NULL; }
 
@@ -42,7 +43,7 @@ std::string AudioDevice::getDeviceName(IMMDevice *pDevice) {
 	//Get the endpoint's friendly-name property.
 	assert(pProps->GetValue(PKEY_Device_FriendlyName, &varName));
 	std::wstring tmp(varName.pwszVal);
-	std::string result = std::string(tmp.begin(), tmp.end());
+    std::string result = String::toString(tmp);
 	PropVariantClear(&varName);
 	SAFE_RELEASE(pProps);
 	return result;
@@ -184,7 +185,7 @@ const std::string AudioDevice::getId() {
 		LPWSTR id;
 		assert(_pDevice->GetId(&id));
 		std::wstring tmp(id);
-		_id = std::string(tmp.begin(), tmp.end());
+        _id = String::toString(tmp);
 		CoTaskMemFree(id);
 	}
 	return _id;

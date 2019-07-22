@@ -1,6 +1,7 @@
 #pragma once
 #include <deque>
 #include <thread>
+#include <string>
 #include "SpinLock.h"
 
 enum class LogSeverity {

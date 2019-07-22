@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 
 enum class CrossoverType {
 	Butterworth, Linkwitz_Riley, Bessel

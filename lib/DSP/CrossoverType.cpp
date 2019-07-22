@@ -1,5 +1,6 @@
 #include "CrossoverType.h"
 #include "Error.h"
+#include <cmath> // std::sqrt
 
 const std::string CrossoverTypes::toString(const CrossoverType type) {
 	switch (type) {

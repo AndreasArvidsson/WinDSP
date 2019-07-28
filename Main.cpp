@@ -111,6 +111,7 @@ void clearData() {
 	delete pConfig;
 	delete pCaptureDevice;
 	delete pRenderDevice;
+    pCaptureLoop = nullptr;
 	pConfig = nullptr;
 	pCaptureDevice = nullptr;
 	pRenderDevice = nullptr;

@@ -214,7 +214,7 @@ void CaptureLoop::_captureLoopWasapi() {
 		//Check for samples in capture buffer.
 		assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
 
-		while (samplesAvailable) {
+		while (samplesAvailable && _run) {
 			//Get capture buffer pointer and number of available frames.
 			assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &samplesAvailable, &flags));
 
@@ -254,31 +254,33 @@ void CaptureLoop::_captureLoopWasapi() {
 			}
 
 			//Must read entire capture buffer at once. Wait until render buffer has enough space available.
-            while (samplesAvailable > _pRenderDevice->getBufferFrameCountAvailable());
+            while (samplesAvailable > _pRenderDevice->getBufferFrameCountAvailable() && _run);
 
 			//Get render buffer
 			assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, samplesAvailable));
 
-			swStart();
+            if (pRenderBuffer) {
+                swStart();
 
-			//Iterate all capture frames
-			for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
-				//Set buffer default value to 0 so we can add/mix values to it later
-				memset(renderBlockBuffer, 0, renderBlockSize);
+                //Iterate all capture frames
+                for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
+                    //Set buffer default value to 0 so we can add/mix values to it later
+                    memset(renderBlockBuffer, 0, renderBlockSize);
 
-				//Iterate inputs and route samples to outputs
-				for (Input * const pInput : *_pInputs) {
-					pInput->route(*pCaptureBuffer++, renderBlockBuffer);
-				}
+                    //Iterate inputs and route samples to outputs
+                    for (Input* const pInput : *_pInputs) {
+                        pInput->route(*pCaptureBuffer++, renderBlockBuffer);
+                    }
 
-				//Iterate outputs and apply filters
-                pRenderBlockBuffer = renderBlockBuffer - 1;
-				for (Output * const pOutput : *_pOutputs) {
-					*pRenderBuffer++ = (float)pOutput->process(*++pRenderBlockBuffer);
-				}
-			}
+                    //Iterate outputs and apply filters
+                    pRenderBlockBuffer = renderBlockBuffer - 1;
+                    for (Output* const pOutput : *_pOutputs) {
+                        *pRenderBuffer++ = (float)pOutput->process(*++pRenderBlockBuffer);
+                    }
+                }
 
-			swEnd();
+                swEnd();
+            }
 
 			//Release render buffer.
 			assert(_pRenderDevice->releaseRenderBuffer(samplesAvailable));
@@ -299,7 +301,7 @@ void CaptureLoop::stop() {
 	if (_run) {
 		_run = false;
 		//Stop and wait for capture thread to finish.
-		_captureThread.join();
+        _captureThread.join();
 	}
 }
 

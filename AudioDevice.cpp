@@ -82,7 +82,7 @@ void AudioDevice::initStatic() {
 
 void AudioDevice::destroyStatic() {
 	SAFE_RELEASE(_pEnumerator);
-	_initStatic = false;
+	_initStatic = _throwError = false;
 }
 
 AudioDevice::AudioDevice() {

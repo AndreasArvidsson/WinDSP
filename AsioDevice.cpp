@@ -91,8 +91,10 @@ void AsioDevice::initRenderService(const Config *pConfig, const std::string &dNa
 
 void AsioDevice::destroy() {
     _assertAsio(ASIOExit());
-    for (double *pBuffer : *_pUnusedBuffers) {
-        delete[] pBuffer;
+    if (_pUnusedBuffers) {
+        for (double *pBuffer : *_pUnusedBuffers) {
+            delete[] pBuffer;
+        }
     }
     delete _pUsedBuffers;
     delete _pUnusedBuffers;
@@ -127,8 +129,8 @@ void AsioDevice::startService() {
 }
 
 void AsioDevice::stopService() {
-    _assertAsio(ASIOStop());
-    _assertAsio(ASIODisposeBuffers());
+    ASIOStop();
+    ASIODisposeBuffers();
     _running = false;
     reset();
 }
@@ -139,9 +141,11 @@ void AsioDevice::reset() {
     //Move all buffers to unused list.
     _usedBuffersLock.lock();
     _unusedBuffersLock.lock();
-    while (_pUsedBuffers->size() > 0) {
-        _pUnusedBuffers->push_back(_pUsedBuffers->back());
-        _pUsedBuffers->pop_back();
+    if (_pUsedBuffers) {
+        while (_pUsedBuffers->size() > 0) {
+            _pUnusedBuffers->push_back(_pUsedBuffers->back());
+            _pUsedBuffers->pop_back();
+        }
     }
     _usedBuffersLock.unlock();
     _unusedBuffersLock.unlock();

@@ -40,10 +40,6 @@ CaptureLoop::CaptureLoop(const Config *pConfig, AudioDevice *pCaptureDevice, Aud
 }
 
 CaptureLoop::~CaptureLoop() {
-    if (_pConfig->useAsioRenderDevice()) {
-        AsioDevice::stopService();
-        AsioDevice::destroy();
-    }
 	delete[] _pUsedChannels;
 	_pUsedChannels = nullptr;
 	_pInputs = nullptr;

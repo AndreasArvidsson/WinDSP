@@ -56,7 +56,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK;$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;DEBUG;DEBUG_MEMORY</PreprocessorDefinitions>
       <SupportJustMyCode>true</SupportJustMyCode>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(VCToolsInstallDir)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

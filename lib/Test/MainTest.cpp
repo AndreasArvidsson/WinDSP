@@ -99,13 +99,13 @@ void saveJsGraphData(std::vector<GraphData*> &graphs) {
 void addCrossover(std::vector<GraphData*> &graphs, const uint32_t fs, const bool isLowPass, const double frequency, const CrossoverType type, std::vector<uint8_t> orders) {
     //"Highpass Bessel 100Hz",
     std::string name = (isLowPass ? "Lowpass " : "Highpass ");
-    if (type == CrossoverType::Butterworth) {
+    if (type == CrossoverType::BUTTERWORTH) {
         name += "Butterworth ";
     }
-    else if (type == CrossoverType::Linkwitz_Riley) {
+    else if (type == CrossoverType::LINKWITZ_RILEY) {
         name += "Linkwitz-Riley ";
     }
-    else if (type == CrossoverType::Bessel) {
+    else if (type == CrossoverType::BESSEL) {
         name += "Bessel ";
     }
     name += toString(frequency) + "Hz";
@@ -204,19 +204,19 @@ void compareLP(std::vector<GraphData*> &graphs, const uint32_t fs) {
     GraphData *graphData = new GraphData("Compare LP");
 
     FilterBiquad *pFilter = new FilterBiquad(fs);
-    pFilter->addLowPass(freq, CrossoverType::Butterworth, 5);
+    pFilter->addLowPass(freq, CrossoverType::BUTTERWORTH, 5);
     graphData->add("BW", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addLowPass(freq, CrossoverType::Butterworth, 5, 0.2);
+    pFilter->addLowPass(freq, CrossoverType::BUTTERWORTH, 5, 0.2);
     graphData->add("BW Q+0.2", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addLowPass(freq, CrossoverType::Butterworth, 5, -0.2);
+    pFilter->addLowPass(freq, CrossoverType::BUTTERWORTH, 5, -0.2);
     graphData->add("BW Q-0.2", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addLowPass(freq, { -1, 0.5, 0.8 });
+    pFilter->addLowPass(freq, 5, { 0.5, 0.8 });
     graphData->add("Custom", pFilter);
 
     graphs.push_back(graphData);
@@ -227,19 +227,19 @@ void compareHP(std::vector<GraphData*> &graphs, const uint32_t fs) {
     GraphData *graphData = new GraphData("Compare HP");
 
     FilterBiquad *pFilter = new FilterBiquad(fs);
-    pFilter->addHighPass(freq, CrossoverType::Butterworth, 3);
+    pFilter->addHighPass(freq, CrossoverType::BUTTERWORTH, 3);
     graphData->add("BW", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addHighPass(freq, CrossoverType::Butterworth, 3, 0.2);
+    pFilter->addHighPass(freq, CrossoverType::BUTTERWORTH, 3, 0.2);
     graphData->add("BW Q+0.2", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addHighPass(freq, CrossoverType::Butterworth, 3, -0.2);
+    pFilter->addHighPass(freq, CrossoverType::BUTTERWORTH, 3, -0.2);
     graphData->add("BW Q-0.2", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addHighPass(freq, { -1, 0.6 });
+    pFilter->addHighPass(freq, 3, { 0.6 });
     graphData->add("Custom", pFilter);
 
     graphs.push_back(graphData);
@@ -249,12 +249,12 @@ int main() {
     const uint32_t fs = 96000;
 
     std::vector<GraphData*> graphs;
-    addCrossover(graphs, fs, true, 100, CrossoverType::Butterworth, { 1, 2, 3, 4, 5, 6, 7, 8 });
-    addCrossover(graphs, fs, false, 200, CrossoverType::Butterworth, { 1, 2, 3, 4, 5, 6, 7, 8 });
-    addCrossover(graphs, fs, true, 300, CrossoverType::Linkwitz_Riley, { 2, 4, 8 });
-    addCrossover(graphs, fs, false, 400, CrossoverType::Linkwitz_Riley, { 2, 4, 8 });
-    addCrossover(graphs, fs, true, 500, CrossoverType::Bessel, { 2, 3, 4, 5, 6, 7, 8 });
-    addCrossover(graphs, fs, false, 600, CrossoverType::Bessel, { 2, 3, 4, 5, 6, 7, 8 });
+    addCrossover(graphs, fs, true, 100, CrossoverType::BUTTERWORTH, { 1, 2, 3, 4, 5, 6, 7, 8 });
+    addCrossover(graphs, fs, false, 200, CrossoverType::BUTTERWORTH, { 1, 2, 3, 4, 5, 6, 7, 8 });
+    addCrossover(graphs, fs, true, 300, CrossoverType::LINKWITZ_RILEY, { 2, 4, 8 });
+    addCrossover(graphs, fs, false, 400, CrossoverType::LINKWITZ_RILEY, { 2, 4, 8 });
+    addCrossover(graphs, fs, true, 500, CrossoverType::BESSEL, { 2, 3, 4, 5, 6, 7, 8 });
+    addCrossover(graphs, fs, false, 600, CrossoverType::BESSEL, { 2, 3, 4, 5, 6, 7, 8 });
     addShelf(graphs, fs, true, 100, 10, { 0.5, 0.707, 1, 2 });
     addShelf(graphs, fs, false, 200, 3, { 0.5, 0.707, 1, 2 });
     addBandPass(graphs, fs, 500, -3, { 0.25, 0.5, 1, 2, 4, 6, 8, 10 });
@@ -271,7 +271,7 @@ int main() {
     saveJsGraphData(graphs);
 
     FilterBiquad *pFilter = new FilterBiquad(fs);
-    pFilter->addHighPass(100, CrossoverType::Butterworth, 4);
+    pFilter->addHighPass(100, CrossoverType::BUTTERWORTH, 4);
     printMaxVal(pFilter);
     pFilter->printCoefficients(true);
 

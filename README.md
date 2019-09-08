@@ -303,17 +303,17 @@ or
 
 **Crossover**    
 * Type: LOW_PASS or HIGH_PASS    
-* Requires: type, subType, order, freq
-* Subtypes are: BUTTERWORTH, LINKWITZ_RILEY, BESSEL and CUSTOM
+* Requires: type, crossoverType, order, freq
+* Crossover types are: BUTTERWORTH, LINKWITZ_RILEY, BESSEL and CUSTOM
 * Butterworth is available in orders: 1 through 8
 * Linkwitz-Riley is available in orders: 2, 4 and 8
 * Bessel is available in orders: 2 through 8
-* For all subtypes except cutsom a single optional Q-offset can be given. This is an offset of the existing Q-values to tweak basic crossovers. Default value: 0
-* Subtype custom requires Q values array. One Q-value per 2nd order filter. Give Q as -1 to get a 1st order filter.
+* For all crossover types except cutsom a single optional Q-offset can be given. This is an offset of the existing Q-values to tweak basic crossovers. Default value: 0
+* Crossover type custom requires Q values array. One Q-value per 2nd order filter. Give Q as -1 to get a 1st order filter.
 ```json
 {
     "type": "LOW_PASS",
-    "subType": "BUTTERWORTH",
+    "crossoverType": "BUTTERWORTH",
     "order": 4,
     "freq": 80.0,
     "qOffset": 0.2
@@ -322,7 +322,7 @@ or
 ```json
 {
     "type": "LOW_PASS",
-    "subType": "CUSTOM",
+    "crossoverType": "CUSTOM",
     "order": 5,
     "freq": 80.0,
     "q": [

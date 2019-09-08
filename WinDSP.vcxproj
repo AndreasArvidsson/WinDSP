@@ -117,7 +117,6 @@
     <ClCompile Include="Output.cpp" />
     <ClCompile Include="Route.cpp" />
     <ClCompile Include="SpeakerType.cpp" />
-    <ClCompile Include="SubType.cpp" />
     <ClCompile Include="TrayIcon.cpp" />
     <ClCompile Include="Visibility.cpp" />
     <ClCompile Include="WinDSPLog.cpp" />
@@ -136,7 +135,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Route.h" />
     <ClInclude Include="SpeakerType.h" />
-    <ClInclude Include="SubType.h" />
     <ClInclude Include="TrayIcon.h" />
     <ClInclude Include="Visibility.h" />
     <ClInclude Include="WinDSPLog.h" />

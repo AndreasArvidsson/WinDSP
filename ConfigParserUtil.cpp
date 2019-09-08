@@ -2,7 +2,7 @@
 #include "JsonNode.h"
 #include "FilterType.h"
 #include "SpeakerType.h"
-#include "SubType.h"
+#include "CrossoverType.h"
 
 #define REF_FIELD "#ref"
 
@@ -258,12 +258,12 @@ const FilterType Config::getFilterType(const JsonNode *pNode, const std::string 
     }
 }
 
-const SubType Config::getSubType(const JsonNode *pNode, const std::string &field, const std::string &path) const {
-    const std::string str = getTextValue(pNode, field, path);
+const CrossoverType Config::getCrossoverType(const JsonNode *pNode, const std::string &path) const {
+    const std::string str = getTextValue(pNode, "crossoverType", path);
     try {
-        return SubTypes::fromString(str);
+        return CrossoverTypes::fromString(str);
     }
     catch (const std::exception &e) {
-        throw Error("Config(%s/%s) - %s", path.c_str(), field.c_str(), e.what());
+        throw Error("Config(%s/%s) - %s", path.c_str(), "crossoverType", e.what());
     }
 }

@@ -17,13 +17,13 @@ public:
 	void add(const double b0, const double b1, const double b2, const double a1, const double a2);
 	void add(const double b0, const double b1, const double b2, const double a0, const double a1, const double a2);
 	
-	void addCrossover(const bool isLowPass, const double frequency, const std::vector<double> &qValues);
+	void addCrossover(const bool isLowPass, const double frequency, const uint8_t order, const std::vector<double> &qValues);
 	void addCrossover(const bool isLowPass, const double frequency, const CrossoverType type, const uint8_t order, const double qOffset = 0);
 
-	void addLowPass(const double frequency, const std::vector<double> qValues);
+	void addLowPass(const double frequency, const uint8_t order, const std::vector<double> qValues);
 	void addLowPass(const double frequency, const CrossoverType type, const uint8_t order, const double qOffset = 0);
 	
-	void addHighPass(const double frequency, const std::vector<double> qValues);
+	void addHighPass(const double frequency, const uint8_t order, const std::vector<double> qValues);
 	void addHighPass(const double frequency, const CrossoverType type, const uint8_t order, const double qOffset = 0);
 	
 	void addShelf(const bool isLowShelf, const double frequency, const double gain, const double q = 0.707);

@@ -1,36 +1,43 @@
 #include "CrossoverType.h"
-#include "Error.h"
 #include <cmath> // std::sqrt
+#include "Error.h"
+#include "Str.h"
 
-const std::string CrossoverTypes::toString(const CrossoverType type) {
-	switch (type) {
-	case CrossoverType::Butterworth:
-		return "Butterworth";
-	case CrossoverType::Linkwitz_Riley:
-		return "Linkwitz-Riley";
-	case CrossoverType::Bessel:
-		return "Bessel";
-	default:
-		throw Error("Unknown crossover type: %d", type);
-	}
+const CrossoverType CrossoverTypes::fromString(const std::string& strIn) {
+    const std::string str = String::toUpperCase(strIn);
+    if (str.compare("BUTTERWORTH") == 0) {
+        return CrossoverType::BUTTERWORTH;
+    }
+    else if (str.compare("LINKWITZ_RILEY") == 0) {
+        return CrossoverType::LINKWITZ_RILEY;
+    }
+    else if (str.compare("BESSEL") == 0) {
+        return CrossoverType::BESSEL;
+    }
+    else if (str.compare("CUSTOM") == 0) {
+        return CrossoverType::CUSTOM;
+    }
+    throw Error("Unknown filter sub type '%s'", strIn.c_str());
 }
 
-const CrossoverType CrossoverTypes::fromString(const std::string &value) {
-	if (value.compare("Butterworth") == 0) {
-		return CrossoverType::Butterworth;
-	}
-	else if (value.compare("Linkwitz-Riley") == 0) {
-		return CrossoverType::Linkwitz_Riley;
-	}
-	else if (value.compare("Bessel") == 0) {
-		return CrossoverType::Bessel;
-	}
-	throw Error("Unknown crossover type: %s", value.c_str());
+const std::string CrossoverTypes::toString(const CrossoverType crossoverType) {
+    switch (crossoverType) {
+    case CrossoverType::BUTTERWORTH:
+        return "BUTTERWORTH";
+    case CrossoverType::LINKWITZ_RILEY:
+        return "LINKWITZ_RILEY";
+    case CrossoverType::BESSEL:
+        return "BESSEL";
+    case CrossoverType::CUSTOM:
+        return "CUSTOM";
+    default:
+        throw Error("Unknown filter sub type %d", crossoverType);
+    };
 }
 
 const std::vector<double> CrossoverTypes::getQValues(const CrossoverType type, const uint8_t order) {
 	switch (type) {
-	case CrossoverType::Butterworth:
+	case CrossoverType::BUTTERWORTH:
 		switch (order) {
 		case 1:
 			return std::vector<double> { -1 };
@@ -51,7 +58,7 @@ const std::vector<double> CrossoverTypes::getQValues(const CrossoverType type, c
 		}
 		break;
 
-	case CrossoverType::Linkwitz_Riley:
+	case CrossoverType::LINKWITZ_RILEY:
 		switch (order) {
 		case 2:
 			return std::vector<double> { -1, -1  };
@@ -62,7 +69,7 @@ const std::vector<double> CrossoverTypes::getQValues(const CrossoverType type, c
 		}
 		break;
 
-	case CrossoverType::Bessel:
+	case CrossoverType::BESSEL:
 		switch (order) {
 		case 2:
 			return std::vector<double> { 0.57735026919 };

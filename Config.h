@@ -18,7 +18,7 @@ class Filter;
 class FilterBiquad;
 class JsonNode;
 enum class SpeakerType;
-enum class SubType;
+enum class CrossoverType;
 enum class FilterType;
 enum class Channel;
 
@@ -97,7 +97,7 @@ private:
     void parseExpandSurround(const JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path);
     void addIfRoute(Input *pInput, const Channel channel) const;
     void parseBasicCrossovers(JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path);
-    JsonNode* parseBasicCrossover(JsonNode *pBasicNode, const std::string &field, const std::string &type, const double freq, const int order, const std::string &path) const;
+    JsonNode* parseBasicCrossover(JsonNode *pBasicNode, const std::string &field, const CrossoverType crossoverType, const double freq, const int order, const std::string &path) const;
 
     /* ********* ConfigParserAdvanced.cpp ********* */
 
@@ -170,7 +170,7 @@ private:
     const int validateIntValue(const JsonNode *pNode, const std::string &path, const bool optional = false) const;
     const SpeakerType getSpeakerType(const JsonNode *pNode, const std::string &field, const std::string &path) const;
     const FilterType getFilterType(const JsonNode *pNode, const std::string &field, const std::string &path) const;
-    const SubType getSubType(const JsonNode *pNode, const std::string &field, const std::string &path) const;
+    const CrossoverType getCrossoverType(const JsonNode *pNode, const std::string &path) const;
 
     /* ********* MISC ********* */
 

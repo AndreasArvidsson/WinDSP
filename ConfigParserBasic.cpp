@@ -1,5 +1,6 @@
 #include "Config.h"
 #include "SpeakerType.h"
+#include "CrossoverType.h"
 #include "JsonNode.h"
 #include <algorithm> //std::find
 #include "WinDSPLog.h"
@@ -42,24 +43,21 @@ void Config::parseBasicCrossovers(JsonNode *pBasicNode, const std::unordered_map
             break;
         }
     }
-    _pLpFilter = parseBasicCrossover(pBasicNode, "lowPass", "BUTTERWORTH", 80, 5, path);
-    _pHpFilter = parseBasicCrossover(pBasicNode, "highPass", "BUTTERWORTH", 80, 3, path);
+    _pLpFilter = parseBasicCrossover(pBasicNode, "lowPass", CrossoverType::BUTTERWORTH, 80, 5, path);
+    _pHpFilter = parseBasicCrossover(pBasicNode, "highPass", CrossoverType::BUTTERWORTH, 80, 3, path);
 }
 
-JsonNode* Config::parseBasicCrossover(JsonNode *pBasicNode, const std::string &field, const std::string &type, const double freq, const int order, const std::string &path) const {
+JsonNode* Config::parseBasicCrossover(JsonNode *pBasicNode, const std::string &field, const CrossoverType crossoverType, const double freq, const int order, const std::string &path) const {
     JsonNode *pCrossoverNode;
     if (pBasicNode->has(field)) {
         std::string myPath = path;
         pCrossoverNode = (JsonNode*)tryGetObjectNode(pBasicNode, field, myPath);
-        if (pCrossoverNode->has("type") && !pCrossoverNode->has("subType")) {
-            pCrossoverNode->renameField("type", "subType");
-        }
     }
     else {
         pCrossoverNode = new JsonNode(JsonNodeType::OBJECT);
         pBasicNode->put(field, pCrossoverNode);
     }
-    addNonExisting(pCrossoverNode, "subType", type);
+    addNonExisting(pCrossoverNode, "crossoverType", CrossoverTypes::toString(crossoverType));
     addNonExisting(pCrossoverNode, "freq", freq);
     addNonExisting(pCrossoverNode, "order", order);
     return pCrossoverNode;

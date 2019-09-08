@@ -9,13 +9,13 @@
     "filters": {
         "hp": {
             "type": "HIGH_PASS",
-            "subType": "BUTTERWORTH",
+            "crossoverType": "BUTTERWORTH",
             "order": 3,
             "freq": 80.0
         },
         "hpCustom": {
             "type": "HIGH_PASS",
-            "subType": "CUSTOM",
+            "crossoverType": "CUSTOM",
             "order": 3,
             "freq": 80.0,
             "q": [

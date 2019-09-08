@@ -3,7 +3,6 @@
 #include "JsonNode.h"
 #include "WinDSPLog.h"
 #include "FilterType.h"
-#include "SubType.h"
 #include "CrossoverType.h"
 #include "Str.h"
 #include "Convert.h"
@@ -143,24 +142,20 @@ void Config::parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiq
 }
 
 void Config::parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
-    const SubType subType = getSubType(pFilterNode, "subType", path);
+    const CrossoverType crossoverType = getCrossoverType(pFilterNode, path);
     const double freq = getDoubleValue(pFilterNode, "freq", path);
     const uint8_t order = (uint8_t)getIntValue(pFilterNode, "order", path);
-    switch (subType) {
-    case SubType::BUTTERWORTH:
-        pFilterBiquad->addCrossover(isLowPass, freq, CrossoverType::Butterworth, order, getQOffset(pFilterNode, path));
+    switch (crossoverType) {
+    case CrossoverType::BUTTERWORTH:
+    case CrossoverType::LINKWITZ_RILEY:
+    case CrossoverType::BESSEL:
+        pFilterBiquad->addCrossover(isLowPass, freq, crossoverType, order, getQOffset(pFilterNode, path));
         break;
-    case SubType::LINKWITZ_RILEY:
-        pFilterBiquad->addCrossover(isLowPass, freq, CrossoverType::Linkwitz_Riley, order, getQOffset(pFilterNode, path));
-        break;
-    case SubType::BESSEL:
-        pFilterBiquad->addCrossover(isLowPass, freq, CrossoverType::Bessel, order, getQOffset(pFilterNode, path));
-        break;
-    case SubType::CUSTOM:
-        pFilterBiquad->addCrossover(isLowPass, freq, getQValues(pFilterNode, order, path));
+    case CrossoverType::CUSTOM:
+        pFilterBiquad->addCrossover(isLowPass, freq, order, getQValues(pFilterNode, order, path));
         break;
     default:
-        throw Error("Config(%s) - Unknown crossover sub type %d", path.c_str(), SubTypes::toString(subType).c_str());
+        throw Error("Config(%s) - Unknown crossover sub type %d", path.c_str(), CrossoverTypes::toString(crossoverType).c_str());
     }
 }
 
@@ -333,15 +328,13 @@ const double Config::getQOffset(const JsonNode *pFilterNode, const std::string &
 const std::vector<double> Config::getQValues(const JsonNode *pFilterNode, const int order, const std::string &path) const {
     std::string qPath = path;
     const JsonNode *pQNode = getArrayNode(pFilterNode, "q", qPath);
-    std::vector<double> qValues;
-    int calculatedOrder = 0;
-    for (size_t i = 0; i < pQNode->size(); ++i) {
-        const double q = getDoubleValue(pQNode, i, qPath);
-        calculatedOrder += q < 0 ? 1 : 2;
-        qValues.push_back(q);
+    const int expectedQ = order / 2;
+    if (expectedQ != pQNode->size()) {
+        throw Error("Config(%s) - CROSSOVER.CUSTOM: Q values list doesn't match order. Expected(%d), Found(%d)", path.c_str(), expectedQ, pQNode->size());
     }
-    if (calculatedOrder != order) {
-        throw Error("Config(%s) - CROSSOVER.CUSTOM: Q values list doesn't match order. Expected(%d), Found(%d)", path.c_str(), order, calculatedOrder);
+    std::vector<double> qValues;
+    for (size_t i = 0; i < pQNode->size(); ++i) {
+        qValues.push_back(getDoubleValue(pQNode, i, qPath));
     }
     return qValues;
 }

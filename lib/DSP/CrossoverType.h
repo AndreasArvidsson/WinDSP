@@ -3,14 +3,12 @@
 #include <string>
 
 enum class CrossoverType {
-	Butterworth, Linkwitz_Riley, Bessel
+    BUTTERWORTH, LINKWITZ_RILEY, BESSEL, CUSTOM
 };
 
-class CrossoverTypes {
-public:
-	static const std::string toString(const CrossoverType type);
-	static const CrossoverType fromString(const std::string &value);
-	static const std::vector<double> getQValues(const CrossoverType type, const uint8_t order);
-    static const std::vector<double> getQValues(const CrossoverType type, const uint8_t order, const double qOffset);
-
+namespace CrossoverTypes {
+    const std::string toString(const CrossoverType type);
+    const CrossoverType fromString(const std::string& value);
+    const std::vector<double> getQValues(const CrossoverType type, const uint8_t order);
+    const std::vector<double> getQValues(const CrossoverType type, const uint8_t order, const double qOffset);
 };

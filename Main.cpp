@@ -21,7 +21,7 @@
 #include "Str.h"
 #include "AsioDevice.h"
 
-#define VERSION "0.21.0b"
+#define VERSION "0.22.0b"
 
 #ifdef DEBUG
 #include "MemoryManager.h"

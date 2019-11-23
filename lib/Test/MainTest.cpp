@@ -216,7 +216,7 @@ void compareLP(std::vector<GraphData*> &graphs, const uint32_t fs) {
     graphData->add("BW Q-0.2", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addLowPass(freq, 5, { 0.5, 0.8 });
+    pFilter->addLowPass(freq, { -1, 0.5, 0.8 });
     graphData->add("Custom", pFilter);
 
     graphs.push_back(graphData);
@@ -239,7 +239,7 @@ void compareHP(std::vector<GraphData*> &graphs, const uint32_t fs) {
     graphData->add("BW Q-0.2", pFilter);
 
     pFilter = new FilterBiquad(fs);
-    pFilter->addHighPass(freq, 3, { 0.6 });
+    pFilter->addHighPass(freq, { -1, 0.6 });
     graphData->add("Custom", pFilter);
 
     graphs.push_back(graphData);

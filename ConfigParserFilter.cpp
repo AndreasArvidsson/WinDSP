@@ -152,7 +152,7 @@ void Config::parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, c
         pFilterBiquad->addCrossover(isLowPass, freq, crossoverType, order, getQOffset(pFilterNode, path));
         break;
     case CrossoverType::CUSTOM:
-        pFilterBiquad->addCrossover(isLowPass, freq, order, getQValues(pFilterNode, order, path));
+        pFilterBiquad->addCrossover(isLowPass, freq, getQValues(pFilterNode, order, path));
         break;
     default:
         throw Error("Config(%s) - Unknown crossover sub type %d", path.c_str(), CrossoverTypes::toString(crossoverType).c_str());
@@ -325,16 +325,18 @@ const double Config::getQOffset(const JsonNode *pFilterNode, const std::string &
     return 0;
 }
 
-const std::vector<double> Config::getQValues(const JsonNode *pFilterNode, const int order, const std::string &path) const {
+const std::vector<double> Config::getQValues(const JsonNode* pFilterNode, const int order, const std::string& path) const {
     std::string qPath = path;
-    const JsonNode *pQNode = getArrayNode(pFilterNode, "q", qPath);
-    const int expectedQ = order / 2;
-    if (expectedQ != pQNode->size()) {
-        throw Error("Config(%s) - CROSSOVER.CUSTOM: Q values list doesn't match order. Expected(%d), Found(%d)", path.c_str(), expectedQ, pQNode->size());
-    }
+    const JsonNode* pQNode = getArrayNode(pFilterNode, "q", qPath);
     std::vector<double> qValues;
+    int calculatedOrder = 0;
     for (size_t i = 0; i < pQNode->size(); ++i) {
-        qValues.push_back(getDoubleValue(pQNode, i, qPath));
+        const double q = getDoubleValue(pQNode, i, qPath);
+        calculatedOrder += q < 0 ? 1 : 2;
+        qValues.push_back(q);
+    }
+    if (calculatedOrder != order) {
+        throw Error("Config(%s) - CROSSOVER.CUSTOM: Q values list doesn't match order. Expected(%d), Found(%d)", path.c_str(), order, calculatedOrder);
     }
     return qValues;
 }

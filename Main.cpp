@@ -143,17 +143,9 @@ void run() {
 	//Update start with OS.
 	updateStartWithOS();
 
-	//Show or hide window
-	Visibility::update(pConfig);
-
-
-	/*
-	* Get capture and render devices
-	*/
-
+    //Get capture and render devices
 	const std::string captureDeviceName = pConfig->getCaptureDeviceName();
 	const std::string renderDeviceName = pConfig->getRenderDeviceName();
-
 
 	/*
 	 * Create and initalize devices and validate device settings
@@ -192,14 +184,8 @@ void run() {
         }
     }
 
-	/*
-	* Init I/O and filters
-	*/
-
-
 	//Read config and get I/O instances with filters 
 	pConfig->init(pCaptureFormat->nSamplesPerSec, pCaptureFormat->nChannels, renderNumChannels);
-
 
     /*
      * Print data to the user.
@@ -222,11 +208,10 @@ void run() {
         pConfig->printConfig();
     }
 
+    //Show or hide window. Do this in late stage. Irritating when winow is hidden/shown for evvery failed hardware init.
+    Visibility::update(pConfig);
 
-	/*
-	* Start capturing data
-	*/
-
+    //Start capturing data
     pCaptureLoop = new CaptureLoop(pConfig, pCaptureDevice, pRenderDevice);
     pCaptureLoop->run();
 }

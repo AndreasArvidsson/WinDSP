@@ -64,9 +64,11 @@ void FilterBiquad::addLowPass(const double frequency, const uint8_t order, const
     }
     //Add second order biquad for each q Value.
     for (const double q : qValues) {
-        Biquad biquad;
-        biquad.initLowPass(_sampleRate, frequency, q);
-        _biquads.push_back(biquad);
+        if (q >= 0) {
+            Biquad biquad;
+            biquad.initLowPass(_sampleRate, frequency, q);
+            _biquads.push_back(biquad);
+        }
     }
     appendToString(String::format("LP%0.f", frequency));
 }
@@ -79,14 +81,16 @@ void FilterBiquad::addHighPass(const double frequency, const uint8_t order, cons
     //Odd order. Add first order filter.
     if (order % 2 == 1) {
         Biquad biquad;
-        biquad.initLowPass(_sampleRate, frequency);
+        biquad.initHighPass(_sampleRate, frequency);
         _biquads.push_back(biquad);
     }
     //Add second order biquad for each q Value.
     for (const double q : qValues) {
-        Biquad biquad;
-        biquad.initLowPass(_sampleRate, frequency, q);
-        _biquads.push_back(biquad);
+        if (q >= 0) {
+            Biquad biquad;
+            biquad.initHighPass(_sampleRate, frequency, q);
+            _biquads.push_back(biquad);
+        }
     }
     appendToString(String::format("HP%0.f", frequency));
 }

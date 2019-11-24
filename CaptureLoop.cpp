@@ -108,10 +108,8 @@ void CaptureLoop::run() {
 void CaptureLoop::_captureLoopAsio() {
     //Used to temporarily store sample(for all out channels) while they are being processed.
     double renderBlockBuffer[32];
-    const size_t nChannelsIn = _pInputs->size();
-    const size_t nChannelsOut = _pOutputs->size();
     //The size of all sample frames for all channels with the same sample index/timestamp
-    const size_t renderBlockSize = sizeof(double) * nChannelsOut;
+    const size_t renderBlockSize = sizeof(double) * _pOutputs->size();
     UINT32 sampleIndex, samplesAvailable;
     DWORD flags;
     float *pCaptureBuffer;
@@ -161,6 +159,11 @@ void CaptureLoop::_captureLoopAsio() {
                     _pCaptureDevice->flushCaptureBuffer();
                     break;
                 }
+
+                //Render silence to asio to create the buffers at once. If not the first audio will be crackling.
+                for (sampleIndex = 0; sampleIndex < samplesAvailable * _pOutputs->size() * 0.5; ++sampleIndex) {
+                    AsioDevice::addSample(0);
+                }
             }
 
             swStart();
@@ -199,10 +202,8 @@ void CaptureLoop::_captureLoopAsio() {
 void CaptureLoop::_captureLoopWasapi() {
 	//Used to temporarily store sample(for all out channels) while they are being processed.
 	double renderBlockBuffer[8];
-	const size_t nChannelsIn = _pInputs->size();
-	const size_t nChannelsOut = _pOutputs->size();
 	//The size of all sample frames for all channels with the same sample index/timestamp
-	const size_t renderBlockSize = sizeof(double) * nChannelsOut;
+	const size_t renderBlockSize = sizeof(double) * _pOutputs->size();
 	UINT32 sampleIndex, samplesAvailable;
 	DWORD flags;
 	float *pCaptureBuffer, *pRenderBuffer;

@@ -1,11 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DSP", "lib\DSP\DSP.vcxproj", "{49C706AB-09B0-451E-A6D6-403A28A54CE5}"
-	ProjectSection(ProjectDependencies) = postProject
-		{5F894556-9A4B-4255-B8B7-5C1AE0F9CF26} = {5F894556-9A4B-4255-B8B7-5C1AE0F9CF26}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinDSP", "WinDSP.vcxproj", "{44BAE523-7CAB-4697-B446-98E75F3D5C2F}"
 EndProject
@@ -13,7 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "..\Core\Core.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "lib\Test\Test.vcxproj", "{6F3A1261-5747-42A0-847C-B260A16DA998}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AsioSDK", "..\AsioSDK\AsioSDK\AsioSDK.vcxproj", "{0AB9A655-BA2C-42CB-909F-B61AE395E2E8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AsioSDK", "..\AsioSDK\AsioSDK.vcxproj", "{0AB9A655-BA2C-42CB-909F-B61AE395E2E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

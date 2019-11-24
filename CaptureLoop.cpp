@@ -161,8 +161,10 @@ void CaptureLoop::_captureLoopAsio() {
                 }
 
                 //Render silence to asio to create the buffers at once. If not the first audio will be crackling.
-                for (sampleIndex = 0; sampleIndex < samplesAvailable * _pOutputs->size() * 0.5; ++sampleIndex) {
-                    AsioDevice::addSample(0);
+                for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
+                    for (UINT32 i = 0; i < _pOutputs->size(); ++i) {
+                        AsioDevice::addSample(0);
+                    }
                 }
             }
 

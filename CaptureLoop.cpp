@@ -110,7 +110,7 @@ void CaptureLoop::_captureLoopAsio() {
     double renderBlockBuffer[32];
     //The size of all sample frames for all channels with the same sample index/timestamp
     const size_t renderBlockSize = sizeof(double) * _pOutputs->size();
-    UINT32 sampleIndex, samplesAvailable;
+    UINT32 samplesAvailable;
     DWORD flags;
     float *pCaptureBuffer;
     double *pRenderBlockBuffer;
@@ -161,7 +161,7 @@ void CaptureLoop::_captureLoopAsio() {
                 }
 
                 //Render silence to asio to create the buffers at once. If not the first audio will be crackling.
-                for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
+                for (UINT32 sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
                     for (UINT32 i = 0; i < _pOutputs->size(); ++i) {
                         AsioDevice::addSample(0);
                     }
@@ -171,7 +171,7 @@ void CaptureLoop::_captureLoopAsio() {
             swStart();
 
             //Iterate all capture frames
-			for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
+			for (UINT32 sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
 				//Set buffer default value to 0 so we can add/mix values to it later
 				memset(renderBlockBuffer, 0, renderBlockSize);
 
@@ -206,7 +206,7 @@ void CaptureLoop::_captureLoopWasapi() {
 	double renderBlockBuffer[8];
 	//The size of all sample frames for all channels with the same sample index/timestamp
 	const size_t renderBlockSize = sizeof(double) * _pOutputs->size();
-	UINT32 sampleIndex, samplesAvailable;
+	UINT32 samplesAvailable;
 	DWORD flags;
 	float *pCaptureBuffer, *pRenderBuffer;
 	double *pRenderBlockBuffer;
@@ -266,7 +266,7 @@ void CaptureLoop::_captureLoopWasapi() {
                 swStart();
 
                 //Iterate all capture frames
-                for (sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
+                for (UINT32 sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
                     //Set buffer default value to 0 so we can add/mix values to it later
                     memset(renderBlockBuffer, 0, renderBlockSize);
 

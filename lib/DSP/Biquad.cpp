@@ -155,14 +155,14 @@ void Biquad::initLinkwitzTransform(const uint32_t sampleRate, const double F0, c
 	const double c0i = std::pow(2 * M_PI * Fp, 2);
 	const double c1i = (2 * M_PI * Fp) / Qp;
 	const double gn = (2 * M_PI * Fc) / std::tan(M_PI * Fc / sampleRate);
-	const double pw = std::pow(gn, 2);
+	const double gn2 = std::pow(gn, 2);
 	const double cci = c0i + gn * c1i + std::pow(gn, 2);
-    _b0 = (d0i + gn * d1i + pw) / cci;
-    _b1 = 2 * (d0i - pw) / cci;
-    _b2 = (d0i - gn * d1i + pw) / cci;
+    _b0 = (d0i + gn * d1i + gn2) / cci;
+    _b1 = 2 * (d0i - gn2) / cci;
+    _b2 = (d0i - gn * d1i + gn2) / cci;
     _a0 = 1;
-    _a1 = 2 * (c0i - pw) / cci;
-    _a2 = (c0i - gn * c1i + pw) / cci;
+    _a1 = 2 * (c0i - gn2) / cci;
+    _a2 = (c0i - gn * c1i + gn2) / cci;
 	reset();
 }
 

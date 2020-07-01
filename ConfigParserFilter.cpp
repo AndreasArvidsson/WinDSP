@@ -367,7 +367,7 @@ void Config::applyCrossoversMap(FilterBiquad *pFilterBiquad, const int outputCha
         }
         if (_addHpTo.find(channel) != _addHpTo.end() && _addHpTo[channel]) {
             std::string hpPath = basicPath;
-            parseCrossover(false, pFilterBiquad, _pLpFilter, hpPath);
+            parseCrossover(false, pFilterBiquad, _pHpFilter, hpPath);
         }
     }
 }

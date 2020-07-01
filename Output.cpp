@@ -42,6 +42,9 @@ void Output::reset() {
 	for (Filter * const pFilter : _filters) {
 		pFilter->reset();
 	}
+	for (Filter * const pFilter : _postFilters) {
+        pFilter->reset();
+	}
 }
 
 const Channel Output::getChannel() const {

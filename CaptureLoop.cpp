@@ -310,11 +310,11 @@ void CaptureLoop::stop() {
 
 void CaptureLoop::_resetFilters() {
 	//Reset i/o filter states.
-	for (Input * const p : *_pInputs) {
-		p->reset();
+	for (Input * const pInput : *_pInputs) {
+		pInput->reset();
 	}
-	for (Output * const p : *_pOutputs) {
-		p->reset();
+	for (Output * const pOutput : *_pOutputs) {
+		pOutput->reset();
 	}
 }
 

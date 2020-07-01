@@ -17,15 +17,16 @@ const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, const std
     //Parse filters list
     FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
     std::string filtersPath = path;
+
+    //Apply crossovers from basic config.
+    applyCrossoversMap(pFilterBiquad, outputChannel);
+
     const JsonNode *pFiltersNode = tryGetArrayNode(pNode, "filters", filtersPath);
     for (size_t i = 0; i < pFiltersNode->size(); ++i) {
         std::string filterPath = filtersPath;
         const JsonNode *pFilter = getObjectNode(pFiltersNode, i, filterPath);
         parseFilter(filters, pFilterBiquad, pFilter, outputChannel, filterPath);
     }
-
-    //Apply crossovers from basic config.
-    applyCrossoversMap(pFilterBiquad, outputChannel);
 
     //No biquads added. Don't use biquad filter.
     if (pFilterBiquad->isEmpty()) {

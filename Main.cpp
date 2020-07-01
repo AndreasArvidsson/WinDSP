@@ -163,8 +163,12 @@ void run() {
 
     //ASIO render device.
     if (pConfig->useAsioRenderDevice()) {
-        renderNumChannels = pConfig->getAsioNumChannels() > 0 ? pConfig->getAsioNumChannels() : pCaptureDevice->getFormat()->nChannels;
-        AsioDevice::initRenderService(pConfig, renderDeviceName, pCaptureFormat->nSamplesPerSec, pConfig->getAsioBufferSize(), renderNumChannels);
+        renderNumChannels = pConfig->getAsioNumChannels() > 0
+			? pConfig->getAsioNumChannels()
+			: pCaptureDevice->getFormat()->nChannels;
+        AsioDevice::initRenderService(
+			pConfig, renderDeviceName, pCaptureFormat->nSamplesPerSec,
+			pConfig->getAsioBufferSize(), renderNumChannels);
     }
     //WASAPI render device.
     else {
@@ -174,13 +178,16 @@ void run() {
         renderNumChannels = pRenderFormat->nChannels;
         //The application have no resampler. Sample rate and bit depth must be a match.
         if (pCaptureFormat->nSamplesPerSec != pRenderFormat->nSamplesPerSec) {
-            throw Error("Sample rate missmatch: Capture(%d), Render(%d)", pCaptureFormat->nSamplesPerSec, pRenderFormat->nSamplesPerSec);
+            throw Error("Sample rate missmatch: Capture(%d), Render(%d)",
+				pCaptureFormat->nSamplesPerSec, pRenderFormat->nSamplesPerSec);
         }
         if (pCaptureFormat->wBitsPerSample != pRenderFormat->wBitsPerSample) {
-            throw Error("Bit depth missmatch: Capture(%d), Render(%d)", pCaptureFormat->wBitsPerSample, pRenderFormat->wBitsPerSample);
+            throw Error("Bit depth missmatch: Capture(%d), Render(%d)",
+				pCaptureFormat->wBitsPerSample, pRenderFormat->wBitsPerSample);
         }
         if (pCaptureFormat->wFormatTag != pRenderFormat->wFormatTag) {
-            throw Error("Format tag missmatch: Capture(%d), Render(%d)", pCaptureFormat->wFormatTag, pRenderFormat->wFormatTag);
+            throw Error("Format tag missmatch: Capture(%d), Render(%d)",
+				pCaptureFormat->wFormatTag, pRenderFormat->wFormatTag);
         }
     }
 
@@ -197,7 +204,8 @@ void run() {
     LOG_INFO("Capture: %s", captureDeviceName.c_str());
     LOG_INFO("Render%s: %s", renderPrefix.c_str(), renderDeviceName.c_str());
     if (pConfig->inDebug() && pConfig->useAsioRenderDevice()) {
-        LOG_INFO("ASIO buffer: %d(%.1fms)", AsioDevice::getBufferSize(), 1000.0 * AsioDevice::getBufferSize() / pCaptureFormat->nSamplesPerSec);
+        LOG_INFO("ASIO buffer: %d(%.1fms)", AsioDevice::getBufferSize(),
+            1000.0 * AsioDevice::getBufferSize() / pCaptureFormat->nSamplesPerSec);
     }
     if (pConfig->hasDescription()) {
         LOG_INFO("%s", pConfig->getDescription().c_str());
@@ -208,7 +216,7 @@ void run() {
         pConfig->printConfig();
     }
 
-    //Show or hide window. Do this in late stage. Irritating when winow is hidden/shown for evvery failed hardware init.
+    //Show or hide window. Do this in late stage; irritating when winow is hidden/shown for every failed hardware init.
     Visibility::update(pConfig);
 
     //Start capturing data

@@ -26,7 +26,8 @@ This requires two devices: one capture device and one render/playback device.
 If you don't have a spare soundcard in your computer to use for the capture device I can recommendend [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable) which gives you a virtual audio device to use as the capture device.
 
 **ASIO support**    
-WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-audio.com/Cable) can be used as render device to playback through an ASIO soundcard.
+* WinDSP has experimental ASIO support. Please try it out.
+* Optionally [VB-Audio Asio Bridge](https://www.vb-audio.com/Cable) can be used as an WASAPI render device to playback through an ASIO soundcard.
 
 ## Prerequisites(To run application)
 * Capture and render audio devices.
@@ -74,7 +75,10 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
     "description": "Default config",
     "devices": {
         "capture": "CABLE Input (VB-Audio Virtual Cable)",
-        "render": "Focusrite USB AUDIO"
+        "render": "Focusrite USB AUDIO",
+        "renderAsio": false,
+        "asioBufferSize": 88,
+        "asioNumChannels": 8
     },
     "basic": {
         "front": "Large",
@@ -143,6 +147,10 @@ WinDSP only supports WASAPI devices, but [VB-Audio Asio Bridge](https://www.vb-a
 **Devices**
 * Devices contains the capture and render device names.
 * If devices are not set the user will be queried from a list of available devices. Do **NOT** write these names yourself.
+* ASIO parameters:
+    * renderAsio: Set to true if the render device uses ASIO instead of WASAPI.
+    * asioBufferSize: Sample size of the ASIO render buffer. Leave out to use sound card prefered size.
+    * asioNumChannels: Number of channels to use for the ASIO render device. Leave out to use all.
 
 **Basic routing**   
 * Basic routing CAN'T be combined with advanced routing.
@@ -253,7 +261,7 @@ or
 }
 ```
 
-**PEQ(Parametric equalizer)**    
+**PEQ (Parametric equalizer)**    
 * Requires: type, freq, gain, q
 ```json
 {
@@ -399,7 +407,7 @@ or
 These are filter only available on outputs and not on routes.
 
 **Cancellation**    
-* Creates an inverted and delayed signal cancel out on the specified frequency. This is another way to remove peaks.
+* Creates an inverted and delayed signal to cancel out the specified frequency. This is another way to remove peaks.
 * Requires: freq    
 * Gain defaults to 0dB
 ```json

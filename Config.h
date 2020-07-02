@@ -75,13 +75,13 @@ private:
     void parseOutputs();
     void parseOutput(const JsonNode *pOutputs, const size_t index, std::string path);
     const bool getOutputChannel(const JsonNode *pChannelNode, Channel &channelOut, const std::string &path) const;
-    const std::vector<Channel> getOutputChannels(const JsonNode *pOutputNode, const std::string &path);
+    const std::vector<Channel> getOutputChannels(const JsonNode *pOutputNode, const std::string &path) const;
     void validateLevels(const std::string &path) const;
 
     /* ********* ConfigParserBasic.cpp ********* */
 
     void parseBasic();
-    const std::unordered_map<Channel, SpeakerType> parseChannels(const JsonNode *pBasicNode, const double stereoBass, std::vector<Channel> &subs, std::vector<Channel> &subLs, std::vector<Channel> &subRs, std::vector<Channel> &smalls, const std::string &path);
+    const std::unordered_map<Channel, SpeakerType> parseChannels(const JsonNode *pBasicNode, const double stereoBass, std::vector<Channel> &subs, std::vector<Channel> &subLs, std::vector<Channel> &subRs, std::vector<Channel> &smalls, const std::string &path) const;
     void parseChannel(std::unordered_map<Channel, SpeakerType> &result, const JsonNode *pNode, const std::string &field, const std::vector<Channel> &channels, const std::vector<SpeakerType> &allowed, const std::string &path) const;
     const std::vector<Channel> getChannelsByType(const std::unordered_map<Channel, SpeakerType> &channelsMap, const SpeakerType targetType) const;
     const double getLfeGain(const JsonNode *pBasicNode, const bool useSubwoofers, const bool hasSmalls, const std::string &path) const;
@@ -108,9 +108,9 @@ private:
 
     /* ********* ConfigParserFilter.cpp ********* */
 
-    const std::vector<Filter*> parseFilters(const JsonNode *pNode, const std::string &path, const int outputChannel = -1);
-    const std::vector<Filter*> parsePostFilters(const JsonNode *pNode, const std::string &path);
-    void parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path);
+    const std::vector<Filter*> parseFilters(const JsonNode *pNode, const std::string &path, const int outputChannel = -1) const;
+    const std::vector<Filter*> parsePostFilters(const JsonNode *pNode, const std::string &path) const;
+    void parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parseShelf(const bool isLowShelf, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parsePEQ(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
@@ -118,13 +118,13 @@ private:
     void parseNotch(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parseLinkwitzTransform(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parseBiquad(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
-    void parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string &path);
-    void parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path);
+    void parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string &path) const;
+    void parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
     void parseCancellation(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string &path) const;
     void parseFir(std::vector<Filter*> &filters, const JsonNode *pFilterNode, const std::string &path) const;
     void parseFirTxt(std::vector<Filter*> &filters, const File &file, const std::string &path) const;
     void parseFirWav(std::vector<Filter*> &filters, const File &file, const std::string &path) const;
-    void applyCrossoversMap(FilterBiquad *pFilterBiquad, const Channel channel, const JsonNode *pFilterNode, const std::string &path);
+    void applyCrossoversMap(FilterBiquad *pFilterBiquad, const Channel channel, const JsonNode *pFilterNode, const std::string &path) const;
     const double getQOffset(const JsonNode *pFilterNode, const std::string &path) const;
     const std::vector<double> getQValues(const JsonNode *pFilterNode, const int order, const std::string &path) const;
     const bool hasCrossoverFilter(const JsonNode * pFiltersNode, const bool isLowPass, const std::string &path) const;

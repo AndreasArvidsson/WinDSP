@@ -215,7 +215,7 @@ void Config::addSwRoute(Input *pInput, const bool stereoBass, const std::vector<
     }
 }
 
-const std::unordered_map<Channel, SpeakerType> Config::parseChannels(const JsonNode *pBasicNode, const double stereoBass, std::vector<Channel> &subs, std::vector<Channel> &subLs, std::vector<Channel> &subRs, std::vector<Channel> &smalls, const std::string &path) {
+const std::unordered_map<Channel, SpeakerType> Config::parseChannels(const JsonNode *pBasicNode, const double stereoBass, std::vector<Channel> &subs, std::vector<Channel> &subLs, std::vector<Channel> &subRs, std::vector<Channel> &smalls, const std::string &path) const {
     std::unordered_map<Channel, SpeakerType> result;
     //Front speakers are always enabled and normal sepakers
     parseChannel(result, pBasicNode, "front", { Channel::L , Channel::R }, { SpeakerType::LARGE, SpeakerType::SMALL }, path);

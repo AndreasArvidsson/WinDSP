@@ -104,7 +104,7 @@ void Config::parseOutput(const JsonNode *pOutputs, const size_t index, std::stri
     }
 }
 
-const std::vector<Channel> Config::getOutputChannels(const JsonNode *pOutputNode, const std::string &path) {
+const std::vector<Channel> Config::getOutputChannels(const JsonNode *pOutputNode, const std::string &path) const {
     std::vector<Channel> result;
     if (pOutputNode->has("channels")) {
         std::string channelsPath = path;

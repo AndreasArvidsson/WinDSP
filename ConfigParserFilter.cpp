@@ -9,7 +9,7 @@
 #include "AudioDevice.h" //WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
 #include "Channel.h"
 
-const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, const std::string &path, const int outputChannel) {
+const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, const std::string &path, const int outputChannel) const {
     std::vector<Filter*> filters;
     //Parse single instance simple filters.
     parseGain(filters, pNode, path);
@@ -42,7 +42,7 @@ const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, const std
     return filters;
 }
 
-const std::vector<Filter*> Config::parsePostFilters(const JsonNode *pNode, const std::string &path) {
+const std::vector<Filter*> Config::parsePostFilters(const JsonNode *pNode, const std::string &path) const {
     std::vector<Filter*> filters;
     parseCancellation(filters, pNode, path);
     return filters;
@@ -62,7 +62,7 @@ void Config::parseCancellation(std::vector<Filter*> &filters, const JsonNode *pN
     }
 }
 
-void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string &path) {
+void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string &path) const {
     const double value = tryGetDoubleValue(pNode, "gain", path);
     const bool invert = tryGetBoolValue(pNode, "invert", path);
     //No use in adding zero gain.
@@ -71,7 +71,7 @@ void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, con
     }
 }
 
-void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) {
+void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const {
     pNode = tryGetNode(pNode, "delay", path);
     if (pNode->isMissingNode()) {
         return;
@@ -100,7 +100,7 @@ void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, st
     }
 }
 
-void Config::parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) {
+void Config::parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
     const FilterType type = getFilterType(pFilterNode, "type", path);
     switch (type) {
     case FilterType::LOW_PASS:
@@ -311,12 +311,12 @@ void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, const 
     }
 }
 
-void Config::applyCrossoversMap(FilterBiquad *pFilterBiquad, const Channel channel, const JsonNode *pFilterNode, const std::string &path) {
+void Config::applyCrossoversMap(FilterBiquad *pFilterBiquad, const Channel channel, const JsonNode *pFilterNode, const std::string &path) const {
     //Check if this channel should have an LP and that there isn't an user defined LP in the filters list.
-    if (_addLpTo.find(channel) != _addLpTo.end() && _addLpTo[channel] && !hasCrossoverFilter(pFilterNode, true, path)) {
+    if (_addLpTo.find(channel) != _addLpTo.end() && !hasCrossoverFilter(pFilterNode, true, path)) {
         parseCrossover(true, pFilterBiquad, _pLpFilter, "basic");
     }
-    if (_addHpTo.find(channel) != _addHpTo.end() && _addHpTo[channel] && !hasCrossoverFilter(pFilterNode, false, path)) {
+    if (_addHpTo.find(channel) != _addHpTo.end() && !hasCrossoverFilter(pFilterNode, false, path)) {
         parseCrossover(false, pFilterBiquad, _pHpFilter, "basic");
     }
 }
@@ -355,4 +355,3 @@ const bool Config::hasCrossoverFilter(const JsonNode *pFiltersNode, const bool i
     }
     return false;
 }
-

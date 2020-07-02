@@ -110,7 +110,7 @@ private:
 
     const std::vector<Filter*> parseFilters(const JsonNode *pNode, const std::string &path, const int outputChannel = -1);
     const std::vector<Filter*> parsePostFilters(const JsonNode *pNode, const std::string &path);
-    void parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const int outputChannel, const std::string &path);
+    void parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path);
     void parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parseShelf(const bool isLowShelf, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parsePEQ(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
@@ -124,10 +124,10 @@ private:
     void parseFir(std::vector<Filter*> &filters, const JsonNode *pFilterNode, const std::string &path) const;
     void parseFirTxt(std::vector<Filter*> &filters, const File &file, const std::string &path) const;
     void parseFirWav(std::vector<Filter*> &filters, const File &file, const std::string &path) const;
+    void applyCrossoversMap(FilterBiquad *pFilterBiquad, const Channel channel, const JsonNode *pFilterNode, const std::string &path);
     const double getQOffset(const JsonNode *pFilterNode, const std::string &path) const;
     const std::vector<double> getQValues(const JsonNode *pFilterNode, const int order, const std::string &path) const;
-    void updateCrossoverMaps(const bool isLP, const int outputChannel);
-    void applyCrossoversMap(FilterBiquad *pFilterBiquad, const int outputChannel);
+    const bool hasCrossoverFilter(const JsonNode * pFiltersNode, const bool isLowPass, const std::string &path) const;
 
     /* ********* ConfigParserUtil.cpp ********* */
 

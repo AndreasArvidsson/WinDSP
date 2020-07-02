@@ -59,14 +59,6 @@
             "type": "FIR",
             "file": "fir_example.txt"
         },
-        "list": [
-            {
-                "type": "PEQ",
-                "freq": 93,
-                "gain": -12,
-                "q": 5
-            }
-        ],
         "gain": -5
     },
 
@@ -82,7 +74,8 @@
         "lowPass": {
             "type": "BUTTERWORTH",
             "order": 5,
-            "freq": 80
+            "freq": 80,
+            "qOffset": 0.0
         },
         "highPass": {
             "type": "BUTTERWORTH",
@@ -105,8 +98,7 @@
                         "gain": -12,
                         "q": 5
                     },
-                    { "#ref": "filters/hp" },
-                    { "#ref": "filters/list" }
+                    { "#ref": "filters/hp" }
                 ]
             }
         ],

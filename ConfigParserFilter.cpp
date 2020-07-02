@@ -14,18 +14,21 @@ const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, const std
     //Parse single instance simple filters.
     parseGain(filters, pNode, path);
     parseDelay(filters, pNode, path);
-    //Parse filters list
+
     FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
     std::string filtersPath = path;
-
-    //Apply crossovers from basic config.
-    applyCrossoversMap(pFilterBiquad, outputChannel);
-
     const JsonNode *pFiltersNode = tryGetArrayNode(pNode, "filters", filtersPath);
+
+    //Apply crossovers from basic config to outputs.
+    if (outputChannel > -1) {
+        applyCrossoversMap(pFilterBiquad, (Channel)outputChannel, pFiltersNode, filtersPath);
+    }
+
+    //Parse filters list
     for (size_t i = 0; i < pFiltersNode->size(); ++i) {
         std::string filterPath = filtersPath;
         const JsonNode *pFilter = getObjectNode(pFiltersNode, i, filterPath);
-        parseFilter(filters, pFilterBiquad, pFilter, outputChannel, filterPath);
+        parseFilter(filters, pFilterBiquad, pFilter, filterPath);
     }
 
     //No biquads added. Don't use biquad filter.
@@ -97,24 +100,13 @@ void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, st
     }
 }
 
-void Config::parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const int outputChannel, const std::string &path) {
-    //Is array. Iterate and parse each filter.
-    if (pFilterNode->isArray()) {
-        for (size_t i = 0; i < pFilterNode->size(); ++i) {
-            parseFilter(filters, pFilterBiquad, pFilterNode->get(i), outputChannel, path + "/" + std::to_string(i));
-        }
-        return;
-    }
+void Config::parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) {
     const FilterType type = getFilterType(pFilterNode, "type", path);
     switch (type) {
     case FilterType::LOW_PASS:
-    case FilterType::HIGH_PASS: {
-        const bool isLP = type == FilterType::LOW_PASS;
-        parseCrossover(isLP, pFilterBiquad, pFilterNode, path);
-        //Update crossovers map from basic config.
-        updateCrossoverMaps(isLP, outputChannel);
+    case FilterType::HIGH_PASS:
+        parseCrossover(type == FilterType::LOW_PASS, pFilterBiquad, pFilterNode, path);
         break;
-    }
     case FilterType::LOW_SHELF:
     case FilterType::HIGH_SHELF:
         parseShelf(type == FilterType::LOW_SHELF, pFilterBiquad, pFilterNode, path);
@@ -319,6 +311,16 @@ void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, const 
     }
 }
 
+void Config::applyCrossoversMap(FilterBiquad *pFilterBiquad, const Channel channel, const JsonNode *pFilterNode, const std::string &path) {
+    //Check if this channel should have an LP and that there isn't an user defined LP in the filters list.
+    if (_addLpTo.find(channel) != _addLpTo.end() && _addLpTo[channel] && !hasCrossoverFilter(pFilterNode, true, path)) {
+        parseCrossover(true, pFilterBiquad, _pLpFilter, "basic");
+    }
+    if (_addHpTo.find(channel) != _addHpTo.end() && _addHpTo[channel] && !hasCrossoverFilter(pFilterNode, false, path)) {
+        parseCrossover(false, pFilterBiquad, _pHpFilter, "basic");
+    }
+}
+
 const double Config::getQOffset(const JsonNode *pFilterNode, const std::string &path) const {
     if (pFilterNode->has("qOffset")) {
         return getDoubleValue(pFilterNode, "qOffset", path);
@@ -342,33 +344,16 @@ const std::vector<double> Config::getQValues(const JsonNode* pFilterNode, const 
     return qValues;
 }
 
-void Config::updateCrossoverMaps(const bool isLP, const int outputChannel) {
-    if (outputChannel > -1) {
-        const Channel channel = (Channel)outputChannel;
-        if (isLP) {
-            if (_addLpTo.find(channel) != _addLpTo.end()) {
-                _addLpTo.erase(channel);
-            }
-        }
-        else {
-            if (_addHpTo.find(channel) != _addHpTo.end()) {
-                _addHpTo.erase(channel);
-            }
+const bool Config::hasCrossoverFilter(const JsonNode* pFiltersNode, const bool isLowPass, const std::string& path) const {
+    for (size_t i = 0; i < pFiltersNode->size(); ++i) {
+        std::string filterPath = path;
+        const JsonNode* pFilter = getObjectNode(pFiltersNode, i, filterPath);
+        const FilterType type = getFilterType(pFilter, "type", path);
+        
+        if ((isLowPass && type == FilterType::LOW_PASS) || (!isLowPass && type == FilterType::HIGH_PASS)) {
+            return true;
         }
     }
+    return false;
 }
 
-void Config::applyCrossoversMap(FilterBiquad *pFilterBiquad, const int outputChannel) {
-    if (outputChannel > -1) {
-        const Channel channel = (Channel)outputChannel;
-        const std::string basicPath = "basic";
-        if (_addLpTo.find(channel) != _addLpTo.end() && _addLpTo[channel]) {
-            std::string lpPath = basicPath;
-            parseCrossover(true, pFilterBiquad, _pLpFilter, lpPath);
-        }
-        if (_addHpTo.find(channel) != _addHpTo.end() && _addHpTo[channel]) {
-            std::string hpPath = basicPath;
-            parseCrossover(false, pFilterBiquad, _pHpFilter, hpPath);
-        }
-    }
-}

@@ -328,7 +328,7 @@ const double Config::getQOffset(const JsonNode *pFilterNode, const std::string &
     return 0;
 }
 
-const std::vector<double> Config::getQValues(const JsonNode* pFilterNode, const int order, const std::string& path) const {
+const std::vector<double> Config::getQValues(const JsonNode *pFilterNode, const int order, const std::string &path) const {
     std::string qPath = path;
     const JsonNode* pQNode = getArrayNode(pFilterNode, "q", qPath);
     std::vector<double> qValues;
@@ -344,12 +344,11 @@ const std::vector<double> Config::getQValues(const JsonNode* pFilterNode, const 
     return qValues;
 }
 
-const bool Config::hasCrossoverFilter(const JsonNode* pFiltersNode, const bool isLowPass, const std::string& path) const {
+const bool Config::hasCrossoverFilter(const JsonNode *pFiltersNode, const bool isLowPass, const std::string &path) const {
     for (size_t i = 0; i < pFiltersNode->size(); ++i) {
         std::string filterPath = path;
         const JsonNode* pFilter = getObjectNode(pFiltersNode, i, filterPath);
         const FilterType type = getFilterType(pFilter, "type", path);
-        
         if ((isLowPass && type == FilterType::LOW_PASS) || (!isLowPass && type == FilterType::HIGH_PASS)) {
             return true;
         }

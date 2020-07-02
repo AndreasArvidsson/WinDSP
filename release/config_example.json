@@ -58,20 +58,6 @@
             "type": "FIR",
             "file": "fir_example.txt"
         },
-        "list": [
-            {
-                "type": "PEQ",
-                "freq": 93,
-                "gain": -12,
-                "q": 5
-            },
-            {
-                "type": "PEQ",
-                "freq": 50,
-                "gain": -8,
-                "q": 5
-            }
-        ],
         "gain": -5
     },
 
@@ -110,8 +96,7 @@
                         "gain": -12,
                         "q": 5
                     },
-                    { "#ref": "filters/hp" },
-                    { "#ref": "filters/list" }
+                    { "#ref": "filters/hp" }
                 ]
             }
         ],

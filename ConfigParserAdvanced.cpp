@@ -29,12 +29,14 @@ void Config::parseAdvanced() {
 void Config::parseInput(const JsonNode *pInputs, const std::string &channelName, std::string path) {
     const Channel channelIn = Channels::fromString(channelName);
     const size_t channelIndex = (size_t)channelIn;
+    const JsonNode *pRoutes = tryGetArrayNode(pInputs, channelName, path);
     if (channelIndex >= _numChannelsIn) {
-        LOG_WARN("WARNING: Config(%s) - Capture device doesn't have channel '%s'", path.c_str(), channelName.c_str());
+        if (pRoutes->size() > 0) {
+            LOG_WARN("WARNING: Config(%s) - Capture device doesn't have channel '%s'", path.c_str(), channelName.c_str());
+        }
         return;
     }
     _inputs[channelIndex] = new Input(channelIn);
-    const JsonNode *pRoutes = tryGetArrayNode(pInputs, channelName, path);
     for (size_t i = 0; i < pRoutes->size(); ++i) {
         parseRoute(_inputs[channelIndex], pRoutes, i, path);
     }

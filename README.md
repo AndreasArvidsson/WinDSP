@@ -1,40 +1,72 @@
 # WinDSP
 Windows based DSP(Digital Signal Processor)
 
-## Features
+# Table of Contents
+[Features](#Features)
+
+[Install and run](#Install-and-run)
+* [Prerequisites (To run application)](#Prerequisites-to-run-application)
+* [Prerequisites (To compile application)](#Prerequisites-to-run-application)
+* [Install](#Install)
+
+[Hardware and devices](#Hardware-and-devices)
+* [Capture device](#Capture-device)
+* [Render device](#Render-device)
+* [Virtual Cable](#Virtual-Cable)
+* [ASIO support](#ASIO-support)
+
+[JSON config file](#JSON-config-file)
+* [Config switching](#Config-switching)
+* [Available channels](#Available-channels)
+* [Config layout](#Config-layout)
+* [Start WinDSP with Windows](#Start-WinDSP-with-Windows)
+* [Hide and minimize](#Hide-and-minimize)
+* [Description](#Description)
+* [Devices](#Devices)
+* [Basic routing](#Basic-routing)
+* [Advanced routing](#Advanced-routing)
+* [Conditional routing](#Conditional-routing)
+* [Outputs](#Outputs)
+* [Filters](#Filters)
+* [References](#References)
+
+[Filter parameters](#Filter-parameters)
+* [Delay](#Delay)
+* [PEQ (Parametric equalizer)](#PEQ-(Parametric-equalizer))
+* [Shelf](#Shelf)
+* [Band pass](#Band-pass)
+* [Notch](#Notch)
+* [Crossover](#Crossover)
+* [Linkwitz Transform](#Linkwitz-Transform)
+* [Biquad](#Biquad)
+* [FIR (Finite Impulse Response)](#FIR-(Finite-Impulse-Response))
+
+[Output filter parameters](#Output-filter-parameters)
+* [Cancellation](#Cancellation)
+
+[Errors and Warnings](#Errors-and-Warnings)
+
+[Disclaimer](#Disclaimer)
+
+
+# Features
 * Route any input to any output. Any input can be routed to zero or many outputs.
 * Add any filter to route or output.
 * Filters like crossovers, PEQ, shelf, custom biquad(IIR), FIR, delay, gain and more.
 * Uses double-precision floating-points to calculate filters.
-* Uses WASAPI(Windows Audio Session API) to capture and manipulate audio streams.
+* Uses WASAPI(Windows Audio Session API) or ASIO to capture and manipulate audio streams.
 * JSON based configuration file to easy set up your DSP.
 * User friendly error and warning messages. Warns you about digital clipping. Using missing channels and more.
 
-## Devices
-Windows (as far as I know) doesn't allow manipulation of the audio stream during playback. You can however capture a playing audio stream from one device and play it back to another device.
-This requires two devices: one capture device and one render/playback device.
 
-**Capture device**
-* Receives audio from applications. Make it the default playback device.
-* Have NO audio equipment/speakers attached.
+# Install and run
 
-**Render device**
-* Receives audio ONLY from WinDSP.
-* Have audio equipment/speakers attached.
-
-**Virtual Cable**    
-If you don't have a spare soundcard in your computer to use for the capture device I can recommendend [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable) which gives you a virtual audio device to use as the capture device.
-
-**ASIO support**    
-* WinDSP has experimental ASIO support. Please try it out.
-* Optionally [VB-Audio Asio Bridge](https://www.vb-audio.com/Cable) can be used as an WASAPI render device to playback through an ASIO soundcard.
-
-## Prerequisites(To run application)
+## Prerequisites to run application
 * Capture and render audio devices.
 * Windows 10 or newer. May work on older OS. Feel free to try it out.
 * [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
 
-## Prerequisites(To compile source code)
+## Prerequisites to compile source code
 * [CoreLib](https://github.com/AndreasArvidsson/CoreLib)
 
 ## Install
@@ -47,16 +79,37 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 1. Configure WinDSP.json configuration file.
 1. Start WinDSP.exe.
 
-## JSON config file
+
+# Hardware and devices
+Windows (as far as I know) doesn't allow manipulation of the audio stream during playback. You can however capture a playing audio stream from one device and play it back to another device.
+This requires two devices: one capture device and one render/playback device.
+
+## Capture device
+* Receives audio from applications. Make it the default playback device.
+* Have NO audio equipment/speakers attached.
+
+## Render device
+* Receives audio ONLY from WinDSP.
+* Have audio equipment/speakers attached.
+
+## Virtual Cable
+If you don't have a spare soundcard in your computer to use for the capture device I can recommendend [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable) which gives you a virtual audio device to use as the capture device.
+
+## ASIO support
+* WinDSP has experimental ASIO support. Please try it out.
+* Optionally [VB-Audio Asio Bridge](https://www.vb-audio.com/Cable) can be used as an WASAPI render device to playback through an ASIO soundcard.
+
+
+# JSON config file
 * Saving the config file will automatically restart WinDSP. No need to manually close and open the program.
 * If you are not used to JSON use an editor like [Json Parser Online](http://json.parser.online.fr) to get the format correct.
 
-**Config switching**    
+## Config switching
 * If you have multiple config files you can switch between them using the 0-9 buttons.
 * Button '1' selects congfig file 'WinDSP-1.json', button '2' selects 'WinDSP-2.json' and so on.
 * Button '0' select the default config file 'WinDSP.json'.
 
-**Available channels**    
+## Available channels
    * L: Front left
    * R: Front right
    * C: Center
@@ -66,7 +119,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
    * SBL: Surround back left
    * SBR: Surround back right
 
-**Config layout**    
+## Config layout   
 ```json
 {
     "startWithOS": false,
@@ -92,7 +145,8 @@ If you don't have a spare soundcard in your computer to use for the capture devi
         "lowPass": {
             "type": "BUTTERWORTH",
             "order": 5,
-            "freq": 80
+            "freq": 80,
+            "qOffset": 0.0
         },
         "highPass": {
             "type": "BUTTERWORTH",
@@ -128,10 +182,10 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 }
 ```
 
-**Start WinDSP with Windows**
+## Start WinDSP with Windows
 * Set startWithOS to true and WinDSP will start with the OS/Windows.
 
-**Hide and minimize**    
+## Hide and minimize
 * Set hide to true to hide window on startup and show tray icon.
 * Set minimize to true to minimize window on startup.
 * Hide supersedes minimize.
@@ -139,12 +193,12 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 * Double click tray icon to manually show hidden window again.
 * Minimizing the window when hide is set to true will instead hide it
 
-**Description**
+## Description
 * Description of the config file to be displayed at startup.
 * Optional. If not given no description will be shown.
 * Useful when using multiple config files. eg: "Default", "Night mode", "Less bass".
 
-**Devices**
+## Devices
 * Devices contains the capture and render device names.
 * If devices are not set the user will be queried from a list of available devices. Do **NOT** write these names yourself.
 * ASIO parameters:
@@ -152,7 +206,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
     * asioBufferSize: Sample size of the ASIO render buffer. Leave out to use sound card prefered size.
     * asioNumChannels: Number of channels to use for the ASIO render device. Leave out to use all.
 
-**Basic routing**   
+## Basic routing
 * Basic routing CAN'T be combined with advanced routing.
 * Use basic node to specify speaker types. The DSP will automatically route input signal to correct output.
 * The following speaker types are available:
@@ -182,7 +236,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 * highPass: Filter configuration for high pass filter. Is applied to Small channels.
    * Default value: Butterworth 80Hz 3order(18dB/oct)
 
-**Advanced routing**
+## Advanced routing
 * Advanced routing CAN'T be combined with basic routing.
 * Use advanced node to manually specify each mapping between inputs and ouputs.
 * By default all inputs are routed directly to the matching output. L to L, R to R and so on.
@@ -190,7 +244,26 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 * One input can have multiple outputs. Including the same output twice if needed.
 * A route can have multiple filters like gain, delay, crossovers, peq and more.
 
-**Outputs**
+## Conditional routing
+* You can add conditions to a route. If the conditions is not met the route will not be active.
+* For now the only condition available is to detect if an input channel is silent or not.
+* The code below will route audio from surround(input) to surround back(output) if surround back(input) is silent.
+```json
+"inputs": {
+   "SL": {
+      "routes": [
+         {
+            "out": "SBL",
+            "if": {
+               "silent": "SBL"
+            }
+         }
+      ]
+   }
+}
+```
+
+## Outputs
 * Outputs contains each output channel. This is the sum of all the input routes to this channel.
 * By default the output channels have no filters.
 * If basic routing is used crossovers and gain filters are applied if not specified manually in output.
@@ -198,12 +271,12 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 * An output can be muted or inverted.
 * Each output node can be for one channel ```"channel": "L"``` or multiple ```"channels": ["L", "R"]```
 
-**Filters**    
+## Filters
 * The program handles all audio manipulation as filters. A filter can be a something complex as a crossover or something simple like gain.
 * Some filters can only exist once in a route or output. eg. gain, delay, invert, mute.
 * Other filters(in the filters array) can occur multiple times. eg. crossovers, shelf, PEQ, LT, custom biquad, FIR.
 
-**References**    
+## References
 A common user case is that multiple channels or routes share filter configurations. Instead of having to copy and paste these you can reference one JSON node from another.
 ```json
 "filters": {
@@ -226,28 +299,10 @@ A common user case is that multiple channels or routes share filter configuratio
 ]
 ```
 
-**Conditional routing**
-* You can add conditions to a route. If the conditions is not met the route will not be active.
-* For now the only condition available is to detect if an input channel is silent or not.
-* The code below will route audio from surround(input) to surround back(output) if surround back(input) is silent.
-```json
-"inputs": {
-   "SL": {
-      "routes": [
-         {
-            "out": "SBL",
-            "if": {
-               "silent": "SBL"
-            }
-         }
-      ]
-   }
-}
-```
 
-## Filter parameters
+# Filter parameters
 
-**Delay**    
+## Delay
 * Requires: value
 * Optional unitMeter parameter to use meters instead of milliseconds.
 ```json
@@ -261,7 +316,7 @@ or
 }
 ```
 
-**PEQ (Parametric equalizer)**    
+## PEQ (Parametric equalizer)
 * Requires: type, freq, gain, q
 ```json
 {
@@ -272,7 +327,7 @@ or
 }
 ```
 
-**Shelf**    
+## Shelf
 * Type: LOW_SHELF or HIGH_SHELF    
 * Requires: type, freq, gain    
 * Q-value defaults to 0.707
@@ -285,7 +340,7 @@ or
 }
 ```
 
-**Band pass**    
+## Band pass
 * Requires: type, freq, bandwidth    
 * Gain defaults to 0dB
 ```json
@@ -297,7 +352,7 @@ or
 }
 ```
 
-**Notch**    
+## Notch
 * Requires: type, freq, bandwidth    
 * Gain defaults to 0dB
 ```json
@@ -309,7 +364,7 @@ or
 }
 ```
 
-**Crossover**    
+## Crossover
 * Type: LOW_PASS or HIGH_PASS    
 * Requires: type, crossoverType, order, freq
 * Crossover types are: BUTTERWORTH, LINKWITZ_RILEY, BESSEL and CUSTOM
@@ -341,7 +396,7 @@ or
 }
 ```
 
-[Linkwitz Transform](https://www.minidsp.com/applications/advanced-tools/linkwitz-transform)    
+## [Linkwitz Transform](https://www.minidsp.com/applications/advanced-tools/linkwitz-transform)    
 * Requires: type, f0, q0, fp, qp
 ```json
 {
@@ -353,7 +408,7 @@ or
 }
 ```
 
-[Biquad](https://www.minidsp.com/applications/advanced-tools/advanced-biquad-programming)    
+## [Biquad](https://www.minidsp.com/applications/advanced-tools/advanced-biquad-programming)    
 * Create a custom biquad by giving the biquad coefficients.
 * Biquad filters are also known as IIR(Infinite Impulse Response).
 * b0-b2 are the feedforward values in the numerator and a0-a2 are the feedback values in the denominator.
@@ -374,7 +429,7 @@ or
 }
 ```
 
-[FIR(Finite Impulse Response)](https://www.minidsp.com/applications/advanced-tools/rephase-fir-tool)    
+## [FIR (Finite Impulse Response)](https://www.minidsp.com/applications/advanced-tools/rephase-fir-tool)    
 * WinDSP loads a text file with the FIR parameters.
 * Use a tool like [rePhase](https://sourceforge.net/projects/rephase) to calculate the FIR parameters.
 * FIR file is either a text(.txt) file or a wave(.wav). 
@@ -403,10 +458,11 @@ or
 -0.000000000000000091367289519079492
 ```
 
-## Output filter parameters
+
+# Output filter parameters
 These are filter only available on outputs and not on routes.
 
-**Cancellation**    
+## Cancellation
 * Creates an inverted and delayed signal to cancel out the specified frequency. This is another way to remove peaks.
 * Requires: freq    
 * Gain defaults to 0dB
@@ -416,13 +472,15 @@ These are filter only available on outputs and not on routes.
     "gain": -5
 }
 ```
-         
-## Errors and Warnings
+
+
+# Errors and Warnings
 * An error is a problem serious enough that the program can't run. eg. missing devices, faulty config.
 * An error will output a text message describing the problem and then restart the program. If the problem is corrected the program will start normally.
 * A warning is a potential problem, but the program can still continue running. eg. Configured a route for a channel the audio device is lacking, the sum of all routes can go above 0dBFS on the output.
 * All configured input and outputs the device is lacking will just be ignored.
 * If you sum multiple inputs together and they play peak signals at the same time digital clipping will occur which creates distortion. Lower the output gain if a digital clipping warning is shown.
 
-## Disclaimer
+
+# Disclaimer
 I test all my software to the best of my ability and this is a software I personally use in my own audio setup, but bugs can still occur and due to the nature of this software being audio playback related, loud uncomfortable high or low frequency distortions may be a possibility. I haven't had any problems like that myself and if I find any I will patch them out, but just be aware that you use this software on your own accord. With that said please feel free to enjoy it! :)

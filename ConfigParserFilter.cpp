@@ -321,6 +321,19 @@ void Config::applyCrossoversMap(FilterBiquad *pFilterBiquad, const Channel chann
     }
 }
 
+void Config::applyCrossoversMap(std::vector<Filter*> &filters, const Channel channel) const {
+    if (_addLpTo.find(channel) != _addLpTo.end()) {
+        FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
+        parseCrossover(true, pFilterBiquad, _pLpFilter, "basic");
+        filters.push_back(pFilterBiquad);
+    }
+    if (_addHpTo.find(channel) != _addHpTo.end()) {
+        FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
+        parseCrossover(false, pFilterBiquad, _pHpFilter, "basic");
+        filters.push_back(pFilterBiquad);
+    }
+}
+
 const double Config::getQOffset(const JsonNode *pFilterNode, const std::string &path) const {
     if (pFilterNode->has("qOffset")) {
         return getDoubleValue(pFilterNode, "qOffset", path);

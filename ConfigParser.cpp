@@ -83,10 +83,17 @@ void Config::parseOutputs() {
     for (size_t i = 0; i < pOutputs->size(); ++i) {
         parseOutput(pOutputs, i, path);
     }
-    //Add default empty output to missing
+    //Add default output to missing(not defined by user in conf) output channels.
     for (size_t i = 0; i < _outputs.size(); ++i) {
         if (!_outputs[i]) {
-            _outputs[i] = new Output((Channel)i);
+            const Channel channel = (Channel)i;
+            _outputs[i] = new Output(channel);
+            std::vector<Filter*> filters;
+            //Check if there is basic routing crossovers to apply.
+            applyCrossoversMap(filters, channel);
+            if (filters.size()) {
+                _outputs[i]->addFilters(filters);
+            }
         }
     }
     validateLevels(path);

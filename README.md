@@ -125,6 +125,7 @@ If you don't have a spare soundcard in your computer to use for the capture devi
     "startWithOS": false,
     "minimize": false,
     "hide": false,
+    "debug": false,
     "description": "Default config",
     "devices": {
         "capture": "CABLE Input (VB-Audio Virtual Cable)",
@@ -197,6 +198,10 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 * Description of the config file to be displayed at startup.
 * Optional. If not given no description will be shown.
 * Useful when using multiple config files. eg: "Default", "Night mode", "Less bass".
+
+## Debug
+* Set to true to print debug data.
+* Is shown in both application window and separate "WinDSP_log.txt" log file.
 
 ## Devices
 * Devices contains the capture and render device names.

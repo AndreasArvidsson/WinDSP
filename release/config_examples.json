@@ -2,6 +2,7 @@
     "startWithOS": false,
     "minimize": false,
     "hide": false,
+    "debug": false,
     "description": "Default config",
     "devices": {
     },
@@ -58,8 +59,7 @@
         "fir": {
             "type": "FIR",
             "file": "fir_example.txt"
-        },
-        "gain": -5
+        }
     },
 
     "basic": {

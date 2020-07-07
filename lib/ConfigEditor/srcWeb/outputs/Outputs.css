@@ -8,3 +8,19 @@ table.output td:last-child {
     border-right: 1px solid rgba(0, 0, 0, 0.1);
     padding-right: 15px;
 }
+
+.channel-selected {
+    cursor: pointer;
+    font-weight: bold;
+    color: green;
+
+}
+
+.channel-available{
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.channel-disabled {
+    color: grey;
+}

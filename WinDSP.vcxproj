@@ -53,7 +53,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK;$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK;$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;DEBUG;DEBUG_MEMORY</PreprocessorDefinitions>
       <SupportJustMyCode>true</SupportJustMyCode>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -72,7 +72,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK;$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK;$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -101,45 +101,45 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AsioDevice.cpp" />
-    <ClCompile Include="AudioDevice.cpp" />
-    <ClCompile Include="CaptureLoop.cpp" />
-    <ClCompile Include="Channel.cpp" />
-    <ClCompile Include="Condition.cpp" />
-    <ClCompile Include="Config.cpp" />
-    <ClCompile Include="ConfigChangedException.cpp" />
-    <ClCompile Include="ConfigParser.cpp" />
-    <ClCompile Include="ConfigParserAdvanced.cpp" />
-    <ClCompile Include="ConfigParserBasic.cpp" />
-    <ClCompile Include="ConfigParserFilter.cpp" />
-    <ClCompile Include="ConfigParserUtil.cpp" />
-    <ClCompile Include="FilterType.cpp" />
-    <ClCompile Include="Input.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Output.cpp" />
-    <ClCompile Include="Route.cpp" />
-    <ClCompile Include="SpeakerType.cpp" />
-    <ClCompile Include="TrayIcon.cpp" />
-    <ClCompile Include="Visibility.cpp" />
-    <ClCompile Include="WinDSPLog.cpp" />
+    <ClCompile Include="src/AsioDevice.cpp" />
+    <ClCompile Include="src/AudioDevice.cpp" />
+    <ClCompile Include="src/CaptureLoop.cpp" />
+    <ClCompile Include="src/Channel.cpp" />
+    <ClCompile Include="src/Condition.cpp" />
+    <ClCompile Include="src/Config.cpp" />
+    <ClCompile Include="src/ConfigChangedException.cpp" />
+    <ClCompile Include="src/ConfigParser.cpp" />
+    <ClCompile Include="src/ConfigParserAdvanced.cpp" />
+    <ClCompile Include="src/ConfigParserBasic.cpp" />
+    <ClCompile Include="src/ConfigParserFilter.cpp" />
+    <ClCompile Include="src/ConfigParserUtil.cpp" />
+    <ClCompile Include="src/FilterType.cpp" />
+    <ClCompile Include="src/Input.cpp" />
+    <ClCompile Include="src/Main.cpp" />
+    <ClCompile Include="src/Output.cpp" />
+    <ClCompile Include="src/Route.cpp" />
+    <ClCompile Include="src/SpeakerType.cpp" />
+    <ClCompile Include="src/TrayIcon.cpp" />
+    <ClCompile Include="src/Visibility.cpp" />
+    <ClCompile Include="src/WinDSPLog.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AsioDevice.h" />
-    <ClInclude Include="AudioDevice.h" />
-    <ClInclude Include="CaptureLoop.h" />
-    <ClInclude Include="Channel.h" />
-    <ClInclude Include="Condition.h" />
-    <ClInclude Include="Config.h" />
-    <ClInclude Include="ConfigChangedException.h" />
-    <ClInclude Include="FilterType.h" />
-    <ClInclude Include="Input.h" />
-    <ClInclude Include="Output.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="Route.h" />
-    <ClInclude Include="SpeakerType.h" />
-    <ClInclude Include="TrayIcon.h" />
-    <ClInclude Include="Visibility.h" />
-    <ClInclude Include="WinDSPLog.h" />
+    <ClInclude Include="src/AsioDevice.h" />
+    <ClInclude Include="src/AudioDevice.h" />
+    <ClInclude Include="src/CaptureLoop.h" />
+    <ClInclude Include="src/Channel.h" />
+    <ClInclude Include="src/Condition.h" />
+    <ClInclude Include="src/Config.h" />
+    <ClInclude Include="src/ConfigChangedException.h" />
+    <ClInclude Include="src/FilterType.h" />
+    <ClInclude Include="src/Input.h" />
+    <ClInclude Include="src/Output.h" />
+    <ClInclude Include="src/resource.h" />
+    <ClInclude Include="src/Route.h" />
+    <ClInclude Include="src/SpeakerType.h" />
+    <ClInclude Include="src/TrayIcon.h" />
+    <ClInclude Include="src/Visibility.h" />
+    <ClInclude Include="src/WinDSPLog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WinDSP.rc" />

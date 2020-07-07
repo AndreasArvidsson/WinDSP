@@ -13,7 +13,7 @@
 #include "Date.h"
 #include "ConfigChangedException.h"
 #include "Config.h"
-#include "resource.h"
+#include "../resource.h"
 #include "JsonNode.h"
 #include "AudioDevice.h"
 #include "Visibility.h"

@@ -114,7 +114,7 @@ By popular demand there now is a web based configuration editor. Gone are the da
 
 * Every change on the web page will update the config file in realtime.
 * WinDSP.exe can be running at the same time.
-* Config page can be reaced from other computers than the one running WinDSP by using the IP-adress. 
+* Config page can be reaced from other computers than the one running WinDSP by using the IP-address. 
     * `http://192.168.1.10:8080`
 * Defaults to edit `WinDSP.json` in the same folder. To use other config files:    
     * `java -jar WinDSP-configEditor.jar WinDSP-1.json`

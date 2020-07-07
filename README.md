@@ -5,15 +5,16 @@ Windows based DSP(Digital Signal Processor)
 [Features](#Features)
 
 [Install and run](#Install-and-run)
-* [Prerequisites (To run application)](#Prerequisites-to-run-application)
-* [Prerequisites (To compile application)](#Prerequisites-to-run-application)
-* [Install](#Install)
+* [Prerequisites](#Prerequisites)
+* [Installation](#Installation)
 
 [Hardware and devices](#Hardware-and-devices)
 * [Capture device](#Capture-device)
 * [Render device](#Render-device)
 * [Virtual Cable](#Virtual-Cable)
 * [ASIO support](#ASIO-support)
+
+[Web based configuration interface](#Web-based-configuration-interface)
 
 [JSON config file](#JSON-config-file)
 * [Config switching](#Config-switching)
@@ -53,30 +54,36 @@ Windows based DSP(Digital Signal Processor)
 * Route any input to any output. Any input can be routed to zero or many outputs.
 * Add any filter to route or output.
 * Filters like crossovers, PEQ, shelf, custom biquad(IIR), FIR, delay, gain and more.
-* Uses double-precision floating-points to calculate filters.
+* Uses double-precision(64bit) floating-points to calculate filters.
 * Uses WASAPI(Windows Audio Session API) or ASIO to capture and manipulate audio streams.
 * JSON based configuration file to easy set up your DSP.
+* Web based configuration interface
 * User friendly error and warning messages. Warns you about digital clipping. Using missing channels and more.
 
 
 # Install and run
 
-## Prerequisites to run application
+## Prerequisites
+
+Prerequisites to run application
 * Capture and render audio devices.
 * Windows 10 or newer. May work on older OS. Feel free to try it out.
 * [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
 
-## Prerequisites to compile source code
+Prerequisites to run config editor
+* [Java 8](https://java.com/en/download)
+
+Prerequisites to compile source code
 * [CoreLib](https://github.com/AndreasArvidsson/CoreLib)
 
-## Install
+## Installation
 1. Download and install [Microsoft Visual C++ Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685).
 1. Download and install [VB-Audio Virtual Cable](https://www.vb-audio.com/Cable/index.htm).
 1. Set Virtual Cable as your default audio playback device.
 1. Configure Virtual Cabel to use the same sample rate as your render device (/properties/advanced).
 1. Configure Virtual Cabel to NOT allow applications to take exclusive control (/properties/advanced).
 1. Configure Virtual Cable to use 7.1 surround (/configure).
-1. Configure WinDSP.json configuration file.
+1. Configure WinDSP.json configuration file. (Manually or via the web based config editor)
 1. Start WinDSP.exe.
 
 
@@ -98,6 +105,19 @@ If you don't have a spare soundcard in your computer to use for the capture devi
 ## ASIO support
 * WinDSP has experimental ASIO support. Please try it out.
 * Optionally [VB-Audio Asio Bridge](https://www.vb-audio.com/Cable) can be used as an WASAPI render device to playback through an ASIO soundcard.
+
+# Web based configuration interface
+By popular demand there now is a web based configuration editor. Gone are the days when you have to manually edit the configuration file.
+
+1. Start file `runConfigEdit.bat`
+1. Browse to [http://localhost:8080](http://localhost:8080)
+
+* Every change on the web page will update the config file in realtime.
+* WinDSP.exe can be running at the same time.
+* Config page can be reaced from other computers than the one running WinDSP by using the IP-adress. 
+    * `http://192.168.1.10:8080`
+* Defaults to edit `WinDSP.json` in the same folder. To use other config files:    
+    * `java -jar WinDSP-configEditor.jar WinDSP-1.json`
 
 
 # JSON config file

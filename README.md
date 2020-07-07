@@ -119,6 +119,8 @@ By popular demand there now is a web based configuration editor. Gone are the da
 * Defaults to edit `WinDSP.json` in the same folder. To use other config files:    
     * `java -jar WinDSP-configEditor.jar WinDSP-1.json`
 
+![Web based config editor](./images/advanced_routing.png)
+
 
 # JSON config file
 * Saving the config file will automatically restart WinDSP. No need to manually close and open the program.

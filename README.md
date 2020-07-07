@@ -192,14 +192,21 @@ By popular demand there now is a web based configuration editor. Gone are the da
         {
             "channels": [ "L", "R" ],
             "gain": -3.2,
-            "delay": 4.5,
             "invert": false,
             "mute": false,
+            "delay": {
+                "value": 4.5,
+                "unitMeter": true
+            },
             "filters": []
         },
         {
-            "channel": "C",
-            "gain": -2
+            "channel": "SW",
+            "gain": -2,
+            "cancellation": {
+                "freq": 28.0,
+                "gain": -5
+            }
         }
     ]
 }

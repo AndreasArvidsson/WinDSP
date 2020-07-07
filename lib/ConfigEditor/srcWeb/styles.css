@@ -21,3 +21,8 @@ label[disabled] {
 td.paddingRight {
     padding-right: 10px;
 }
+
+nav.card-header-tabs {
+    border-bottom: 1px solid #dee2e6;
+    margin: 0;
+}

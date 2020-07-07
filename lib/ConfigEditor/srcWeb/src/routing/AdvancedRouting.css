@@ -1,0 +1,26 @@
+
+table.advancedRouting {
+    border-collapse: separate;
+    border-spacing: 5px 10px;
+}
+
+table.advancedRouting th {
+    text-align: center;
+    width: 100px;
+    font-weight: 600;
+}
+
+table.advancedRouting th:first-child {
+    text-align: left;
+    width: 70px;
+}
+
+table.advancedRouting th.routeOn {
+    background-color: lightgrey;
+    color: green
+}
+
+table.advancedRouting th.routeOff {
+    background-color: grey;
+    color: white;
+}

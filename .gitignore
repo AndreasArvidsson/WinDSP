@@ -8,5 +8,9 @@ x64
 todo.txt
 enc_temp_folder
 *.aps
-WinDSP-*.json
+WinDSP*.json
 WinDSP_log.txt
+target
+node_modules
+nb-configuration.xml
+nbactions.xml

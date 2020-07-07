@@ -1,0 +1,23 @@
+
+html,
+body,
+#root {
+    height: 100%;
+    width: 100%;
+}
+
+#root {
+    max-width: 1200px;
+}
+
+#root > .row {
+    height: calc(100% - 100px);
+}
+
+label[disabled] {
+    color: #ccc;
+}
+
+td.paddingRight {
+    padding-right: 10px;
+}

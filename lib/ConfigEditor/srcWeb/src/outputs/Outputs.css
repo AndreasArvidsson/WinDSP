@@ -1,0 +1,10 @@
+
+table.output td:first-child {
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    padding-left: 15px;
+}
+
+table.output td:last-child {
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    padding-right: 15px;
+}

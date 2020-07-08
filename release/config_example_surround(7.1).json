@@ -2,8 +2,7 @@
     "startWithOS": false,
     "minimize": false,
     "hide": false,
-    "devices": {
-    },
+    "devices": { },
     "basic": {
         "front": "Small",
         "center": "Small",
@@ -19,7 +18,12 @@
             "filters": [ ]
         },
         {
-            "channels": [ "C", "SW" ],
+            "channels": [ "C" ],
+            "gain": 0,
+            "filters": [ ]
+        },
+        {
+            "channels": [ "SW" ],
             "gain": 0,
             "filters": [ ]
         },

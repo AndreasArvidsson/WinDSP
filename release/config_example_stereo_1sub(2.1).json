@@ -2,8 +2,7 @@
     "startWithOS": false,
     "minimize": false,
     "hide": false,
-    "devices": {
-    },
+    "devices": { },
     "basic": {
         "front": "Small",
         "center": "Off",

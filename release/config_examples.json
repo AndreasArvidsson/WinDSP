@@ -4,8 +4,8 @@
     "hide": false,
     "debug": false,
     "description": "Default config",
-    "devices": {
-    },
+
+    "devices": { },
 
     "filters": {
         "hp": {
@@ -98,10 +98,13 @@
                         "gain": -12,
                         "q": 5
                     },
-                    { "#ref": "filters/hp" }
+                    {
+                        "#ref": "filters/hp"
+                    }
                 ]
             }
         ],
+        "R": [ ],
         "SL": [
             {
                 "out": "SBL",
@@ -115,10 +118,13 @@
     "outputs": [
         {
             "channels": [ "L", "R" ],
-            "gain": -3.2,
-            "delay": 4.5,
-            "invert": false,
             "mute": false,
+            "invert": false,
+            "gain": -3.2,
+            "delay": {
+                "value": 4.5,
+                "unitMeter": true
+            },
             "filters": [
                 {
                     "#ref": "filters/peq"
@@ -134,5 +140,4 @@
             }
         }
     ]
-
 }

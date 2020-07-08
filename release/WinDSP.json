@@ -7,10 +7,10 @@
 
     "basic": {
         "front": "Large",
-        "center": "Large",
-        "subwoofer": "Sub",
-        "surround": "Large",
-        "surroundBack": "Large",
+        "center": "Off",
+        "subwoofer": "Off",
+        "surround": "Off",
+        "surroundBack": "Off",
         "stereoBass": false,
         "expandSurround": false,
         "lfeGain": 0,

@@ -84,6 +84,7 @@
     <ClCompile Include="src/FilterGain.cpp" />
     <ClCompile Include="src/SineGenerator.cpp" />
     <ClCompile Include="src/SineSweepGenerator.cpp" />
+    <ClCompile Include="src\FilterCompressor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/Biquad.h" />
@@ -100,6 +101,7 @@
     <ClInclude Include="src/SineGenerator.h" />
     <ClInclude Include="src/SineSweepGenerator.h" />
     <ClInclude Include="src/WaveHeader.h" />
+    <ClInclude Include="src\FilterCompressor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

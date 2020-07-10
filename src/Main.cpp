@@ -103,7 +103,7 @@ void clearData() {
     if (pCaptureLoop) {
         pCaptureLoop->stop();
     }
-    if (pConfig->useAsioRenderDevice()) {
+    if (pConfig && pConfig->useAsioRenderDevice()) {
         AsioDevice::stopService();
         AsioDevice::destroy();
     }

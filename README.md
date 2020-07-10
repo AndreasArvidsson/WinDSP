@@ -210,7 +210,7 @@ By popular demand there now is a web based configuration editor. Gone are the da
             },
             "compression": {
                 "threshold": -30,
-                "ratio": 0.25,
+                "ratio": 0.5,
                 "attack": 5,
                 "release": 200,
                 "window": 1
@@ -367,7 +367,7 @@ or
 ```json
 "compression": {
     "threshold": -30,
-    "ratio": 0.25,
+    "ratio": 0.5,
     "attack": 5,
     "release": 200,
     "window": 1

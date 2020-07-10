@@ -140,7 +140,7 @@
             },
             "compression": {
                 "threshold": -30,
-                "ratio": 0.25,
+                "ratio": 0.5,
                 "attack": 5,
                 "release": 200,
                 "window": 1

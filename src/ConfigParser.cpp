@@ -8,6 +8,7 @@
 #include "FilterGain.h"
 #include "Visibility.h"
 #include "AudioDevice.h"
+#include "AsioDevice.h"
 
 #define NOMINMAX
 #include <iostream> //cin
@@ -198,15 +199,18 @@ void Config::validateLevels(const std::string &path) const {
 void Config::setDevices() {
     Visibility::show(true);
     const std::vector<std::string> wasapiDevices = AudioDevice::getDeviceNames();
+    const std::vector<std::string> asioDevices = AsioDevice::getDeviceNames();
 
     size_t selectedIndex;
-    bool isOk;
+    bool isOk, renderAsio;
     do {
         LOG_INFO("Available capture devices:");
         LOG_NL();
         for (size_t i = 0; i < wasapiDevices.size(); ++i) {
-            LOG_INFO("%zu: %s", i + 1, wasapiDevices[i].c_str());
+            LOG_INFO("%zu - %s - WASAPI", i + 1, wasapiDevices[i].c_str());
         }
+        LOG_NL();
+        LOG_INFO("Press corresponding number to select");
         //Make selection
         selectedIndex = getSelection(1, wasapiDevices.size());
         _captureDeviceName = wasapiDevices[selectedIndex - 1];
@@ -218,19 +222,31 @@ void Config::setDevices() {
         for (size_t i = 0; i < wasapiDevices.size(); ++i, ++index) {
             //Cant reuse capture device.
             if (index != selectedIndex) {
-                LOG_INFO("%zu: %s", index, wasapiDevices[i].c_str());
+                LOG_INFO("%zu - %s - WASAPI", index, wasapiDevices[i].c_str());
             }
         }
+        for (size_t i = 0; i < asioDevices.size(); ++i, ++index) {
+            LOG_INFO("%zu - %s - ASIO\n", index, asioDevices[i].c_str());
+        }
+        LOG_NL();
+        LOG_INFO("Press corresponding number to select");
         //Make selection
-        selectedIndex = getSelection(1, wasapiDevices.size(), selectedIndex);
+        selectedIndex = getSelection(1, wasapiDevices.size() + asioDevices.size(), selectedIndex);
+        renderAsio = selectedIndex - 1 >= wasapiDevices.size();
 
         //Query if selection is ok.
         LOG_NL();
         LOG_INFO("Selected devices:");
         LOG_NL();
-        LOG_INFO("Capture: %s", _captureDeviceName.c_str());
-        _renderDeviceName = wasapiDevices[selectedIndex - 1];
-        LOG_INFO("Render: %s", _renderDeviceName.c_str());
+        LOG_INFO("Capture - %s - WASAPI", _captureDeviceName.c_str());
+        if (renderAsio) {
+            _renderDeviceName = asioDevices[selectedIndex - wasapiDevices.size() - 1];
+            LOG_INFO("Render  - %s - ASIO\n", _renderDeviceName.c_str());
+        }
+        else {
+            _renderDeviceName = wasapiDevices[selectedIndex - 1];
+            LOG_INFO("Render  - %s - WASAPI\n", _renderDeviceName.c_str());
+        }
         LOG_NL();
         LOG_INFO("Press 1 to continue or 0 to re-select");
         isOk = getSelection(0, 1) == 1;
@@ -246,6 +262,7 @@ void Config::setDevices() {
 
     pDevicesNode->put("capture", _captureDeviceName);
     pDevicesNode->put("render", _renderDeviceName);
+    pDevicesNode->put("renderAsio", renderAsio);
 
     save();
 }

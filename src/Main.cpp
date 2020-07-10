@@ -198,15 +198,21 @@ void run() {
      * Print data to the user.
      */
 
-    const std::string renderPrefix = pConfig->useAsioRenderDevice() ? " (ASIO)" : "";
     LOG_INFO("----------------------------------------------");
     LOG_INFO("Starting DSP service @ %s", Date::getLocalDateTimeString().c_str());
-    LOG_INFO("Capture: %s", captureDeviceName.c_str());
-    LOG_INFO("Render%s: %s", renderPrefix.c_str(), renderDeviceName.c_str());
-    if (pConfig->inDebug() && pConfig->useAsioRenderDevice()) {
-        LOG_INFO("ASIO buffer: %d(%.1fms)", AsioDevice::getBufferSize(),
-            1000.0 * AsioDevice::getBufferSize() / pCaptureFormat->nSamplesPerSec);
-    }
+    LOG_INFO("Capture : %s - WASAPI", captureDeviceName.c_str());
+	if (pConfig->useAsioRenderDevice()) {
+		LOG_INFO("Render  : %s - ASIO", renderDeviceName.c_str());
+		if (pConfig->inDebug()) {
+			LOG_INFO("ASIO buffer: %d(%.1fms)",
+				AsioDevice::getBufferSize(),
+				1000.0 * AsioDevice::getBufferSize() / pCaptureFormat->nSamplesPerSec
+			);
+		}
+	}
+	else {
+		LOG_INFO("Render  : %s - WASAPI", renderDeviceName.c_str());
+	}
     if (pConfig->hasDescription()) {
         LOG_INFO("%s", pConfig->getDescription().c_str());
     }

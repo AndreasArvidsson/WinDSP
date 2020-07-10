@@ -120,6 +120,7 @@ private:
     void parseBiquad(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const;
     void parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string &path) const;
     void parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
+    void parseCompression(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const;
     void parseCancellation(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string &path) const;
     void parseFir(std::vector<Filter*> &filters, const JsonNode *pFilterNode, const std::string &path) const;
     void parseFirTxt(std::vector<Filter*> &filters, const File &file, const std::string &path) const;

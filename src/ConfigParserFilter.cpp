@@ -14,6 +14,7 @@ const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, const std
     //Parse single instance simple filters.
     parseGain(filters, pNode, path);
     parseDelay(filters, pNode, path);
+    parseCompression(filters, pNode, path);
 
     FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
     std::string filtersPath = path;
@@ -46,20 +47,6 @@ const std::vector<Filter*> Config::parsePostFilters(const JsonNode *pNode, const
     std::vector<Filter*> filters;
     parseCancellation(filters, pNode, path);
     return filters;
-}
-
-void Config::parseCancellation(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string &path) const {
-    if (pNode->has("cancellation")) {
-        const JsonNode *pFilterNode = pNode->path("cancellation");
-        const double freq = getDoubleValue(pFilterNode, "freq", path);
-        if (pFilterNode->has("gain")) {
-            const double gain = getDoubleValue(pFilterNode, "gain", path);
-            filters.push_back(new FilterCancellation(_sampleRate, freq, gain));
-        }
-        else {
-            filters.push_back(new FilterCancellation(_sampleRate, freq));
-        }
-    }
 }
 
 void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string &path) const {
@@ -96,6 +83,32 @@ void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, st
         }
         else {
             LOG_WARN("WARNING: Config(%s) - Discarding delay filter with to low value. Can't delay less then one sample", path.c_str());
+        }
+    }
+}
+
+void Config::parseCompression(std::vector<Filter*>& filters, const JsonNode* pNode, const std::string path) const {
+    if (pNode->has("compression")) {
+        const JsonNode* pFilterNode = pNode->path("compression");
+        const double threshold = getDoubleValue(pFilterNode, "threshold", path);
+        const double ratio = getDoubleValue(pFilterNode, "ratio", path);
+        const double attack = getDoubleValue(pFilterNode, "attack", path);
+        const double release = getDoubleValue(pFilterNode, "release", path);
+        const double window = getDoubleValue(pFilterNode, "window", path);
+        filters.push_back(new FilterCompressor(_sampleRate, threshold, ratio, attack, release, window));
+    }
+}
+
+void Config::parseCancellation(std::vector<Filter*>& filters, const JsonNode* pNode, const std::string& path) const {
+    if (pNode->has("cancellation")) {
+        const JsonNode* pFilterNode = pNode->path("cancellation");
+        const double freq = getDoubleValue(pFilterNode, "freq", path);
+        if (pFilterNode->has("gain")) {
+            const double gain = getDoubleValue(pFilterNode, "gain", path);
+            filters.push_back(new FilterCancellation(_sampleRate, freq, gain));
+        }
+        else {
+            filters.push_back(new FilterCancellation(_sampleRate, freq));
         }
     }
 }

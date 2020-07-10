@@ -2,7 +2,7 @@
 #include "Error.h"
 #include "Str.h"
 
-const FilterType FilterTypes::fromString(const std::string &strIn) {
+const FilterType FilterTypes::fromString(const std::string& strIn) {
     const std::string str = String::toUpperCase(strIn);
     if (str.compare("LOW_PASS") == 0) {
         return FilterType::LOW_PASS;
@@ -37,6 +37,9 @@ const FilterType FilterTypes::fromString(const std::string &strIn) {
     else if (str.compare("CANCELLATION") == 0) {
         return FilterType::CANCELLATION;
     }
+    else if (str.compare("COMPRESSION") == 0) {
+        return FilterType::COMPRESSION;
+    }
     throw Error("Unknown filter type '%s'", str.c_str());
 }
 
@@ -64,6 +67,8 @@ const std::string FilterTypes::toString(const FilterType filterType) {
         return "FIR";
     case FilterType::CANCELLATION:
         return "CANCELLATION";
+    case FilterType::COMPRESSION:
+        return "COMPRESSION";
     default:
         throw Error("Unknown filter type %d", filterType);
     }

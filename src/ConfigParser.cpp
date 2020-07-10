@@ -105,9 +105,9 @@ void Config::parseOutput(const JsonNode *pOutputs, const size_t index, std::stri
     for (const Channel channel : channels) {
         const bool mute = tryGetBoolValue(pOutputNode, "mute", path);
         Output *pOutput = new Output(channel, mute);
+        _outputs[(size_t)channel] = pOutput;
         pOutput->addFilters(parseFilters(pOutputNode, path, (int)channel));
         pOutput->addPostFilters(parsePostFilters(pOutputNode, path));
-        _outputs[(size_t)channel] = pOutput;
     }
 }
 

@@ -5,10 +5,12 @@ x64
 *.vcxproj.user
 *.zip
 \[stuff\]/
-todo.txt
+
 enc_temp_folder
 *.aps
 WinDSP*.json
+todo.txt
+dropboxignore.txt
 WinDSP_log.txt
 target
 node_modules

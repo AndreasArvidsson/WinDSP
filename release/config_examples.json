@@ -137,6 +137,13 @@
             "cancellation": {
                 "freq": 28.0,
                 "gain": -5
+            },
+            "compression": {
+                "threshold": -30,
+                "ratio": 0.25,
+                "attack": 5,
+                "release": 200,
+                "window": 1
             }
         }
     ]

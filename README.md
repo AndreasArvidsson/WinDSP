@@ -33,6 +33,7 @@ Windows based DSP(Digital Signal Processor)
 
 [Filter parameters](#Filter-parameters)
 * [Delay](#Delay)
+* [Compression](#Compression)
 * [PEQ (Parametric equalizer)](#PEQ-Parametric-equalizer)
 * [Shelf](#Shelf)
 * [Band pass](#Band-pass)
@@ -206,6 +207,13 @@ By popular demand there now is a web based configuration editor. Gone are the da
             "cancellation": {
                 "freq": 28.0,
                 "gain": -5
+            },
+            "compression": {
+                "threshold": -30,
+                "ratio": 0.25,
+                "attack": 5,
+                "release": 200,
+                "window": 1
             }
         }
     ]
@@ -350,6 +358,22 @@ or
 }
 ```
 
+## Compression
+* Dynamic range compression
+* Requires: threshold, ratio, attack, release, window
+* Threshold: Given in dB
+* Ratio: [0.0, 1.0] 0.0=oo:1, 0.5=2:1, 1.0=1:1
+* Attack, release, window: Given in milliseconds
+```json
+"compression": {
+    "threshold": -30,
+    "ratio": 0.25,
+    "attack": 5,
+    "release": 200,
+    "window": 1
+}
+```   
+
 ## PEQ (Parametric equalizer)
 * Requires: type, freq, gain, q
 ```json
@@ -461,7 +485,7 @@ or
         "a2": 0.1767567204665992
     }]
 }
-```
+```       
 
 ## [FIR (Finite Impulse Response)](https://www.minidsp.com/applications/advanced-tools/rephase-fir-tool)    
 * WinDSP loads a text file with the FIR parameters.

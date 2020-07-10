@@ -8,10 +8,10 @@
     Downward dynamic range compression
 */
 
-class FilterCompressor : public Filter {
+class FilterCompression : public Filter {
 public:
 
-    FilterCompressor(
+    FilterCompression(
         const uint32_t sampleRate, // samples/sec
         const double threshold, // dB
         const double ratio, // [0.0, 1.0] 0.0=oo:1, 0.5=2:1, 1.0=1:1

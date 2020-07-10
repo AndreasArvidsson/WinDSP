@@ -13,8 +13,7 @@ const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, const std
     std::vector<Filter*> filters;
     //Parse single instance simple filters.
     parseGain(filters, pNode, path);
-    parseDelay(filters, pNode, path);
-    parseCompression(filters, pNode, path);
+    parseDelay(filters, pNode, path);    
 
     FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
     std::string filtersPath = path;
@@ -40,6 +39,10 @@ const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, const std
     else {
         filters.push_back(pFilterBiquad);
     }
+
+    //Compression needs to be last so that it has the final samples to work on.
+    parseCompression(filters, pNode, path);
+
     return filters;
 }
 
@@ -95,7 +98,7 @@ void Config::parseCompression(std::vector<Filter*>& filters, const JsonNode* pNo
         const double attack = getDoubleValue(pFilterNode, "attack", path);
         const double release = getDoubleValue(pFilterNode, "release", path);
         const double window = getDoubleValue(pFilterNode, "window", path);
-        filters.push_back(new FilterCompressor(_sampleRate, threshold, ratio, attack, release, window));
+        filters.push_back(new FilterCompression(_sampleRate, threshold, ratio, attack, release, window));
     }
 }
 

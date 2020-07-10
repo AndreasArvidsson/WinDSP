@@ -1,8 +1,8 @@
 #pragma once
-#include "FilterCompressor.h"
+#include "FilterCompression.h"
 #include "Convert.h"
 
-FilterCompressor::FilterCompressor(const uint32_t sampleRate, const double threshold, const double ratio,
+FilterCompression::FilterCompression(const uint32_t sampleRate, const double threshold, const double ratio,
     const double attack, const double release, const double window) {
     _threshold = Convert::dbToLevel(threshold);
     _ratio = ratio;
@@ -13,6 +13,6 @@ FilterCompressor::FilterCompressor(const uint32_t sampleRate, const double thres
     _envelope = 0;
 }
 
-const std::string FilterCompressor::toString() const {
-    return "Compressor";
+const std::string FilterCompression::toString() const {
+    return "Compression";
 }

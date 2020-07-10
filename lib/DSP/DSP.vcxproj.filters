@@ -43,7 +43,7 @@
     <ClCompile Include="src/CrossoverType.cpp">
       <Filter>Source Files\filters</Filter>
     </ClCompile>
-    <ClCompile Include="src\FilterCompressor.cpp">
+    <ClCompile Include="src\FilterCompression.cpp">
       <Filter>Source Files\filters</Filter>
     </ClCompile>
   </ItemGroup>
@@ -90,7 +90,7 @@
     <ClInclude Include="src/CrossoverType.h">
       <Filter>Source Files\filters</Filter>
     </ClInclude>
-    <ClInclude Include="src\FilterCompressor.h">
+    <ClInclude Include="src\FilterCompression.h">
       <Filter>Source Files\filters</Filter>
     </ClInclude>
   </ItemGroup>

@@ -11,6 +11,9 @@ Output::~Output() {
 	for (Filter * const pFilter : _filters) {
 		delete pFilter;
 	}
+	for (Filter* const pFilter : _postFilters) {
+		delete pFilter;
+	}
 }
 
 void Output::addFilters(const std::vector<Filter*> &filters) {

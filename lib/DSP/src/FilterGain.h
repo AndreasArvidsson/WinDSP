@@ -13,7 +13,8 @@ public:
     const double getMultiplier() const;
     const double getMultiplierNoInvert() const;
     const bool getInvert() const;
-    const std::string toString() const override;
+    const vector<string> toString() const override;
+    void setGain(const double gain);
 
     inline const double process(const double value) override {
         return _multiplier * value;

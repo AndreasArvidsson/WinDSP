@@ -6,9 +6,11 @@
 
 #define SAFE_RELEASE(punk) if ((punk) != NULL) { (punk)->Release(); (punk) = NULL; }
 
-IMMDeviceEnumerator *AudioDevice::_pEnumerator = nullptr;
+using std::make_unique;
+
+IMMDeviceEnumerator* AudioDevice::_pEnumerator = nullptr;
 bool AudioDevice::_initStatic = false;
-std::atomic<bool> AudioDevice::_throwError = false;
+atomic<bool> AudioDevice::_throwError = false;
 Error AudioDevice::_error;
 
 void AudioDevice::throwError() {
@@ -17,230 +19,230 @@ void AudioDevice::throwError() {
     }
 }
 
-std::vector<std::string> AudioDevice::getDeviceNames() {
-	std::vector<std::string> result;
-	initStatic();
-	IMMDeviceCollection *pCollection;
-	assert(_pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &pCollection));
-	UINT count;
-	assert(pCollection->GetCount(&count));
-    IMMDevice *pDevice;
-	for (ULONG i = 0; i < count; ++i) {
-		assert(pCollection->Item(i, &pDevice));
-		result.push_back(getDeviceName(pDevice));
-		SAFE_RELEASE(pDevice);
-	}
-	SAFE_RELEASE(pCollection);
-	return result;
+vector<string> AudioDevice::getDeviceNames() {
+    vector<string> result;
+    initStatic();
+    IMMDeviceCollection* pCollection;
+    assert(_pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &pCollection));
+    UINT count;
+    assert(pCollection->GetCount(&count));
+    IMMDevice* pDevice;
+    for (ULONG i = 0; i < count; ++i) {
+        assert(pCollection->Item(i, &pDevice));
+        result.push_back(getDeviceName(pDevice));
+        SAFE_RELEASE(pDevice);
+    }
+    SAFE_RELEASE(pCollection);
+    return result;
 }
 
-std::string AudioDevice::getDeviceName(IMMDevice *pDevice) {
-	IPropertyStore *pProps = NULL;
-	assert(pDevice->OpenPropertyStore(STGM_READ, &pProps));
-	//Initialize container for property value.
-	PROPVARIANT varName;
-	PropVariantInit(&varName);
-	//Get the endpoint's friendly-name property.
-	assert(pProps->GetValue(PKEY_Device_FriendlyName, &varName));
-	std::wstring tmp(varName.pwszVal);
-    std::string result = String::toString(tmp);
-	PropVariantClear(&varName);
-	SAFE_RELEASE(pProps);
-	return result;
+string AudioDevice::getDeviceName(IMMDevice* pDevice) {
+    IPropertyStore* pProps = NULL;
+    assert(pDevice->OpenPropertyStore(STGM_READ, &pProps));
+    //Initialize container for property value.
+    PROPVARIANT varName;
+    PropVariantInit(&varName);
+    //Get the endpoint's friendly-name property.
+    assert(pProps->GetValue(PKEY_Device_FriendlyName, &varName));
+    wstring tmp(varName.pwszVal);
+    string result = String::toString(tmp);
+    PropVariantClear(&varName);
+    SAFE_RELEASE(pProps);
+    return result;
 }
 
-AudioDevice* AudioDevice::initDevice(const std::string &name) {
-	initStatic();
-	IMMDeviceCollection *pCollection;
-	assert(_pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &pCollection));
-	UINT count;
-	AudioDevice* result = nullptr;
-	assert(pCollection->GetCount(&count));
-	IMMDevice *pDevice;
-	for (ULONG i = 0; i < count; ++i) {
-		assert(pCollection->Item(i, &pDevice));
-		if (name.compare(getDeviceName(pDevice)) == 0) {
-			result = new AudioDevice(pDevice);
-			break;
-		}
-		SAFE_RELEASE(pDevice);
-	}
-	SAFE_RELEASE(pCollection);
-	if (!result) {
-		throw Error("Can't find WASAPI endpoint '%s'", name.c_str());
-	}
-	return result;
+unique_ptr<AudioDevice> AudioDevice::initDevice(const string& name) {
+    initStatic();
+    IMMDeviceCollection* pCollection;
+    assert(_pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &pCollection));
+    UINT count;
+    unique_ptr<AudioDevice> result;
+    assert(pCollection->GetCount(&count));
+    IMMDevice* pDevice;
+    for (ULONG i = 0; i < count; ++i) {
+        assert(pCollection->Item(i, &pDevice));
+        if (name.compare(getDeviceName(pDevice)) == 0) {
+            result = make_unique<AudioDevice>(pDevice);
+            break;
+        }
+        SAFE_RELEASE(pDevice);
+    }
+    SAFE_RELEASE(pCollection);
+    if (!result) {
+        throw Error("Can't find WASAPI endpoint '%s'", name.c_str());
+    }
+    return result;
 }
 
 void AudioDevice::initStatic() {
-	if (!_initStatic) {
-		assert(CoInitialize(nullptr));
-		assert(CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void**)&_pEnumerator));
-		_initStatic = true;
-	}
+    if (!_initStatic) {
+        assert(CoInitialize(nullptr));
+        assert(CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void**)&_pEnumerator));
+        _initStatic = true;
+    }
 }
 
 void AudioDevice::destroyStatic() {
-	SAFE_RELEASE(_pEnumerator);
-	_initStatic = _throwError = false;
+    SAFE_RELEASE(_pEnumerator);
+    _initStatic = _throwError = false;
 }
 
 AudioDevice::AudioDevice() {
-	initDefault();
-	assert(_pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &_pDevice));
-	init(_pDevice);
+    initDefault();
+    assert(_pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &_pDevice));
+    init(_pDevice);
 }
 
-AudioDevice::AudioDevice(const std::string &id) : AudioDevice(std::wstring(id.begin(), id.end())) {
+AudioDevice::AudioDevice(const string& id) : AudioDevice(wstring(id.begin(), id.end())) {
 }
 
-AudioDevice::AudioDevice(const std::wstring &id) {
-	initDefault();
-	assert(_pEnumerator->GetDevice(id.c_str(), &_pDevice));
-	init(_pDevice);
+AudioDevice::AudioDevice(const wstring& id) {
+    initDefault();
+    assert(_pEnumerator->GetDevice(id.c_str(), &_pDevice));
+    init(_pDevice);
 }
 
-AudioDevice::AudioDevice(IMMDevice *pDevice) {
-	initDefault();
-	init(pDevice);
+AudioDevice::AudioDevice(IMMDevice* pDevice) {
+    initDefault();
+    init(pDevice);
 }
 
 AudioDevice::~AudioDevice() {
-	//Stop service;
-	_pAudioClient->Stop();
-	//Free resources
-	CoTaskMemFree(_pFormat);
-	SAFE_RELEASE(_pDevice);
-	SAFE_RELEASE(_pAudioClient);
-	SAFE_RELEASE(_pCaptureClient);
-	SAFE_RELEASE(_pRenderClient);
-	SAFE_RELEASE(_pSimpleVolume);
+    //Stop service;
+    _pAudioClient->Stop();
+    //Free resources
+    CoTaskMemFree(_pFormat);
+    SAFE_RELEASE(_pDevice);
+    SAFE_RELEASE(_pAudioClient);
+    SAFE_RELEASE(_pCaptureClient);
+    SAFE_RELEASE(_pRenderClient);
+    SAFE_RELEASE(_pSimpleVolume);
 }
 
 void AudioDevice::initDefault() {
-	initStatic();
-	_pFormat = nullptr;
-	_pDevice = nullptr;
-	_pAudioClient = nullptr;
-	_pCaptureClient = nullptr;
-	_pRenderClient = nullptr;
-	_pSimpleVolume = nullptr;
-	_bufferSize = 0;
+    initStatic();
+    _pFormat = nullptr;
+    _pDevice = nullptr;
+    _pAudioClient = nullptr;
+    _pCaptureClient = nullptr;
+    _pRenderClient = nullptr;
+    _pSimpleVolume = nullptr;
+    _bufferSize = 0;
 }
 
-void AudioDevice::init(IMMDevice *pDevice) {
-	_pDevice = pDevice;
-	assert(_pDevice->Activate(__uuidof(IAudioClient3), CLSCTX_ALL, NULL, (void**)&_pAudioClient));
-	assert(_pAudioClient->GetMixFormat(&_pFormat));
+void AudioDevice::init(IMMDevice* pDevice) {
+    _pDevice = pDevice;
+    assert(_pDevice->Activate(__uuidof(IAudioClient3), CLSCTX_ALL, NULL, (void**)&_pAudioClient));
+    assert(_pAudioClient->GetMixFormat(&_pFormat));
 }
 
 void AudioDevice::initCaptureService() {
-	prepareService(true);
+    prepareService(true);
 }
 
 void AudioDevice::initRenderService() {
-	prepareService(false);
+    prepareService(false);
 }
 
 void AudioDevice::startService() {
-	//Start aduio service on device.
-	assert(_pAudioClient->Start());
+    //Start aduio service on device.
+    assert(_pAudioClient->Start());
 }
 
 void AudioDevice::prepareService(const bool capture) {
-	if (capture) {
-		assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, 0, 0, _pFormat, nullptr));
-		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pCaptureClient)));
-	}
-	else {
+    if (capture) {
+        assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, 0, 0, _pFormat, nullptr));
+        assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pCaptureClient)));
+    }
+    else {
         //Create event handle
-		_eventHandle = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
-		if (_eventHandle == NULL) {
-			throw Error("WASAPI: Unable to create samples ready event %d", GetLastError());
-		}
-        
+        _eventHandle = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
+        if (_eventHandle == NULL) {
+            throw Error("WASAPI: Unable to create samples ready event %d", GetLastError());
+        }
+
         assert(_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 0, 0, _pFormat, nullptr));
-		assert(_pAudioClient->SetEventHandle(_eventHandle));
-		assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pRenderClient)));
-	}
+        assert(_pAudioClient->SetEventHandle(_eventHandle));
+        assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pRenderClient)));
+    }
 
-	//Get the size of the allocated buffer.
-	assert(_pAudioClient->GetBufferSize(&_bufferSize));
+    //Get the size of the allocated buffer.
+    assert(_pAudioClient->GetBufferSize(&_bufferSize));
 
-	WAVEFORMATEX *p; //Need this. Cant be null.
-	_pAudioClient->GetCurrentSharedModeEnginePeriod(&p, &_engineBufferSize);
+    WAVEFORMATEX* p; //Need this. Cant be null.
+    _pAudioClient->GetCurrentSharedModeEnginePeriod(&p, &_engineBufferSize);
 }
 
 void AudioDevice::printInfo() const {
-	REFERENCE_TIME engineTime, minTime;
-	assert(_pAudioClient->GetDevicePeriod(&engineTime, &minTime));
-	UINT32 default_, fundamental, min, max;
-	assert(_pAudioClient->GetSharedModeEnginePeriod(_pFormat, &default_, &fundamental, &min, &max));
-	LOG_INFO("hw min = %f, engine = %f, buffer = %f", minTime / 10000.0, engineTime / 10000.0, 1000.0 * _bufferSize / _pFormat->nSamplesPerSec);
-	LOG_INFO("default = %d, fundamental = %d, min = %d, max = %d, current = %d, buffer = %d", default_, fundamental, min, max, _bufferSize, _bufferSize);
+    REFERENCE_TIME engineTime, minTime;
+    assert(_pAudioClient->GetDevicePeriod(&engineTime, &minTime));
+    UINT32 default_, fundamental, min, max;
+    assert(_pAudioClient->GetSharedModeEnginePeriod(_pFormat, &default_, &fundamental, &min, &max));
+    LOG_INFO("hw min = %f, engine = %f, buffer = %f", minTime / 10000.0, engineTime / 10000.0, 1000.0 * _bufferSize / _pFormat->nSamplesPerSec);
+    LOG_INFO("default = %d, fundamental = %d, min = %d, max = %d, current = %d, buffer = %d", default_, fundamental, min, max, _bufferSize, _bufferSize);
 }
 
-const std::string AudioDevice::getId() {
-	if (!_id.size()) {
-		LPWSTR id;
-		assert(_pDevice->GetId(&id));
-		std::wstring tmp(id);
+const string AudioDevice::getId() {
+    if (!_id.size()) {
+        LPWSTR id;
+        assert(_pDevice->GetId(&id));
+        wstring tmp(id);
         _id = String::toString(tmp);
-		CoTaskMemFree(id);
-	}
-	return _id;
+        CoTaskMemFree(id);
+    }
+    return _id;
 }
 
-const std::string AudioDevice::getName() {
-	if (!_name.size()) {
-		_name = getDeviceName(_pDevice);
-	}
-	return _name;
+const string AudioDevice::getName() {
+    if (!_name.size()) {
+        _name = getDeviceName(_pDevice);
+    }
+    return _name;
 }
 
 const WAVEFORMATEX* AudioDevice::getFormat() const {
-	return _pFormat;
+    return _pFormat;
 }
 
 ISimpleAudioVolume* AudioDevice::getVolumeControl() {
-	if (!_pSimpleVolume) {
+    if (!_pSimpleVolume) {
         assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pSimpleVolume)));
-	}
-	return _pSimpleVolume;
+    }
+    return _pSimpleVolume;
 }
 
 const UINT32 AudioDevice::getBufferSize() const {
-	return _bufferSize;
+    return _bufferSize;
 }
 
 const UINT32 AudioDevice::getEngineBufferSize() const {
-	return _engineBufferSize;
+    return _engineBufferSize;
 }
 
 void AudioDevice::flushCaptureBuffer() const {
-	UINT32 frameCount;
-	BYTE *buffer;
-	DWORD flags;
-	assert(_pCaptureClient->GetNextPacketSize(&frameCount));
-	while (frameCount != 0) {
-		assert(_pCaptureClient->GetBuffer(&buffer, &frameCount, &flags, nullptr, nullptr));
-		assert(_pCaptureClient->ReleaseBuffer(frameCount));
-		assert(_pCaptureClient->GetNextPacketSize(&frameCount));
-	}
+    UINT32 frameCount;
+    BYTE* buffer;
+    DWORD flags;
+    assert(_pCaptureClient->GetNextPacketSize(&frameCount));
+    while (frameCount != 0) {
+        assert(_pCaptureClient->GetBuffer(&buffer, &frameCount, &flags, nullptr, nullptr));
+        assert(_pCaptureClient->ReleaseBuffer(frameCount));
+        assert(_pCaptureClient->GetNextPacketSize(&frameCount));
+    }
 }
 
 void AudioDevice::flushRenderBuffer() const {
-	BYTE *buffer;
-	UINT32 frameCount = getBufferFrameCountAvailable();
-	while (frameCount != 0) {
-		assert(_pRenderClient->GetBuffer(frameCount, &buffer));
-		assert(_pRenderClient->ReleaseBuffer(frameCount, AUDCLNT_BUFFERFLAGS_SILENT));
-		frameCount = getBufferFrameCountAvailable();
-	}
+    BYTE* buffer;
+    UINT32 frameCount = getBufferFrameCountAvailable();
+    while (frameCount != 0) {
+        assert(_pRenderClient->GetBuffer(frameCount, &buffer));
+        assert(_pRenderClient->ReleaseBuffer(frameCount, AUDCLNT_BUFFERFLAGS_SILENT));
+        frameCount = getBufferFrameCountAvailable();
+    }
 }
 
 //Convert HRESULT to text explanation.
-const std::string AudioDevice::hresult(const HRESULT hr) {
+const string AudioDevice::hresult(const HRESULT hr) {
     switch (hr) {
     case AUDCLNT_E_NOT_INITIALIZED:
         return "The audio stream has not been successfully initialized.";

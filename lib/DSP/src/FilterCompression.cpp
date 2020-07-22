@@ -13,6 +13,6 @@ FilterCompression::FilterCompression(const uint32_t sampleRate, const double thr
     _envelope = 0;
 }
 
-const std::string FilterCompression::toString() const {
-    return "Compression";
+const vector<string> FilterCompression::toString() const {
+    return vector<string>{ "Compression" };
 }

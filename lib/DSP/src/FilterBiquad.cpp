@@ -27,17 +27,17 @@ void FilterBiquad::add(const double b0, const double b1, const double b2, const 
     Biquad biquad;
     biquad.init(b0, b1, b2, a1, a2);
     _biquads.push_back(biquad);
-    appendToString("Coeff5");
+    _toStringValue.push_back("Biquad5");
 }
 
 void FilterBiquad::add(const double b0, const double b1, const double b2, const double a0, const double a1, const double a2) {
     Biquad biquad;
     biquad.init(b0, b1, b2, a0, a1, a2);
     _biquads.push_back(biquad);
-    appendToString("Coeff6");
+    _toStringValue.push_back("Biquad6");
 }
 
-void FilterBiquad::addCrossover(const bool isLowPass, const double frequency, const std::vector<double>& qValues) {
+void FilterBiquad::addCrossover(const bool isLowPass, const double frequency, const vector<double>& qValues) {
     if (isLowPass) {
         addLowPass(frequency, qValues);
     }
@@ -55,7 +55,7 @@ void FilterBiquad::addCrossover(const bool isLowPass, const double frequency, co
     }
 }
 
-void FilterBiquad::addLowPass(const double frequency, const std::vector<double> qValues) {
+void FilterBiquad::addLowPass(const double frequency, const vector<double>& qValues) {
     int order = 0;
     for (double q : qValues) {
         Biquad biquad;
@@ -71,14 +71,14 @@ void FilterBiquad::addLowPass(const double frequency, const std::vector<double> 
         }
         _biquads.push_back(biquad);
     }
-    appendToString(String::format("LP%0.f/%d", frequency, order));
+    _toStringValue.push_back(String::format("LP: %0.fHz / %d", frequency, order));
 }
 
 void FilterBiquad::addLowPass(const double frequency, const CrossoverType type, const uint8_t order, const double qOffset) {
     addLowPass(frequency, CrossoverTypes::getQValues(type, order, qOffset));
 }
 
-void FilterBiquad::addHighPass(const double frequency, const std::vector<double> qValues) {
+void FilterBiquad::addHighPass(const double frequency, const vector<double>& qValues) {
     int order = 0;
     for (double q : qValues) {
         Biquad biquad;
@@ -92,7 +92,7 @@ void FilterBiquad::addHighPass(const double frequency, const std::vector<double>
         }
         _biquads.push_back(biquad);
     }
-    appendToString(String::format("HP%0.f/%d", frequency, order));
+    _toStringValue.push_back(String::format("HP: %0.fHz / %d", frequency, order));
 }
 
 void FilterBiquad::addHighPass(const double frequency, const CrossoverType type, const uint8_t order, const double qOffset) {
@@ -112,48 +112,48 @@ void FilterBiquad::addLowShelf(const double frequency, const double gain, const 
     Biquad biquad;
     biquad.initLowShelf(_sampleRate, frequency, gain, q);
     _biquads.push_back(biquad);
-    appendToString(String::format("LS%0.f", frequency));
+    _toStringValue.push_back(String::format("LS; %0.fHz", frequency));
 }
 
 void FilterBiquad::addHighShelf(const double frequency, const double gain, const double q) {
     Biquad biquad;
     biquad.initHighShelf(_sampleRate, frequency, gain, q);
     _biquads.push_back(biquad);
-    appendToString(String::format("HS%0.f", frequency));
+    _toStringValue.push_back(String::format("HS %0.fHz", frequency));
 }
 
 void FilterBiquad::addPEQ(const double frequency, const double q, const double gain) {
     Biquad biquad;
     biquad.initPEQ(_sampleRate, frequency, q, gain);
     _biquads.push_back(biquad);
-    appendToString(String::format("PEQ%0.f", frequency));
+    _toStringValue.push_back(String::format("PEQ: %0.fHz", frequency));
 }
 
 void FilterBiquad::addBandPass(const double frequency, const double bandwidth, const double gain) {
     Biquad biquad;
     biquad.initBandPass(_sampleRate, frequency, bandwidth, gain);
     _biquads.push_back(biquad);
-    appendToString(String::format("BP%0.f", frequency));
+    _toStringValue.push_back(String::format("BP: %0.fHz", frequency));
 }
 
 void FilterBiquad::addNotch(const double frequency, const double bandwidth, const double gain) {
     Biquad biquad;
     biquad.initNotch(_sampleRate, frequency, bandwidth, gain);
     _biquads.push_back(biquad);
-    appendToString(String::format("Notch%0.f", frequency));
+    _toStringValue.push_back(String::format("Notch: %0.fHz", frequency));
 }
 
 void FilterBiquad::addLinkwitzTransform(const double f0, const double q0, const double fp, const double qp) {
     Biquad biquad;
     biquad.initLinkwitzTransform(_sampleRate, f0, q0, fp, qp);
     _biquads.push_back(biquad);
-    appendToString("LT");
+    _toStringValue.push_back("LT");
 }
 
-const std::vector<std::vector<double>> FilterBiquad::getFrequencyResponse(const uint32_t nPoints, const double fMin, const double fMax) const {
-    std::vector<std::vector<double>> result(nPoints);
+const vector<vector<double>> FilterBiquad::getFrequencyResponse(const uint32_t nPoints, const double fMin, const double fMax) const {
+    vector<vector<double>> result(nPoints);
     for (const Biquad& biquad : _biquads) {
-        const std::vector<std::vector<double>> data = biquad.getFrequencyResponse(_sampleRate, nPoints, fMin, fMax);
+        const vector<vector<double>> data = biquad.getFrequencyResponse(_sampleRate, nPoints, fMin, fMax);
         for (uint32_t i = 0; i < nPoints; ++i) {
             //First use of this index/Hz. Use entire Hz/dB pair.
             if (result[i].size() == 0) {
@@ -177,13 +177,6 @@ void FilterBiquad::printCoefficients(const bool miniDSPFormat) const {
     LOG_NL();
 }
 
-const std::string FilterBiquad::toString() const {
-    return String::format("Biquad: %s", _toStringValue.c_str());
-}
-
-void FilterBiquad::appendToString(const std::string& str) {
-    if (_toStringValue.size()) {
-        _toStringValue += ", ";
-    }
-    _toStringValue += str;
+const vector<string> FilterBiquad::toString() const {
+    return _toStringValue;
 }

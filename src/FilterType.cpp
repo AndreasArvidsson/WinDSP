@@ -2,8 +2,8 @@
 #include "Error.h"
 #include "Str.h"
 
-const FilterType FilterTypes::fromString(const std::string& strIn) {
-    const std::string str = String::toUpperCase(strIn);
+const FilterType FilterTypes::fromString(const string& strIn) {
+    const string str = String::toUpperCase(strIn);
     if (str.compare("LOW_PASS") == 0) {
         return FilterType::LOW_PASS;
     }
@@ -43,7 +43,7 @@ const FilterType FilterTypes::fromString(const std::string& strIn) {
     throw Error("Unknown filter type '%s'", str.c_str());
 }
 
-const std::string FilterTypes::toString(const FilterType filterType) {
+const string FilterTypes::toString(const FilterType filterType) {
     switch (filterType) {
     case FilterType::LOW_PASS:
         return "LOW_PASS";

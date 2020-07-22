@@ -53,7 +53,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK;$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK/src;$(SolutionDir)/../Core/src;$(SolutionDir)/lib/DSP/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;DEBUG;DEBUG_MEMORY</PreprocessorDefinitions>
       <SupportJustMyCode>true</SupportJustMyCode>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -72,7 +72,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK;$(SolutionDir)/../Core;$(SolutionDir)/lib/DSP/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../AsioSDK/src;$(SolutionDir)/../Core/src;$(SolutionDir)/lib/DSP/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -96,7 +96,7 @@
     <ProjectReference Include="$(SolutionDir)\lib\DSP\DSP.vcxproj">
       <Project>{49c706ab-09b0-451e-a6d6-403a28a54ce5}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\AsioSDK\AsioSDK.vcxproj">
+    <ProjectReference Include="$(SolutionDir)\..\AsioSDK\AsioSDK.vcxproj">
       <Project>{0ab9a655-ba2c-42cb-909f-b61ae395e2e8}</Project>
     </ProjectReference>
   </ItemGroup>
@@ -134,7 +134,6 @@
     <ClInclude Include="src/FilterType.h" />
     <ClInclude Include="src/Input.h" />
     <ClInclude Include="src/Output.h" />
-    <ClInclude Include="src/resource.h" />
     <ClInclude Include="src/Route.h" />
     <ClInclude Include="src/SpeakerType.h" />
     <ClInclude Include="src/TrayIcon.h" />

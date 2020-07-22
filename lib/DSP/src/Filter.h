@@ -1,5 +1,9 @@
 #pragma once
 #include <string>
+#include <vector>
+
+using std::string;
+using std::vector;
 
 class Filter {
 public:
@@ -7,6 +11,6 @@ public:
 
 	virtual inline const double process(double value) = 0;
 	virtual inline void reset() = 0;
-    virtual const std::string toString() const = 0;
+    virtual const vector<string> toString() const = 0;
 
 };

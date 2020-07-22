@@ -1,48 +1,52 @@
 /*
-	This class represents a single route on an inut.
-	Contains all filters and conditions specified in the configuration.
+    This class represents a single route on an inut.
+    Contains all filters and conditions specified in the configuration.
 
-	Author: Andreas Arvidsson
-	Source: https://github.com/AndreasArvidsson/WinDSP
+    Author: Andreas Arvidsson
+    Source: https://github.com/AndreasArvidsson/WinDSP
 */
 
 #pragma once
 #include <vector>
+#include <memory>
 #include "Filter.h"
 #include "Condition.h"
 #include "Channel.h"
 
+using std::vector;
+using std::unique_ptr;
+
 class Route {
 public:
 
-	Route(const Channel channel);
-	~Route();
+    Route();
+    Route(const Channel channel);
 
-	void addFilters(const std::vector<Filter*> &filters);
-    void addFilter(Filter *pFilter);
-	void addCondition(const Condition &condition);
+    void addFilters(vector<unique_ptr<Filter>>& filters);
+    void addFilter(unique_ptr<Filter> pFilter);
+    void addCondition(const Condition& condition);
     const Channel getChannel() const;
-	const size_t getChannelIndex() const;
-	const bool hasConditions() const;
-	const std::vector<Filter*>& getFilters() const;
+    const size_t getChannelIndex() const;
+    const bool hasConditions() const;
+    const vector<unique_ptr<Filter>>& getFilters() const;
 
-	void evalConditions();
-	void reset() const;
+    void evalConditions();
+    void reset() const;
 
-	inline void process(double data, double * const pRenderBuffer) const {
-		if (_valid) {
-			for (Filter * const pFilter : _filters) {
-				data = pFilter->process(data);
-			}
-			pRenderBuffer[_channelIndex] += data;
-		}
-	}
+    inline void process(double data, double* const pRenderBuffer) const {
+        if (_valid) {
+            for (const unique_ptr<Filter>& pFilter : _filters) {
+                data = pFilter->process(data);
+            }
+            pRenderBuffer[_channelIndex] += data;
+        }
+    }
 
 private:
-	std::vector<Filter*> _filters;
-	std::vector<Condition> _conditions;
-	bool _valid;
+    vector<unique_ptr<Filter>> _filters;
+    vector<Condition> _conditions;
     Channel _channel;
-	size_t _channelIndex;
-	
+    size_t _channelIndex;
+    bool _valid;
+
 };

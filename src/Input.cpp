@@ -1,5 +1,12 @@
 #include "Input.h"
 
+using std::move;
+
+Input::Input() {
+	_channel = Channel::CHANNEL_NULL;
+	_isPlaying = false;
+}
+
 Input::Input(const Channel channel) {
     _channel = channel;
 	_isPlaying = false;
@@ -8,36 +15,34 @@ Input::Input(const Channel channel) {
 Input::Input(const Channel channel, const Channel out) {
     _channel = channel;
 	_isPlaying = false;
-	_routes.push_back(new Route(out));
+	_routes.push_back(Route(out));
 }
 
-Input::~Input() {
-	for (Route *pRoute : _routes) {
-		delete pRoute;
-	}
-}
-
-const std::vector<Route*>& Input::getRoutes() const {
+const vector<Route>& Input::getRoutes() const {
 	return _routes;
 }
 
-void Input::addRoute(Route * const pRoute) {
-	_routes.push_back(pRoute);
+void Input::addRoute(Route& route) {
+	_routes.push_back(move(route));
 }
 
 const Channel Input::getChannel() const {
     return _channel;
 }
 
-void Input::evalConditions() const {
-	for (Route * const pRoute : _routes) {
-		pRoute->evalConditions();
+const bool Input::isDefined() const {
+	return _channel != Channel::CHANNEL_NULL;
+}
+
+void Input::evalConditions() {
+	for (Route& route : _routes) {
+		route.evalConditions();
 	}
 }
 
 void Input::reset() {
-	for (const Route * const pRoute : _routes) {
-		pRoute->reset();
+	for (const Route& route : _routes) {
+		route.reset();
 	}
 }
 

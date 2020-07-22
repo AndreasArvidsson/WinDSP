@@ -1,12 +1,15 @@
+/*
+    Downward dynamic range compression
+*/
+
 #pragma once
 #include <cmath>
 #include <string>
 #include "Filter.h"
 #include "Convert.h"
 
-/*
-    Downward dynamic range compression
-*/
+using std::pow;
+using std::sqrt;
 
 class FilterCompression : public Filter {
 public:
@@ -20,7 +23,7 @@ public:
         const double window // ms
         );
 
-    const std::string toString() const;
+    const vector<string> toString() const;
 
     inline const double process(const double sample) override {
         const double sum = sample * sample;
@@ -38,7 +41,7 @@ public:
         else {
             run(over, _releaseCoef, _envelope);
         }
-        const double gain = over ? std::pow(over, _ratio - 1) : 1;
+        const double gain = over ? pow(over, _ratio - 1) : 1;
         return sample * gain;
     }
 

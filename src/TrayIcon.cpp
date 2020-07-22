@@ -6,7 +6,7 @@ NOTIFYICONDATA TrayIcon::_iconData;
 HWND TrayIcon::_hWnd;
 bool TrayIcon::_shown = false;
 
-void TrayIcon::init(const WNDPROC wndProc, const int iconResourceId, const std::string &tooltip) {
+void TrayIcon::init(const WNDPROC wndProc, const int iconResourceId, const string &tooltip) {
 	_shown = false;
 
 	HINSTANCE hInstance = GetModuleHandle(nullptr);
@@ -31,7 +31,7 @@ void TrayIcon::init(const WNDPROC wndProc, const int iconResourceId, const std::
 	_iconData.uCallbackMessage = TRAY_ICON_MSG;
 	_iconData.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE; //Icon, tooltip and WndProc message
 	_iconData.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(iconResourceId), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE);
-	std::strcpy(_iconData.szTip, tooltip.c_str());
+	strcpy(_iconData.szTip, tooltip.c_str());
 }
 
 void TrayIcon::handleQueue() {

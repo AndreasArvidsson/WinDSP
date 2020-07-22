@@ -2,12 +2,16 @@
 #include "SpeakerType.h"
 #include "CrossoverType.h"
 #include "JsonNode.h"
-#include <algorithm> //std::find
+#include <algorithm> //find
 #include "WinDSPLog.h"
 #include "Channel.h"
 #include "Input.h"
 #include "FilterGain.h"
 #include "FilterBiquad.h"
+
+using std::make_shared;
+using std::make_unique;
+using std::move;
 
 #define PHANTOM_CENTER_GAIN             -3 //Gain for routing center to L/R
 #define LFE_GAIN                        10 //Gain for LFE channel to match other channels
@@ -15,12 +19,12 @@
 
 void Config::parseBasic() {
     _addAutoGain = true;
-    std::string path = "";
-    JsonNode *pBasicNode = (JsonNode*)getObjectNode(_pJsonNode, "basic", path);
+    string path = "";
+    const shared_ptr<JsonNode> pBasicNode = getObjectNode(_pJsonNode, "basic", path);
     //Get channels
     const double stereoBass = tryGetBoolValue(pBasicNode, "stereoBass", path);
-    std::vector<Channel> subs, subLs, subRs, smalls;
-    const std::unordered_map<Channel, SpeakerType> channelsMap = parseChannels(pBasicNode, stereoBass, subs, subLs, subRs, smalls, path);
+    vector<Channel> subs, subLs, subRs, smalls;
+    const unordered_map<Channel, SpeakerType> channelsMap = parseChannels(pBasicNode, stereoBass, subs, subLs, subRs, smalls, path);
     const bool useSubwoofers = getUseSubwoofers(subs, subLs, subRs);
     const double lfeGain = getLfeGain(pBasicNode, useSubwoofers, smalls.size(), path);
 
@@ -32,8 +36,8 @@ void Config::parseBasic() {
     parseExpandSurround(pBasicNode, channelsMap, path);
 }
 
-void Config::parseBasicCrossovers(JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path) {
-    for (const auto &e : channelsMap) {
+void Config::parseBasicCrossovers(const shared_ptr<JsonNode>& pBasicNode, const unordered_map<Channel, SpeakerType>& channelsMap, const string& path) {
+    for (const auto& e : channelsMap) {
         switch (e.second) {
         case SpeakerType::SMALL:
             _addHpTo[e.first] = true;
@@ -47,15 +51,14 @@ void Config::parseBasicCrossovers(JsonNode *pBasicNode, const std::unordered_map
     _pHpFilter = parseBasicCrossover(pBasicNode, "highPass", CrossoverType::BUTTERWORTH, 80, 3, path);
 }
 
-JsonNode* Config::parseBasicCrossover(JsonNode *pBasicNode, const std::string &field, const CrossoverType crossoverType, const double freq, const int order, const std::string &path) const {
-    JsonNode *pCrossoverNode;
+shared_ptr<JsonNode> Config::parseBasicCrossover(const shared_ptr<JsonNode>& pBasicNode, const string& field, const CrossoverType crossoverType, const double freq, const int order, const string& path) const {
+    shared_ptr<JsonNode> pCrossoverNode = make_shared<JsonNode>(JsonNodeType::OBJECT);
     if (pBasicNode->has(field)) {
-        std::string myPath = path;
-        pCrossoverNode = (JsonNode*)tryGetObjectNode(pBasicNode, field, myPath);
-    }
-    else {
-        pCrossoverNode = new JsonNode(JsonNodeType::OBJECT);
-        pBasicNode->put(field, pCrossoverNode);
+        string myPath = path;
+        const shared_ptr<JsonNode> pOldNode = getObjectNode(pBasicNode, field, myPath);
+        for (auto f : pOldNode->getFields()) {
+            pCrossoverNode->put(f.first, f.second);
+        }
     }
     addNonExisting(pCrossoverNode, "crossoverType", CrossoverTypes::toString(crossoverType));
     addNonExisting(pCrossoverNode, "freq", freq);
@@ -63,7 +66,7 @@ JsonNode* Config::parseBasicCrossover(JsonNode *pBasicNode, const std::string &f
     return pCrossoverNode;
 }
 
-void Config::parseExpandSurround(const JsonNode *pBasicNode, const std::unordered_map<Channel, SpeakerType> &channelsMap, const std::string &path) {
+void Config::parseExpandSurround(const shared_ptr<JsonNode>& pBasicNode, const unordered_map<Channel, SpeakerType>& channelsMap, const string& path) {
     const bool expandSurround = tryGetBoolValue(pBasicNode, "expandSurround", path);
     if (expandSurround) {
         const SpeakerType surrType = channelsMap.at(Channel::SL);
@@ -80,155 +83,155 @@ void Config::parseExpandSurround(const JsonNode *pBasicNode, const std::unordere
     }
 }
 
-void Config::routeChannels(const std::unordered_map<Channel, SpeakerType> &channelsMap, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain) {
+void Config::routeChannels(const unordered_map<Channel, SpeakerType>& channelsMap, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain) {
     for (size_t i = 0; i < _numChannelsIn; ++i) {
         const Channel channel = (Channel)i;
-        Input *pInput = new Input(channel);
-        _inputs[i] = pInput;
+        Input input(channel);
         const SpeakerType type = channelsMap.at(channel);
         switch (type) {
             //Route to matching speaker
         case SpeakerType::LARGE:
-            addRoute(pInput, channel);
+            addRoute(input, channel);
             break;
             //Route to matching speaker and sub/front
         case SpeakerType::SMALL:
-            addRoute(pInput, channel);
-            addBassRoute(pInput, stereoBass, subs, subLs, subRs, lfeGain);
+            addRoute(input, channel);
+            addBassRoute(input, stereoBass, subs, subLs, subRs, lfeGain);
             break;
             //Downmix
         case SpeakerType::OFF:
-            downmix(channelsMap, pInput, stereoBass, subs, subLs, subRs, lfeGain);
+            downmix(channelsMap, input, stereoBass, subs, subLs, subRs, lfeGain);
             break;
             //Sub or downmix
         case SpeakerType::SUB:
             if (channel == Channel::SW) {
-                addSwRoute(pInput, stereoBass, subs, subLs, subRs, lfeGain);
+                addSwRoute(input, stereoBass, subs, subLs, subRs, lfeGain);
             }
             else {
-                downmix(channelsMap, pInput, stereoBass, subs, subLs, subRs, lfeGain);
+                downmix(channelsMap, input, stereoBass, subs, subLs, subRs, lfeGain);
             }
             break;
         default:
             LOG_WARN("Unmanaged type '%s'", SpeakerTypes::toString(type).c_str());
         }
+        _inputs[i] = move(input);
     }
 }
 
-void Config::downmix(const std::unordered_map<Channel, SpeakerType> &channelsMap, Input *pInput, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain) const {
+void Config::downmix(const unordered_map<Channel, SpeakerType>& channelsMap, Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain) const {
     SpeakerType type = SpeakerType::OFF;
-    switch (pInput->getChannel()) {
+    switch (input.getChannel()) {
     case Channel::SL:
-        type = addRoute(channelsMap, pInput, { Channel::SBL , Channel::L });
+        type = addRoute(channelsMap, input, { Channel::SBL , Channel::L });
         break;
     case Channel::SBL:
-        type = addRoute(channelsMap, pInput, { Channel::SL , Channel::L });
+        type = addRoute(channelsMap, input, { Channel::SL , Channel::L });
         break;
     case Channel::SR:
-        type = addRoute(channelsMap, pInput, { Channel::SBR , Channel::R });
+        type = addRoute(channelsMap, input, { Channel::SBR , Channel::R });
         break;
     case Channel::SBR:
-        type = addRoute(channelsMap, pInput, { Channel::SR , Channel::R });
+        type = addRoute(channelsMap, input, { Channel::SR , Channel::R });
         break;
     case Channel::C:
-        addRoute(pInput, Channel::L, PHANTOM_CENTER_GAIN);
-        addRoute(pInput, Channel::R, PHANTOM_CENTER_GAIN);
+        addRoute(input, Channel::L, PHANTOM_CENTER_GAIN);
+        addRoute(input, Channel::R, PHANTOM_CENTER_GAIN);
         type = channelsMap.at(Channel::L);
         break;
     case Channel::SW:
         type = SpeakerType::SMALL;
         break;
     default:
-        LOG_WARN("Unmanaged downmix channel '%s'", Channels::toString(pInput->getChannel()).c_str());
+        LOG_WARN("Unmanaged downmix channel '%s'", Channels::toString(input.getChannel()).c_str());
     }
     //Downmixed a small speaker. Add to subs as well.
     if (type == SpeakerType::SMALL) {
-        addBassRoute(pInput, stereoBass, subs, subLs, subRs, lfeGain);
+        addBassRoute(input, stereoBass, subs, subLs, subRs, lfeGain);
     }
 }
 
-void Config::addBassRoute(Input *pInput, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double lfeGain) const {
-    const Channel channel = pInput->getChannel();
+void Config::addBassRoute(Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain) const {
+    const Channel channel = input.getChannel();
     const double gain = (channel == Channel::SW ? lfeGain : 0);
     if (getUseSubwoofers(subs, subLs, subRs)) {
-        addSwRoute(pInput, stereoBass, subs, subLs, subRs, gain);
+        addSwRoute(input, stereoBass, subs, subLs, subRs, gain);
     }
     else {
-        addFrontBassRoute(pInput, stereoBass, gain);
+        addFrontBassRoute(input, stereoBass, gain);
     }
 }
 
-void Config::addFrontBassRoute(Input *pInput, const bool stereoBass, const double gain) const {
-    const Channel channel = pInput->getChannel();
+void Config::addFrontBassRoute(Input& input, const bool stereoBass, const double gain) const {
+    const Channel channel = input.getChannel();
     const bool addLP = (channel != Channel::SW);
     if (stereoBass) {
         switch (channel) {
             //Route to left front channel
         case Channel::SL:
         case Channel::SBL:
-            addRoute(pInput, Channel::L, gain, addLP);
+            addRoute(input, Channel::L, gain, addLP);
             break;
             //Route to right front channel
         case Channel::SR:
         case Channel::SBR:
-            addRoute(pInput, Channel::R, gain, addLP);
+            addRoute(input, Channel::R, gain, addLP);
             break;
             //Route to both front channels
         case Channel::C:
         case Channel::SW:
-            addRoute(pInput, Channel::L, gain + BASS_TO_STEREO_GAIN, addLP);
-            addRoute(pInput, Channel::R, gain + BASS_TO_STEREO_GAIN, addLP);
+            addRoute(input, Channel::L, gain + BASS_TO_STEREO_GAIN, addLP);
+            addRoute(input, Channel::R, gain + BASS_TO_STEREO_GAIN, addLP);
         }
     }
     //Route to both front channels
     else {
-        addRoute(pInput, Channel::L, gain + BASS_TO_STEREO_GAIN, addLP);
-        addRoute(pInput, Channel::R, gain + BASS_TO_STEREO_GAIN, addLP);
+        addRoute(input, Channel::L, gain + BASS_TO_STEREO_GAIN, addLP);
+        addRoute(input, Channel::R, gain + BASS_TO_STEREO_GAIN, addLP);
     }
 }
 
-void Config::addSwRoute(Input *pInput, const bool stereoBass, const std::vector<Channel> subs, const std::vector<Channel> subLs, const std::vector<Channel> subRs, const double gain) const {
+void Config::addSwRoute(Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double gain) const {
     if (stereoBass) {
-        switch (pInput->getChannel()) {
+        switch (input.getChannel()) {
             //Route to left sub channels
         case Channel::L:
         case Channel::SL:
         case Channel::SBL:
-            addRoutes(pInput, subLs, gain);
+            addRoutes(input, subLs, gain);
             break;
             //Route to right sub channels
         case Channel::R:
         case Channel::SR:
         case Channel::SBR:
-            addRoutes(pInput, subRs, gain);
+            addRoutes(input, subRs, gain);
             break;
             //Route to both sub channels
         case Channel::C:
         case Channel::SW:
-            addRoutes(pInput, subLs, gain + BASS_TO_STEREO_GAIN);
-            addRoutes(pInput, subRs, gain + BASS_TO_STEREO_GAIN);
+            addRoutes(input, subLs, gain + BASS_TO_STEREO_GAIN);
+            addRoutes(input, subRs, gain + BASS_TO_STEREO_GAIN);
         }
     }
     //Route to mono sub channels
     else {
-        addRoutes(pInput, subs, gain);
+        addRoutes(input, subs, gain);
     }
 }
 
-const std::unordered_map<Channel, SpeakerType> Config::parseChannels(const JsonNode *pBasicNode, const double stereoBass, std::vector<Channel> &subs, std::vector<Channel> &subLs, std::vector<Channel> &subRs, std::vector<Channel> &smalls, const std::string &path) const {
-    std::unordered_map<Channel, SpeakerType> result;
+const unordered_map<Channel, SpeakerType> Config::parseChannels(const shared_ptr<JsonNode>& pBasicNode, const double stereoBass, vector<Channel>& subs, vector<Channel>& subLs, vector<Channel>& subRs, vector<Channel>& smalls, const string& path) const {
+    unordered_map<Channel, SpeakerType> result;
     //Front speakers are always enabled and normal sepakers
     parseChannel(result, pBasicNode, "front", { Channel::L , Channel::R }, { SpeakerType::LARGE, SpeakerType::SMALL }, path);
     //Subwoofer is always sub or off.
     parseChannel(result, pBasicNode, "subwoofer", { Channel::SW }, { SpeakerType::SUB, SpeakerType::OFF }, path);
     //Rest of channels can be either speaker, sub or off
-    const std::vector<SpeakerType> allowed = { SpeakerType::LARGE, SpeakerType::SMALL, SpeakerType::SUB, SpeakerType::OFF };
+    const vector<SpeakerType> allowed = { SpeakerType::LARGE, SpeakerType::SMALL, SpeakerType::SUB, SpeakerType::OFF };
     parseChannel(result, pBasicNode, "center", { Channel::C }, allowed, path);
     parseChannel(result, pBasicNode, "surround", { Channel::SL, Channel::SR }, allowed, path);
     parseChannel(result, pBasicNode, "surroundBack", { Channel::SBL, Channel::SBR }, allowed, path);
 
     //Fill type lists
-    for (auto &e : result) {
+    for (auto& e : result) {
         switch (e.second) {
         case SpeakerType::SMALL:
             smalls.push_back(e.first);
@@ -272,12 +275,12 @@ const std::unordered_map<Channel, SpeakerType> Config::parseChannels(const JsonN
     return result;
 }
 
-void Config::parseChannel(std::unordered_map<Channel, SpeakerType> &result, const JsonNode *pNode, const std::string &field, const std::vector<Channel> &channels, const std::vector<SpeakerType> &allowed, const std::string &path) const {
+void Config::parseChannel(unordered_map<Channel, SpeakerType>& result, const shared_ptr<JsonNode>& pNode, const string& field, const vector<Channel>& channels, const vector<SpeakerType>& allowed, const string& path) const {
     //Use give value
     if (pNode->has(field)) {
         const SpeakerType type = getSpeakerType(pNode, field, path);
-        const std::string myPath = path + "/" + field;
-        if (std::find(allowed.begin(), allowed.end(), type) == allowed.end()) {
+        const string myPath = path + "/" + field;
+        if (find(allowed.begin(), allowed.end(), type) == allowed.end()) {
             throw Error("Config(%s) - Speaker type '%s' is not allowed", myPath.c_str(), SpeakerTypes::toString(type).c_str());
         }
         for (const Channel channel : channels) {
@@ -312,36 +315,36 @@ void Config::parseChannel(std::unordered_map<Channel, SpeakerType> &result, cons
     }
 }
 
-void Config::addRoutes(Input *pInput, const std::vector<Channel> channels, const double gain) const {
+void Config::addRoutes(Input& input, const vector<Channel> channels, const double gain) const {
     for (const Channel channel : channels) {
-        addRoute(pInput, channel, gain);
+        addRoute(input, channel, gain);
     }
 }
 
-void Config::addRoute(Input *pInput, const Channel channel, const double gain, const bool addLP) const {
+void Config::addRoute(Input& input, const Channel channel, const double gain, const bool addLP) const {
     if ((size_t)channel >= _numChannelsOut) {
         LOG_WARN("WARNING: Config(Basic/channels) - Render device doesn't have channel '%s'", Channels::toString(channel).c_str());
         return;
     }
-    Route *pRoute = new Route(channel);
+    Route route(channel);
     if (gain) {
-        pRoute->addFilter(new FilterGain(gain));
+        route.addFilter(make_unique<FilterGain>(gain));
     }
     if (addLP) {
-        FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
-        std::string lpPath = "basic";
-        parseCrossover(true, pFilterBiquad, _pLpFilter, lpPath);
-        pRoute->addFilter(pFilterBiquad);
+        unique_ptr<FilterBiquad> pFilterBiquad = make_unique<FilterBiquad>(_sampleRate);
+        string lpPath = "basic";
+        parseCrossover(true, pFilterBiquad.get(), _pLpFilter, lpPath);
+        route.addFilter(move(pFilterBiquad));
     }
-    pInput->addRoute(pRoute);
+    input.addRoute(route);
 }
 
-const SpeakerType Config::addRoute(const std::unordered_map<Channel, SpeakerType> &channelsMap, Input *pInput, const std::vector<Channel> &channels) const {
+const SpeakerType Config::addRoute(const unordered_map<Channel, SpeakerType>& channelsMap, Input& input, const vector<Channel>& channels) const {
     for (const Channel channel : channels) {
         if (channelsMap.find(channel) != channelsMap.end()) {
             const SpeakerType type = channelsMap.at(channel);
             if (type == SpeakerType::LARGE || type == SpeakerType::SMALL) {
-                addRoute(pInput, channel);
+                addRoute(input, channel);
                 return type;
             }
         }
@@ -349,15 +352,15 @@ const SpeakerType Config::addRoute(const std::unordered_map<Channel, SpeakerType
     throw Error("No channel found for addRoute");
 }
 
-void Config::addIfRoute(Input *pInput, const Channel channel) const {
-    Route *pRoute = new Route(channel);
-    pRoute->addCondition(Condition(ConditionType::SILENT, (int)channel));
-    pInput->addRoute(pRoute);
+void Config::addIfRoute(Input& input, const Channel channel) const {
+    Route route(channel);
+    route.addCondition(Condition(ConditionType::SILENT, (int)channel));
+    input.addRoute(route);
 }
 
-const std::vector<Channel> Config::getChannelsByType(const std::unordered_map<Channel, SpeakerType> &channelsMap, const SpeakerType targetType) const {
-    std::vector<Channel> result;
-    for (const auto &e : channelsMap) {
+const vector<Channel> Config::getChannelsByType(const unordered_map<Channel, SpeakerType>& channelsMap, const SpeakerType targetType) const {
+    vector<Channel> result;
+    for (const auto& e : channelsMap) {
         if (e.second == targetType) {
             result.push_back(e.first);
         }
@@ -365,7 +368,7 @@ const std::vector<Channel> Config::getChannelsByType(const std::unordered_map<Ch
     return result;
 }
 
-const double Config::getLfeGain(const JsonNode *pBasicNode, const bool useSubwoofers, const bool hasSmalls, const std::string &path) const {
+const double Config::getLfeGain(const shared_ptr<JsonNode>& pBasicNode, const bool useSubwoofers, const bool hasSmalls, const string& path) const {
     const double lfeGain = tryGetDoubleValue(pBasicNode, "lfeGain", path);
     if (useSubwoofers) {
         //Playing subwoofer and no small speakers. IE LFE is not going to get mixed with other channels.
@@ -376,6 +379,6 @@ const double Config::getLfeGain(const JsonNode *pBasicNode, const bool useSubwoo
     return lfeGain + LFE_GAIN;
 }
 
-const bool Config::getUseSubwoofers(const std::vector<Channel> &subs, const std::vector<Channel> &subLs, const std::vector<Channel> &subRs) const {
+const bool Config::getUseSubwoofers(const vector<Channel>& subs, const vector<Channel>& subLs, const vector<Channel>& subRs) const {
     return subs.size() || subLs.size() || subRs.size();
 }

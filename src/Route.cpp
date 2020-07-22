@@ -1,27 +1,29 @@
 #include "Route.h"
 
+Route::Route() {
+    _channel = Channel::CHANNEL_NULL;
+    _channelIndex = (size_t)-1;
+    _valid = true;
+}
+
 Route::Route(const Channel channel) {
     _channel = channel;
-	_channelIndex = (size_t)channel;
-	_valid = true;
+    _channelIndex = (size_t)channel;
+    _valid = true;
 }
 
-Route::~Route() {
-	for (Filter * const pFilter : _filters) {
-		delete pFilter;
-	}
+void Route::addFilters(vector<unique_ptr<Filter>>& filters) {
+    for (unique_ptr<Filter>& pFilter : filters) {
+        _filters.push_back(move(pFilter));
+    }
 }
 
-void Route::addFilters(const std::vector<Filter*> &filters) {
-	_filters.insert(_filters.end(), filters.begin(), filters.end());
+void Route::addFilter(unique_ptr<Filter> pFilter) {
+    _filters.push_back(move(pFilter));
 }
 
-void Route::addFilter(Filter *pFilter) {
-    _filters.push_back(pFilter);
-}
-
-void Route::addCondition(const Condition &condition) {
-	_conditions.push_back(condition);
+void Route::addCondition(const Condition& condition) {
+    _conditions.push_back(condition);
 }
 
 const Channel Route::getChannel() const {
@@ -29,30 +31,30 @@ const Channel Route::getChannel() const {
 }
 
 const size_t Route::getChannelIndex() const {
-	return _channelIndex;
+    return _channelIndex;
 }
 
 const bool Route::hasConditions() const {
-	return _conditions.size() != 0;
+    return _conditions.size() != 0;
 }
 
-const std::vector<Filter*>& Route::getFilters() const {
-	return _filters;
+const vector<unique_ptr<Filter>>& Route::getFilters() const {
+    return _filters;
 }
 
 void Route::evalConditions() {
-	bool valid = true;
-	for (const Condition &cond : _conditions) {
-		if (!cond.eval()) {
-			valid = false;
-			break;
-		}
-	}
-	_valid = valid;
+    bool valid = true;
+    for (const Condition& cond : _conditions) {
+        if (!cond.eval()) {
+            valid = false;
+            break;
+        }
+    }
+    _valid = valid;
 }
 
 void Route::reset() const {
-	for (Filter * const pFilter : _filters) {
-		pFilter->reset();
-	}
+    for (const unique_ptr<Filter>& pFilter : _filters) {
+        pFilter->reset();
+    }
 }

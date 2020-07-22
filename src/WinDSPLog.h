@@ -4,6 +4,11 @@
 #include <string>
 #include "SpinLock.h"
 
+using std::string;
+using std::deque;
+using std::unique_ptr;
+using std::thread;
+
 enum class LogSeverity {
     S_DEBUG, S_INFO, S_WARN, S_ERROR
 };
@@ -11,10 +16,10 @@ enum class LogSeverity {
 class LogLine {
 public:
     LogSeverity severity;
-    std::string timestamp, fileName, text;
+    string timestamp, fileName, text;
     unsigned int lineNumber;
 
-    LogLine(const LogSeverity severity, const std::string &timestamp, const std::string &fileName, const unsigned int lineNumber, const std::string &text) :
+    LogLine(const LogSeverity severity, const string &timestamp, const string &fileName, const unsigned int lineNumber, const string &text) :
         severity(severity), timestamp(timestamp), fileName(fileName), lineNumber(lineNumber), text(text) {}
 
 };
@@ -35,19 +40,19 @@ public:
 class WinDSPLog {
 public:
     static void init();
-    static void destroyStatic();
+    static void destroy();
     static void setLogToFile(const bool logToFile);
-    static void log(const LogSeverity severity, const std::string &fileName, const unsigned int line, const char * const str, ...);
+    static void log(const LogSeverity severity, const string &fileName, const unsigned int line, const char * const str, ...);
     static void flush();
 
 private:
-    static std::deque<LogLine> *_pBuffer;
+    static unique_ptr<deque<LogLine>> _pBuffer;
     static SpinLock _lock;
-    static std::thread::id _mainThreadId;
+    static thread::id _mainThreadId;
     static bool _logToFile;
 
-    static void logLine(const LogSeverity severity, const std::string &timestamp, const std::string &fileName, const unsigned int line, const std::string &text);
-    static const std::string getSeverityText(const LogSeverity severity);
+    static void logLine(const LogSeverity severity, const string &timestamp, const string &fileName, const unsigned int line, const string &text);
+    static const string getSeverityText(const LogSeverity severity);
 
 };
 

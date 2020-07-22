@@ -1,14 +1,15 @@
 #pragma once
 #include "Filter.h"
-#include <vector>
+#include <memory>
+
+using std::unique_ptr;
 
 class FilterFir : public Filter {
 public:
 
-    FilterFir(const std::vector<double> &taps);
-    ~FilterFir();
+    FilterFir(const vector<double> &taps);
 
-    const std::string toString() const override;
+	const vector<string> toString() const override;
 
 	inline const double process(const double value) override {
 		double result = value * _taps[0];
@@ -21,12 +22,12 @@ public:
 	}
 
 	inline void reset() override {
-		memset(_pDelay, 0, _size * sizeof(double));
+		memset(_pDelay.get(), 0, _size * sizeof(double));
 	}
 
 private:
-	std::vector<double> _taps;
-	double *_pDelay;
+	vector<double> _taps;
+	unique_ptr<double[]> _pDelay;
 	size_t _size;
 
 };

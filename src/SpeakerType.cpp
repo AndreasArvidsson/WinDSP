@@ -2,8 +2,8 @@
 #include "Error.h"
 #include "Str.h"
 
-const SpeakerType SpeakerTypes::fromString(const std::string &strIn) {
-    const std::string str = String::toUpperCase(strIn);
+const SpeakerType SpeakerTypes::fromString(const string &strIn) {
+    const string str = String::toUpperCase(strIn);
     if (str.compare("LARGE") == 0) {
         return SpeakerType::LARGE;
     }
@@ -19,7 +19,7 @@ const SpeakerType SpeakerTypes::fromString(const std::string &strIn) {
     throw Error("Unknown speaker type '%s'", strIn.c_str());
 }
 
-const std::string SpeakerTypes::toString(const SpeakerType speakerType) {
+const string SpeakerTypes::toString(const SpeakerType speakerType) {
     switch (speakerType) {
     case SpeakerType::LARGE:
         return "LARGE";

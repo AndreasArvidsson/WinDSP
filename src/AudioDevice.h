@@ -12,10 +12,17 @@
 #include <vector>
 #include <atomic>
 #include <string>
+#include <memory>
 #include "Audioclient.h"
 #include "Error.h"
 
 #define assert(hr) AudioDevice::assert(hr)
+
+using std::string;
+using std::wstring;
+using std::atomic;
+using std::vector;
+using std::unique_ptr;
 
 struct IMMDevice;
 struct IMMDeviceEnumerator;
@@ -24,22 +31,23 @@ class AudioDevice {
 public:
 	static void initStatic();
 	static void destroyStatic();
-	static std::vector<std::string> getDeviceNames();
-	static std::string getDeviceName(IMMDevice *pDevice);
-	static AudioDevice* initDevice(const std::string &name);
+	static vector<string> getDeviceNames();
+	static string getDeviceName(IMMDevice *pDevice);
+	static unique_ptr<AudioDevice> initDevice(const string &name);
     static void throwError();
 
 	AudioDevice();
-	AudioDevice(const std::string &id);
-	AudioDevice(const std::wstring &id);
+	AudioDevice(const string &id);
+	AudioDevice(const wstring &id);
+	AudioDevice(IMMDevice* pDevice);
 	~AudioDevice();
 
 	void initCaptureService();
 	void initRenderService();
 	void startService();
 
-	const std::string getId();
-	const std::string getName();
+	const string getId();
+	const string getName();
 	const WAVEFORMATEX* getFormat() const;
 	ISimpleAudioVolume* getVolumeControl();
 	void printInfo() const;
@@ -101,7 +109,7 @@ public:
 private:
 	static IMMDeviceEnumerator *_pEnumerator;
 	static bool _initStatic;
-    static std::atomic<bool> _throwError;
+    static atomic<bool> _throwError;
     static Error _error;
 
 	IMMDevice *_pDevice;
@@ -111,12 +119,11 @@ private:
 	ISimpleAudioVolume *_pSimpleVolume;
 	WAVEFORMATEX *_pFormat;
 	UINT32 _bufferSize, _engineBufferSize;
-	std::string _id, _name;
+	string _id, _name;
 	HANDLE _eventHandle;
 
-    static const std::string hresult(const HRESULT hr);
+    static const string hresult(const HRESULT hr);
 
-	AudioDevice(IMMDevice *pDevice);
 	void initDefault();
 	void init(IMMDevice *pDevice);
 	void prepareService(const bool capture);

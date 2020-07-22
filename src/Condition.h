@@ -7,6 +7,9 @@
 */
 
 #pragma once
+#include <memory>
+
+using std::unique_ptr;
 
 enum class ConditionType {
 	SILENT
@@ -15,14 +18,17 @@ enum class ConditionType {
 class Condition {
 public:
 
-	static void init(const bool *pUsedChannels);
+	static void init(const size_t numChannels);
+	static void destroy();
+	static const bool isChannelUsed(const size_t index);
+	static void setIsChannelUsed(const size_t index, const bool isUsed);
 
 	Condition(const ConditionType type, const int value);
 
 	const bool eval() const;
 
 private:
-	static const bool *_pUsedChannels;
+	static unique_ptr<bool[]> _pUsedChannels;
 
 	ConditionType _type;
 	int _value;

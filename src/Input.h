@@ -13,15 +13,16 @@
 class Input {
 public:
 
+	Input();
 	Input(const Channel channel);
 	Input(const Channel channel, const Channel out);
-	~Input();
 
-	const std::vector<Route*>& getRoutes() const;
-	void addRoute(Route * const pRoute);
+	const vector<Route>& getRoutes() const;
+	void addRoute(Route& route);
     const Channel getChannel() const;
+	const bool isDefined() const;
 
-	void evalConditions() const;
+	void evalConditions();
 	void reset();
 	const bool resetIsPlaying();
 
@@ -29,13 +30,13 @@ public:
 		if (data) {
 			_isPlaying = true;
 		}
-		for (const Route * const pRoute : _routes) {
-			pRoute->process(data, pRenderBuffer);
+		for (const Route& route : _routes) {
+			route.process(data, pRenderBuffer);
 		}
 	}
 
 private:
-	std::vector<Route*> _routes;
+	vector<Route> _routes;
     Channel _channel;
 	bool _isPlaying;
 

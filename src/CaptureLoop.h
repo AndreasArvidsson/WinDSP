@@ -14,6 +14,12 @@
 #include <atomic>
 #include <thread>
 
+using std::shared_ptr;
+using std::unique_ptr;
+using std::thread;
+using std::atomic;
+using std::vector;
+
 class Config;
 class AudioDevice;
 class Input;
@@ -21,19 +27,17 @@ class Output;
 
 class CaptureLoop {
 public:
-	CaptureLoop(const Config *pConfig, AudioDevice *pCaptureDevice, AudioDevice *pRenderDevice);
+	CaptureLoop(const shared_ptr<Config> pConfig, unique_ptr<AudioDevice>& pCaptureDevice, unique_ptr<AudioDevice>& pRenderDevice);
 	~CaptureLoop();
 	void run();
-	void stop();
 
 private:
-    const Config *_pConfig;
-    const std::vector<Input*> *_pInputs;
-    const std::vector<Output*> *_pOutputs;
-    AudioDevice *_pCaptureDevice, *_pRenderDevice;
-    bool *_pUsedChannels;
-    std::atomic<bool> _run;
-    std::thread _captureThread;
+    shared_ptr<Config> _pConfig;
+    vector<Input> *_pInputs;
+    vector<Output> *_pOutputs;
+	unique_ptr<AudioDevice> _pCaptureDevice, _pRenderDevice;
+    atomic<bool> _run;
+    thread _captureThread;
 
     void _captureLoopWasapi();
 	void _captureLoopAsio();

@@ -10,12 +10,17 @@
 #include "AudioDevice.h"
 #include "AsioDevice.h"
 
+using std::make_shared;
+using std::make_unique;
+using std::move;
+using std::to_string;
+
 #define NOMINMAX
 #include <iostream> //cin
 
 void Config::parseDevices() {
-    std::string path;
-    const JsonNode *pDevicesNode = tryGetObjectNode(_pJsonNode, "devices", path);
+    string path;
+    const shared_ptr<JsonNode> pDevicesNode = tryGetObjectNode(_pJsonNode, "devices", path);
     //Devices not set in config. Query user
     if (!pDevicesNode->has("capture") || !pDevicesNode->has("render")) {
         setDevices();
@@ -46,7 +51,7 @@ void Config::parseMisc() {
 
 void Config::parseRouting() {
     //Create list of in to out routings
-    _inputs = std::vector<Input*>(_numChannelsIn);
+    _inputs = vector<Input>(_numChannelsIn);
 
     //Use basic or advanced routing
     const bool hasBasic = _pJsonNode->has("basic");
@@ -60,73 +65,67 @@ void Config::parseRouting() {
     else if (hasAdvanced) {
         parseAdvanced();
     }
-   
-    //Add default in/out route to missing
-    for (size_t i = 0; i < _numChannelsIn; ++i) {
-        if (!_inputs[i]) {
-            //Output exists. Route to output
-            if (i < _numChannelsOut) {
-                _inputs[i] = new Input((Channel)i, (Channel)i);
-            }
-            //Output doesn't exists. Add default non-route input.
-            else {
-                _inputs[i] = new Input((Channel)i);
-            }
-        }
-    }  
 }
 
 void Config::parseOutputs() {
-    _outputs = std::vector<Output*>(_numChannelsOut);
+    _outputs = vector<Output>(_numChannelsOut);
     //Iterate outputs and add filters
-    std::string path = "";
-    const JsonNode *pOutputs = tryGetArrayNode(_pJsonNode, "outputs", path);
+    string path = "";
+    const shared_ptr<JsonNode> pOutputs = tryGetArrayNode(_pJsonNode, "outputs", path);
     for (size_t i = 0; i < pOutputs->size(); ++i) {
         parseOutput(pOutputs, i, path);
     }
     //Add default output to missing(not defined by user in conf) output channels.
     for (size_t i = 0; i < _outputs.size(); ++i) {
-        if (!_outputs[i]) {
+        if (!_outputs[i].isDefined()) {
             const Channel channel = (Channel)i;
-            _outputs[i] = new Output(channel);
-            std::vector<Filter*> filters;
+            Output output(channel);
+            vector<unique_ptr<Filter>> filters;
             //Check if there is basic routing crossovers to apply.
             applyCrossoversMap(filters, channel);
-            if (filters.size()) {
-                _outputs[i]->addFilters(filters);
-            }
+            output.addFilters(filters);
+            _outputs[i] = move(output);
         }
     }
     validateLevels(path);
 }
 
-void Config::parseOutput(const JsonNode *pOutputs, const size_t index, std::string path) {
-    const JsonNode *pOutputNode = getObjectNode(pOutputs, index, path);
-    const std::vector<Channel> channels = getOutputChannels(pOutputNode, path);
+void Config::parseOutput(const shared_ptr<JsonNode>& pOutputs, const size_t index, string path) {
+    const shared_ptr<JsonNode> pOutputNode = getObjectNode(pOutputs, index, path);
+    const vector<Channel> channels = getOutputChannels(pOutputNode, path);
     for (const Channel channel : channels) {
         const bool mute = tryGetBoolValue(pOutputNode, "mute", path);
-        Output *pOutput = new Output(channel, mute);
-        _outputs[(size_t)channel] = pOutput;
-        pOutput->addFilters(parseFilters(pOutputNode, path, (int)channel));
-        pOutput->addPostFilters(parsePostFilters(pOutputNode, path));
+        Output output(channel, mute);
+        vector<unique_ptr<Filter>> filters = parseFilters(pOutputNode, path, (int)channel);
+        output.addFilters(filters);
+        vector<unique_ptr<Filter>> postFilters = parsePostFilters(pOutputNode, path);
+        output.addPostFilters(postFilters);
+        _outputs[(size_t)channel] = move(output);
     }
 }
 
-const std::vector<Channel> Config::getOutputChannels(const JsonNode *pOutputNode, const std::string &path) const {
-    std::vector<Channel> result;
+const vector<Channel> Config::getOutputChannels(const shared_ptr<JsonNode>& pOutputNode, const string& path) const {
+    vector<Channel> result;
     if (pOutputNode->has("channels")) {
-        std::string channelsPath = path;
-        const JsonNode *pChannels = getArrayNode(pOutputNode, "channels", channelsPath);
+        string channelsPath = path;
+        const shared_ptr<JsonNode> pChannels = getArrayNode(pOutputNode, "channels", channelsPath);
         for (size_t i = 0; i < pChannels->size(); ++i) {
-            Channel channel;
-            if (getOutputChannel(pChannels->get(i), channel, channelsPath + "/" + std::to_string(i))) {
+            const Channel channel = getOutputChannel(
+                getTextValue(pChannels, i, channelsPath),
+                channelsPath + "/" + to_string(i)
+            );
+
+            if (channel != Channel::CHANNEL_NULL) {
                 result.push_back(channel);
             }
         }
     }
     else if (pOutputNode->has("channel")) {
-        Channel channel;
-        if (getOutputChannel(pOutputNode->get("channel"), channel, path + "/channel")) {
+        const Channel channel = getOutputChannel(
+            getTextValue(pOutputNode, "channel", path), 
+            path + "/channel"
+        );
+        if (channel != Channel::CHANNEL_NULL) {
             result.push_back(channel);
         }
     }
@@ -136,35 +135,33 @@ const std::vector<Channel> Config::getOutputChannels(const JsonNode *pOutputNode
     return result;
 }
 
-const bool Config::getOutputChannel(const JsonNode *pChannelNode, Channel &channelOut, const std::string &path) const {
-    const std::string channelName = validateTextValue(pChannelNode, path, false);
+const Channel Config::getOutputChannel(const string& channelName, const string& path) const {
     const Channel channel = Channels::fromString(channelName);
     const size_t channelIndex = (size_t)channel;
     if (channelIndex >= _numChannelsOut) {
         LOG_WARN("WARNING: Config(%s) - Render device doesn't have channel '%s'", path.c_str(), channelName.c_str());
-        return false;
+        return Channel::CHANNEL_NULL;
     }
-    if (_outputs[channelIndex]) {
+    if (_outputs[channelIndex].isDefined()) {
         throw Error("Config(%s) - Channel '%s' is already defiend/used", path.c_str(), Channels::toString(channel).c_str());
     }
-    channelOut = channel;
-    return true;
+    return channel;
 }
 
-void Config::validateLevels(const std::string &path) const {
-    std::vector<double> levels(_outputs.size());
+void Config::validateLevels(const string& path) {
+    vector<double> levels(_outputs.size());
     //Apply input/route levels
-    for (const Input *pInput : _inputs) {
-        for (const Route * const pRoute : pInput->getRoutes()) {
+    for (const Input& input : _inputs) {
+        for (const Route& route : input.getRoutes()) {
             //Conditional routing is not always applied at the same time as other route. Eg if silent.
-            if (!pRoute->hasConditions()) {
-                levels[pRoute->getChannelIndex()] += getFiltersLevelSum(pRoute->getFilters());
+            if (!route.hasConditions()) {
+                levels[route.getChannelIndex()] += getFiltersLevelSum(route.getFilters());
             }
         }
     }
     //Apply output gain
     for (size_t i = 0; i < _outputs.size(); ++i) {
-        levels[i] = getFiltersLevelSum(_outputs[i]->getFilters(), levels[i]);
+        levels[i] = getFiltersLevelSum(_outputs[i].getFilters(), levels[i]);
     }
     //Eval output channel levels
     bool first = true;
@@ -174,12 +171,21 @@ void Config::validateLevels(const std::string &path) const {
             const double gain = Convert::levelToDb(levels[i]);
 
             //Add enough gain to avoid clipping.
-            if (_addAutoGain && gain > 0) {
-                Output *pOutput = _outputs[i];
-                //Don't add additional gain filter.
-                if (!hasGainFilter(pOutput->getFilters())) {
-                    //Add 0.1 to be sure to cover range
-                    pOutput->addFilter(new FilterGain(-(gain + 0.1)));
+            if (_addAutoGain) {
+                Output& output = _outputs[i];
+                FilterGain* pFilterGain = getGainFilter(output.getFilters());
+                //Add 0.1 to be sure to cover range
+                const double newGain = -(gain + 0.1);
+                if (pFilterGain) {
+                    //Existing filter with new gain. Must be invert only. Set new gain.
+                    if (!pFilterGain->getGain()) {
+                        pFilterGain->setGain(newGain);
+                        continue;
+                    }
+                }
+                //Gain filter missing. Add new one.
+                else {
+                    output.addFilterFirst(make_unique<FilterGain>(newGain));
                     continue;
                 }
             }
@@ -198,8 +204,8 @@ void Config::validateLevels(const std::string &path) const {
 
 void Config::setDevices() {
     Visibility::show(true);
-    const std::vector<std::string> wasapiDevices = AudioDevice::getDeviceNames();
-    const std::vector<std::string> asioDevices = AsioDevice::getDeviceNames();
+    const vector<string> wasapiDevices = AudioDevice::getDeviceNames();
+    const vector<string> asioDevices = AsioDevice::getDeviceNames();
 
     size_t selectedIndex;
     bool isOk, renderAsio;
@@ -256,9 +262,9 @@ void Config::setDevices() {
     //Update json
 
     if (!_pJsonNode->path("devices")->isObject()) {
-        _pJsonNode->put("devices", new JsonNode(JsonNodeType::OBJECT));
+        _pJsonNode->put("devices", make_shared<JsonNode>(JsonNodeType::OBJECT));
     }
-    JsonNode *pDevicesNode = _pJsonNode->get("devices");
+    shared_ptr<JsonNode>pDevicesNode = _pJsonNode->get("devices");
 
     pDevicesNode->put("capture", _captureDeviceName);
     pDevicesNode->put("render", _renderDeviceName);

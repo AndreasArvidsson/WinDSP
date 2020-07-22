@@ -1,61 +1,71 @@
 #include "Output.h"
 
+Output::Output() {
+    _channel = Channel::CHANNEL_NULL;
+    _mute = false;
+    _clipping = 0.0;
+    _usePostFilters = false;
+}
+
 Output::Output(const Channel channel, const bool mute) {
-	_channel = channel;
-	_mute = mute;
-	_clipping = 0.0;
-	_usePostFilters = false;
+    _channel = channel;
+    _mute = mute;
+    _clipping = 0.0;
+    _usePostFilters = false;
 }
 
-Output::~Output() {
-	for (Filter * const pFilter : _filters) {
-		delete pFilter;
-	}
-	for (Filter* const pFilter : _postFilters) {
-		delete pFilter;
-	}
+void Output::addFilters(vector<unique_ptr<Filter>>& filters) {
+    for (unique_ptr<Filter>& pFilter : filters) {
+        _filters.push_back(move(pFilter));
+    }
 }
 
-void Output::addFilters(const std::vector<Filter*> &filters) {
-	for (Filter * const pFilter : filters) {
-		_filters.push_back(pFilter);
-	}
+void Output::addFilter(unique_ptr<Filter> pFilter) {
+    _filters.push_back(move(pFilter));
 }
 
-void Output::addFilter(Filter *pFilter) {
-    _filters.push_back(pFilter);
+void Output::addFilterFirst(unique_ptr<Filter> pFilter) {
+    _filters.insert(_filters.begin(), move(pFilter));
 }
 
-void Output::addPostFilters(const std::vector<Filter*> &filters) {
-	for (Filter * const pFilter : filters) {
-		_postFilters.push_back(pFilter);
-	}
-	_usePostFilters = _postFilters.size() > 0;
+void Output::addPostFilters(vector<unique_ptr<Filter>>& filters) {
+    for (unique_ptr<Filter>& pFilter : filters) {
+        _postFilters.push_back(move(pFilter));
+    }
+    _usePostFilters = _postFilters.size() > 0;
 }
 
-const std::vector<Filter*>& Output::getFilters() const {
-	return _filters;
+const vector<unique_ptr<Filter>>& Output::getFilters() const {
+    return _filters;
 }
 
-const std::vector<Filter*>& Output::getPostFilters() const {
+const vector<unique_ptr<Filter>>& Output::getPostFilters() const {
     return _postFilters;
 }
 
-void Output::reset() {
-	for (Filter * const pFilter : _filters) {
-		pFilter->reset();
-	}
-	for (Filter * const pFilter : _postFilters) {
+void Output::reset() const {
+    for (const unique_ptr<Filter>& pFilter : _filters) {
         pFilter->reset();
-	}
+    }
+    for (const unique_ptr<Filter>& pFilter : _postFilters) {
+        pFilter->reset();
+    }
 }
 
 const Channel Output::getChannel() const {
-	return _channel;
+    return _channel;
+}
+
+const bool Output::isDefined() const {
+    return _channel != Channel::CHANNEL_NULL;
+}
+
+const bool Output::isMuted() const {
+    return _mute;
 }
 
 const double Output::resetClipping() {
-	const double result = _clipping;
-	_clipping = 0.0;
-	return result;
+    const double result = _clipping;
+    _clipping = 0.0;
+    return result;
 }

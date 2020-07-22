@@ -9,20 +9,23 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <memory>
 #include "asiosys.h"
 #include "asio.h"
 
-class Config;
+using std::unique_ptr;
+using std::string;
+using std::vector;
 
 namespace AsioDevice {
     //Public
-    void initRenderService(const Config *pConfig, const std::string &driverName, const long sampleRate, const long bufferSize = 0, const long numChannels = 0);
+    void initRenderService(const string &driverName, const long sampleRate, const long bufferSize = 0, const long numChannels = 0, const bool inDebug = false);
     void destroy();
     void startService();
     void stopService();
     void reset();
-    std::vector<std::string> getDeviceNames();
-    const std::string getName();
+    vector<string> getDeviceNames();
+    const string getName();
     const long getSampleRate();
     const long getNumOutputChannels();
     const long getNumChannels();
@@ -35,14 +38,14 @@ namespace AsioDevice {
     //Private
     void _bufferSwitch(const long asioBufferIndex, const ASIOBool);
     long _asioMessage(const long selector, const long value, void * const message, double * const opt);
-    double * const _getWriteBuffer();
-    double * const _getReadBuffer();
-    void _releaseWriteBuffer(double * const pBuffer);
-    void _releaseReadBuffer(double * const pBuffer);
+    unique_ptr<double[]> _getWriteBuffer();
+    unique_ptr<double[]> _getReadBuffer();
+    void _releaseWriteBuffer(unique_ptr<double[]>& pBuffer);
+    void _releaseReadBuffer(unique_ptr<double[]>& pBuffer);
     void _renderSilence(const long asioBufferIndex);
-    void _loadDriver(const std::string &driverName);
+    void _loadDriver(const string &driverName);
     void _assertAsio(const ASIOError error);
     void _assertSampleType(const ASIOSampleType type);
-    const std::string _asioSampleType(const ASIOSampleType type);
-    const std::string _asioResult(const ASIOError error);
+    const string _asioSampleType(const ASIOSampleType type);
+    const string _asioResult(const ASIOError error);
 }

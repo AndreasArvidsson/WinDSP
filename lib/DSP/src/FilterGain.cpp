@@ -2,8 +2,10 @@
 #include <cmath> //pow
 #include "Str.h"
 
+using std::pow;
+
 const double FilterGain::getMultiplier(const double gain) {
-    return std::pow(10.0, gain / 20.0);
+    return pow(10.0, gain / 20.0);
 }
 
 FilterGain::FilterGain(const double gain) {
@@ -30,13 +32,23 @@ const bool FilterGain::getInvert() const {
     return _invert;
 }
 
-void FilterGain::init(const double gain, const bool invert) {
+void FilterGain::setGain(const double gain) {
     _gain = gain;
-    _invert = invert;
     _multiplierNoInvert = getMultiplier(gain);
-    _multiplier = invert ? _multiplierNoInvert * -1.0 : _multiplierNoInvert;
+    _multiplier = _invert ? _multiplierNoInvert * -1.0 : _multiplierNoInvert;
 }
 
-const std::string FilterGain::toString() const {
-    return String::format("Gain: %.1fdB%s", _gain, _invert ? " inverted" : "");
+void FilterGain::init(const double gain, const bool invert) {
+    _invert = invert;
+    setGain(gain);
+}
+
+const vector<string> FilterGain::toString() const {
+    vector<string> res{
+       String::format("Gain: %.1fdB", _gain)
+    };
+    if (_invert) {
+        res.push_back("Inverted");
+    }
+    return res;
 }

@@ -9,35 +9,33 @@
 #include "AudioDevice.h" //WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
 #include "Channel.h"
 
-const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, const std::string &path, const int outputChannel) const {
-    std::vector<Filter*> filters;
+using std::make_unique;
+
+vector<unique_ptr<Filter>> Config::parseFilters(const shared_ptr<JsonNode>& pNode, const string& path, const int outputChannel) const {
+    vector<unique_ptr<Filter>> filters;
     //Parse single instance simple filters.
     parseGain(filters, pNode, path);
-    parseDelay(filters, pNode, path);    
+    parseDelay(filters, pNode, path);
 
-    FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
-    std::string filtersPath = path;
-    const JsonNode *pFiltersNode = tryGetArrayNode(pNode, "filters", filtersPath);
+    unique_ptr<FilterBiquad> pFilterBiquad = make_unique<FilterBiquad>(_sampleRate);
+    string filtersPath = path;
+    const shared_ptr<JsonNode> pFiltersNode = tryGetArrayNode(pNode, "filters", filtersPath);
 
     //Apply crossovers from basic config to outputs.
     if (outputChannel > -1) {
-        applyCrossoversMap(pFilterBiquad, (Channel)outputChannel, pFiltersNode, filtersPath);
+        applyCrossoversMap(pFilterBiquad.get(), (Channel)outputChannel, pFiltersNode, filtersPath);
     }
 
     //Parse filters list
     for (size_t i = 0; i < pFiltersNode->size(); ++i) {
-        std::string filterPath = filtersPath;
-        const JsonNode *pFilter = getObjectNode(pFiltersNode, i, filterPath);
-        parseFilter(filters, pFilterBiquad, pFilter, filterPath);
+        string filterPath = filtersPath;
+        const shared_ptr<JsonNode> pFilter = getObjectNode(pFiltersNode, i, filterPath);
+        parseFilter(filters, pFilterBiquad.get(), pFilter, filterPath);
     }
 
-    //No biquads added. Don't use biquad filter.
-    if (pFilterBiquad->isEmpty()) {
-        delete pFilterBiquad;
-    }
     //Use  biquad filter.
-    else {
-        filters.push_back(pFilterBiquad);
+    if (!pFilterBiquad->isEmpty()) {
+        filters.push_back(move(pFilterBiquad));
     }
 
     //Compression needs to be last so that it has the final samples to work on.
@@ -46,34 +44,34 @@ const std::vector<Filter*> Config::parseFilters(const JsonNode *pNode, const std
     return filters;
 }
 
-const std::vector<Filter*> Config::parsePostFilters(const JsonNode *pNode, const std::string &path) const {
-    std::vector<Filter*> filters;
+vector<unique_ptr<Filter>> Config::parsePostFilters(const shared_ptr<JsonNode>& pNode, const string& path) const {
+    vector<unique_ptr<Filter>> filters;
     parseCancellation(filters, pNode, path);
     return filters;
 }
 
-void Config::parseGain(std::vector<Filter*> &filters, const JsonNode *pNode, const std::string &path) const {
+void Config::parseGain(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, const string& path) const {
     const double value = tryGetDoubleValue(pNode, "gain", path);
     const bool invert = tryGetBoolValue(pNode, "invert", path);
     //No use in adding zero gain.
     if (value != 0.0 || invert) {
-        filters.push_back(new FilterGain(value, invert));
+        filters.push_back(make_unique<FilterGain>(value, invert));
     }
 }
 
-void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, std::string path) const {
-    pNode = tryGetNode(pNode, "delay", path);
-    if (pNode->isMissingNode()) {
+void Config::parseDelay(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, string path) const {
+    const shared_ptr<JsonNode> pFilterNode = tryGetNode(pNode, "delay", path);
+    if (pFilterNode->isMissingNode()) {
         return;
     }
     double value;
     double useUnitMeter = false;
-    if (pNode->isNumber()) {
+    if (pFilterNode->isNumber()) {
         value = pNode->doubleValue();
     }
-    else if (pNode->isObject()) {
-        value = getDoubleValue(pNode, "value", path);
-        useUnitMeter = tryGetBoolValue(pNode, "unitMeter", path);
+    else if (pFilterNode->isObject()) {
+        value = getDoubleValue(pFilterNode, "value", path);
+        useUnitMeter = tryGetBoolValue(pFilterNode, "unitMeter", path);
     }
     else {
         throw Error("Config(%s) - Invalid delay format. Expected number or object", path.c_str());
@@ -82,7 +80,7 @@ void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, st
     if (value != 0) {
         const uint32_t sampleDelay = FilterDelay::getSampleDelay(_sampleRate, value, useUnitMeter);
         if (sampleDelay > 0) {
-            filters.push_back(new FilterDelay(_sampleRate, value, useUnitMeter));
+            filters.push_back(make_unique<FilterDelay>(_sampleRate, value, useUnitMeter));
         }
         else {
             LOG_WARN("WARNING: Config(%s) - Discarding delay filter with to low value. Can't delay less then one sample", path.c_str());
@@ -90,33 +88,33 @@ void Config::parseDelay(std::vector<Filter*> &filters, const JsonNode *pNode, st
     }
 }
 
-void Config::parseCompression(std::vector<Filter*>& filters, const JsonNode* pNode, const std::string path) const {
+void Config::parseCompression(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, const string path) const {
     if (pNode->has("compression")) {
-        const JsonNode* pFilterNode = pNode->path("compression");
+        const shared_ptr<JsonNode>& pFilterNode = pNode->get("compression");
         const double threshold = getDoubleValue(pFilterNode, "threshold", path);
         const double ratio = getDoubleValue(pFilterNode, "ratio", path);
         const double attack = getDoubleValue(pFilterNode, "attack", path);
         const double release = getDoubleValue(pFilterNode, "release", path);
         const double window = getDoubleValue(pFilterNode, "window", path);
-        filters.push_back(new FilterCompression(_sampleRate, threshold, ratio, attack, release, window));
+        filters.push_back(make_unique<FilterCompression>(_sampleRate, threshold, ratio, attack, release, window));
     }
 }
 
-void Config::parseCancellation(std::vector<Filter*>& filters, const JsonNode* pNode, const std::string& path) const {
+void Config::parseCancellation(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, const string& path) const {
     if (pNode->has("cancellation")) {
-        const JsonNode* pFilterNode = pNode->path("cancellation");
+        const shared_ptr<JsonNode>& pFilterNode = pNode->get("cancellation");
         const double freq = getDoubleValue(pFilterNode, "freq", path);
         if (pFilterNode->has("gain")) {
             const double gain = getDoubleValue(pFilterNode, "gain", path);
-            filters.push_back(new FilterCancellation(_sampleRate, freq, gain));
+            filters.push_back(make_unique<FilterCancellation>(_sampleRate, freq, gain));
         }
         else {
-            filters.push_back(new FilterCancellation(_sampleRate, freq));
+            filters.push_back(make_unique<FilterCancellation>(_sampleRate, freq));
         }
     }
 }
 
-void Config::parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
+void Config::parseFilter(vector<unique_ptr<Filter>>& filters, FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     const FilterType type = getFilterType(pFilterNode, "type", path);
     switch (type) {
     case FilterType::LOW_PASS:
@@ -150,7 +148,7 @@ void Config::parseFilter(std::vector<Filter*> &filters, FilterBiquad *pFilterBiq
     };
 }
 
-void Config::parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
+void Config::parseCrossover(const bool isLowPass, FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     const CrossoverType crossoverType = getCrossoverType(pFilterNode, path);
     const double freq = getDoubleValue(pFilterNode, "freq", path);
     const uint8_t order = (uint8_t)getIntValue(pFilterNode, "order", path);
@@ -168,7 +166,7 @@ void Config::parseCrossover(const bool isLowPass, FilterBiquad *pFilterBiquad, c
     }
 }
 
-void Config::parseShelf(const bool isLowShelf, FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
+void Config::parseShelf(const bool isLowShelf, FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     const double freq = getDoubleValue(pFilterNode, "freq", path);
     const double gain = getDoubleValue(pFilterNode, "gain", path);
     if (pFilterNode->has("q")) {
@@ -180,14 +178,14 @@ void Config::parseShelf(const bool isLowShelf, FilterBiquad *pFilterBiquad, cons
     }
 }
 
-void Config::parsePEQ(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
+void Config::parsePEQ(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     const double freq = getDoubleValue(pFilterNode, "freq", path);
     const double q = getDoubleValue(pFilterNode, "q", path);
     const double gain = getDoubleValue(pFilterNode, "gain", path);
     pFilterBiquad->addPEQ(freq, q, gain);
 }
 
-void Config::parseBandPass(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
+void Config::parseBandPass(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     const double freq = getDoubleValue(pFilterNode, "freq", path);
     const double bandwidth = getDoubleValue(pFilterNode, "bandwidth", path);
     if (pFilterNode->has("gain")) {
@@ -199,7 +197,7 @@ void Config::parseBandPass(FilterBiquad *pFilterBiquad, const JsonNode *pFilterN
     }
 }
 
-void Config::parseNotch(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
+void Config::parseNotch(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     const double freq = getDoubleValue(pFilterNode, "freq", path);
     const double bandwidth = getDoubleValue(pFilterNode, "bandwidth", path);
     if (pFilterNode->has("gain")) {
@@ -211,7 +209,7 @@ void Config::parseNotch(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode
     }
 }
 
-void Config::parseLinkwitzTransform(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
+void Config::parseLinkwitzTransform(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     const double f0 = getDoubleValue(pFilterNode, "f0", path);
     const double q0 = getDoubleValue(pFilterNode, "q0", path);
     const double fp = getDoubleValue(pFilterNode, "fp", path);
@@ -219,11 +217,11 @@ void Config::parseLinkwitzTransform(FilterBiquad *pFilterBiquad, const JsonNode 
     pFilterBiquad->addLinkwitzTransform(f0, q0, fp, qp);
 }
 
-void Config::parseBiquad(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNode, const std::string &path) const {
-    std::string myPath = path;
-    const JsonNode *pValues = getArrayNode(pFilterNode, "values", myPath);
+void Config::parseBiquad(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
+    string myPath = path;
+    const shared_ptr<JsonNode> pValues = getArrayNode(pFilterNode, "values", myPath);
     for (size_t i = 0; i < pValues->size(); ++i) {
-        const JsonNode *pValueNode = pValues->get(i);
+        const shared_ptr<JsonNode>& pValueNode = pValues->get(i);
         const double b0 = getDoubleValue(pValueNode, "b0", myPath);
         const double b1 = getDoubleValue(pValueNode, "b1", myPath);
         const double b2 = getDoubleValue(pValueNode, "b2", myPath);
@@ -239,12 +237,12 @@ void Config::parseBiquad(FilterBiquad *pFilterBiquad, const JsonNode *pFilterNod
     }
 }
 
-void Config::parseFir(std::vector<Filter*> &filters, const JsonNode *pFilterNode, const std::string &path) const {
-    std::string myPath = path;
+void Config::parseFir(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
+    string myPath = path;
     //Read each line in fir parameter file
-    const std::string filePath = getTextValue(pFilterNode, "file", myPath);
+    const string filePath = getTextValue(pFilterNode, "file", myPath);
     const File file(filePath);
-    const std::string extension = file.getExtension();
+    const string extension = file.getExtension();
     if (extension.compare("txt") == 0) {
         parseFirTxt(filters, file, myPath);
     }
@@ -256,78 +254,77 @@ void Config::parseFir(std::vector<Filter*> &filters, const JsonNode *pFilterNode
     }
 }
 
-void Config::parseFirTxt(std::vector<Filter*> &filters, const File &file, const std::string &path) const {
-    std::vector<std::string> lines;
+void Config::parseFirTxt(vector<unique_ptr<Filter>>& filters, const File& file, const string& path) const {
+    vector<string> lines;
     if (!file.getData(lines)) {
         throw Error("Config(%s) - Can't read FIR file '%s'", path.c_str(), file.getPath().c_str());
     }
     if (!lines.size()) {
         throw Error("Config(%s) - FIR file '%s' is empty", path.c_str(), file.getPath().c_str());
     }
-    std::vector<double> taps;
-    for (const std::string &str : lines) {
+    vector<double> taps;
+    for (const string& str : lines) {
         taps.push_back(atof(str.c_str()));
     }
-    filters.push_back(new FilterFir(taps));
+    filters.push_back(make_unique<FilterFir>(taps));
 }
 
-void Config::parseFirWav(std::vector<Filter*> &filters, const File &file, const std::string &path) const {
-    char *pBuffer = nullptr;
-    try {
-        //Get data
-        const size_t bufferSize = file.getData(&pBuffer);
-        WaveHeader header;
-        memcpy(&header, pBuffer, sizeof(header));
-        const char *pData = pBuffer + sizeof(header);
-        if (header.numChannels != 1) {
-            throw Error("Config(%s) - FIR file is not mono", path.c_str());
-        }
-        if (header.sampleRate != _sampleRate) {
-            throw Error("Config(%s) - FIR file sample rate doesn't match render device. Render(%d), FIR(%d)", path.c_str(), _sampleRate, header.sampleRate);
-        }
-        //Generate taps
-        const size_t numSamples = header.getNumSamples();
-        std::vector<double> taps;
-        if (header.audioFormat == WAVE_FORMAT_PCM) {
-            switch (header.bitsPerSample) {
-            case 16:
-                taps = Convert::pcm16ToDouble(pData, numSamples);
-                break;
-            case 24:
-                taps = Convert::pcm24ToDouble(pData, numSamples);
-                break;
-            case 32:
-                taps = Convert::pcm32ToDouble(pData, numSamples);
-                break;
-            default:
-                throw Error("Config(%s) - FIR file bit depth is unsupported: %u", path.c_str(), header.bitsPerSample);
-            }
-        }
-        else if (header.audioFormat == WAVE_FORMAT_IEEE_FLOAT) {
-            switch (header.bitsPerSample) {
-            case 32:
-                taps = Convert::float32ToDouble(pData, numSamples);
-                break;
-            case 64:
-                taps = Convert::float64ToDouble(pData, numSamples);
-                break;
-            default:
-                throw Error("Config(%s) - FIR file bit depth is unsupported: %u", path.c_str(), header.bitsPerSample);
-            }
-        }
-        else {
-            throw Error("Config(%s) - FIR file is in unknown audio format: %u", path.c_str(), header.audioFormat);
-        }
-        delete[] pBuffer;
-        filters.push_back(new FilterFir(taps));
+void Config::parseFirWav(vector<unique_ptr<Filter>>& filters, const File& file, const string& path) const {
+    unique_ptr<char[]> pBuffer;
+    //Get data
+    const size_t bufferSize = file.getData(&pBuffer);
+    if (!bufferSize) {
+        throw Error("Config(%s) - Can't read FIR file. '%s'", path.c_str(), file.getPath().c_str());
     }
-    catch (const Error &e) {
-        delete[] pBuffer;
-        throw e;
+    WaveHeader header;
+    if (bufferSize < sizeof(header)) {
+        throw Error("Config(%s) - FIR file is not a valid wav file. '%s'", path.c_str(), file.getPath().c_str());
     }
+    memcpy(&header, pBuffer.get(), sizeof(header));
+    const char* pData = pBuffer.get()  + sizeof(header);
+    if (header.numChannels != 1) {
+        throw Error("Config(%s) - FIR file is not mono", path.c_str());
+    }
+    if (header.sampleRate != _sampleRate) {
+        throw Error("Config(%s) - FIR file sample rate doesn't match render device. Render(%d), FIR(%d)", path.c_str(), _sampleRate, header.sampleRate);
+    }
+    //Generate taps
+    const size_t numSamples = header.getNumSamples();
+    vector<double> taps;
+    if (header.audioFormat == WAVE_FORMAT_PCM) {
+        switch (header.bitsPerSample) {
+        case 16:
+            taps = Convert::pcm16ToDouble(pData, numSamples);
+            break;
+        case 24:
+            taps = Convert::pcm24ToDouble(pData, numSamples);
+            break;
+        case 32:
+            taps = Convert::pcm32ToDouble(pData, numSamples);
+            break;
+        default:
+            throw Error("Config(%s) - FIR file bit depth is unsupported: %u", path.c_str(), header.bitsPerSample);
+        }
+    }
+    else if (header.audioFormat == WAVE_FORMAT_IEEE_FLOAT) {
+        switch (header.bitsPerSample) {
+        case 32:
+            taps = Convert::float32ToDouble(pData, numSamples);
+            break;
+        case 64:
+            taps = Convert::float64ToDouble(pData, numSamples);
+            break;
+        default:
+            throw Error("Config(%s) - FIR file bit depth is unsupported: %u", path.c_str(), header.bitsPerSample);
+        }
+    }
+    else {
+        throw Error("Config(%s) - FIR file is in unknown audio format: %u", path.c_str(), header.audioFormat);
+    }
+    filters.push_back(make_unique<FilterFir>(taps));
 }
 
-void Config::applyCrossoversMap(FilterBiquad *pFilterBiquad, const Channel channel, const JsonNode *pFilterNode, const std::string &path) const {
+void Config::applyCrossoversMap(FilterBiquad* pFilterBiquad, const Channel channel, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     //Check if this channel should have an LP and that there isn't an user defined LP in the filters list.
     if (_addLpTo.find(channel) != _addLpTo.end() && !hasCrossoverFilter(pFilterNode, true, path)) {
         parseCrossover(true, pFilterBiquad, _pLpFilter, "basic");
@@ -337,30 +334,30 @@ void Config::applyCrossoversMap(FilterBiquad *pFilterBiquad, const Channel chann
     }
 }
 
-void Config::applyCrossoversMap(std::vector<Filter*> &filters, const Channel channel) const {
+void Config::applyCrossoversMap(vector<unique_ptr<Filter>>& filters, const Channel channel) const {
     if (_addLpTo.find(channel) != _addLpTo.end()) {
-        FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
-        parseCrossover(true, pFilterBiquad, _pLpFilter, "basic");
-        filters.push_back(pFilterBiquad);
+        unique_ptr<FilterBiquad> pFilterBiquad = make_unique<FilterBiquad>(_sampleRate);
+        parseCrossover(true, pFilterBiquad.get(), _pLpFilter, "basic");
+        filters.push_back(move(pFilterBiquad));
     }
     if (_addHpTo.find(channel) != _addHpTo.end()) {
-        FilterBiquad *pFilterBiquad = new FilterBiquad(_sampleRate);
-        parseCrossover(false, pFilterBiquad, _pHpFilter, "basic");
-        filters.push_back(pFilterBiquad);
+        unique_ptr<FilterBiquad> pFilterBiquad = make_unique<FilterBiquad>(_sampleRate);
+        parseCrossover(false, pFilterBiquad.get(), _pHpFilter, "basic");
+        filters.push_back(move(pFilterBiquad));
     }
 }
 
-const double Config::getQOffset(const JsonNode *pFilterNode, const std::string &path) const {
+const double Config::getQOffset(const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     if (pFilterNode->has("qOffset")) {
         return getDoubleValue(pFilterNode, "qOffset", path);
     }
     return 0;
 }
 
-const std::vector<double> Config::getQValues(const JsonNode *pFilterNode, const int order, const std::string &path) const {
-    std::string qPath = path;
-    const JsonNode* pQNode = getArrayNode(pFilterNode, "q", qPath);
-    std::vector<double> qValues;
+const vector<double> Config::getQValues(const shared_ptr<JsonNode>& pFilterNode, const int order, const string& path) const {
+    string qPath = path;
+    const shared_ptr<JsonNode> pQNode = getArrayNode(pFilterNode, "q", qPath);
+    vector<double> qValues;
     int calculatedOrder = 0;
     for (size_t i = 0; i < pQNode->size(); ++i) {
         const double q = getDoubleValue(pQNode, i, qPath);
@@ -373,10 +370,10 @@ const std::vector<double> Config::getQValues(const JsonNode *pFilterNode, const 
     return qValues;
 }
 
-const bool Config::hasCrossoverFilter(const JsonNode *pFiltersNode, const bool isLowPass, const std::string &path) const {
+const bool Config::hasCrossoverFilter(const shared_ptr<JsonNode>& pFiltersNode, const bool isLowPass, const string& path) const {
     for (size_t i = 0; i < pFiltersNode->size(); ++i) {
-        std::string filterPath = path;
-        const JsonNode* pFilter = getObjectNode(pFiltersNode, i, filterPath);
+        string filterPath = path;
+        const shared_ptr<JsonNode> pFilter = getObjectNode(pFiltersNode, i, filterPath);
         const FilterType type = getFilterType(pFilter, "type", path);
         if ((isLowPass && type == FilterType::LOW_PASS) || (!isLowPass && type == FilterType::HIGH_PASS)) {
             return true;

@@ -2,8 +2,8 @@
 #include "Error.h"
 #include "Str.h"
 
-const Channel Channels::fromString(const std::string &strIn) {
-    const std::string str = String::toUpperCase(strIn);
+const Channel Channels::fromString(const string &strIn) {
+    const string str = String::toUpperCase(strIn);
     if (str.compare("L") == 0) {
         return Channel::L;
     }
@@ -31,7 +31,7 @@ const Channel Channels::fromString(const std::string &strIn) {
     throw Error("Unknown channel '%s'", strIn.c_str());
 }
 
-const std::string Channels::toString(const Channel channel) {
+const string Channels::toString(const Channel channel) {
     switch (channel) {
     case Channel::L:
         return "L";
@@ -54,6 +54,6 @@ const std::string Channels::toString(const Channel channel) {
     };
 }
 
-const std::string Channels::toString(const size_t channelIndex) {
+const string Channels::toString(const size_t channelIndex) {
     return toString((Channel)channelIndex);
 }

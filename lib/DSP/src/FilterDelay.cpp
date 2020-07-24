@@ -31,6 +31,10 @@ FilterDelay::FilterDelay(const uint32_t sampleRate, const double delay, const bo
 
 const vector<string> FilterDelay::toString() const {
     return vector<string>{
-        String::format("Delay: %.1f%s", _delay, _useUnitMeter ? "m" : "ms")
+        String::format(
+            "Delay: %s%s",
+            String::formatFloat(_delay).c_str(),
+            _useUnitMeter ? "m" : "ms"
+        )
     };
 }

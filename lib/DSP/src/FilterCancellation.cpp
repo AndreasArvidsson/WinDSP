@@ -14,6 +14,10 @@ FilterCancellation::FilterCancellation(const uint32_t sampleRate, const double f
 
 const vector<string> FilterCancellation::toString() const {
     return vector<string>{
-        String::format("Cancel: %0.fHz", _frequency)
+        String::format(
+            "Cancel: freq %sHz, gain %sdB",
+            String::formatFloat(_frequency).c_str(),
+            String::formatFloat(_gain).c_str()
+        )
     };
 }

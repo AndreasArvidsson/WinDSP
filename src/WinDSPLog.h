@@ -9,6 +9,8 @@ using std::deque;
 using std::unique_ptr;
 using std::thread;
 
+#define LOG_FILE "WinDSP_log.txt"
+
 enum class LogSeverity {
     S_DEBUG, S_INFO, S_WARN, S_ERROR
 };

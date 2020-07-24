@@ -116,57 +116,44 @@ FilterGain* Config::getGainFilter(const vector<unique_ptr<Filter>>& filters) {
 
 void Config::printConfig() const {
     LOG_INFO("***** Inputs *****");
+    LOG_NL();
     for (const Input& input : _inputs) {
-        bool first = true;
         for (const Route& route : input.getRoutes()) {
-            string prefix = "";
-            if (first) {
-                first = false;
-                prefix = Channels::toString(input.getChannel());
-            }
-            else {
-                prefix = " ";
-            }
-            prefix += "\t";
-            printRouteConfig(prefix, route.getChannel(), route.getFilters(), {}, route.hasConditions());
+            LOG_INFO("%s\t->\t%s%s",
+                Channels::toString(input.getChannel()).c_str(),
+                Channels::toString(route.getChannel()).c_str(),
+                (route.hasConditions() ? " ( Condition )" : "")
+            );
+            printFilters("", route.getFilters(), {});
+            LOG_NL();
         }
     }
     LOG_NL();
 
     LOG_INFO("***** Outputs *****");
+    LOG_NL();
     for (const Output& output : _outputs) {
         if (output.isMuted()) {
             LOG_INFO("%s\tMUTE", Channels::toString(output.getChannel()).c_str());
         }
         else {
-            printRouteConfig("", output.getChannel(), output.getFilters(), output.getPostFilters());
+            LOG_INFO(Channels::toString(output.getChannel()).c_str());
+            printFilters("", output.getFilters(), output.getPostFilters());
         }
+        LOG_NL();
     }
     LOG_NL();
 }
 
-void Config::printRouteConfig(const string& prefix, const Channel channel, const vector<unique_ptr<Filter>>& filters, const vector<unique_ptr<Filter>>& postFilters, const bool hasConditions) const {
-    string str = prefix;
-    str += Channels::toString(channel).c_str();
-    if (hasConditions) {
-        str += "\t[ Cond ]";
-    }
-    if (filters.size() + postFilters.size()) {
-        str += "\t";
-        for (const unique_ptr<Filter>& pFilter : filters) {
-            for (const string& s : pFilter->toString()) {
-                str += "[ ";
-                str += s.c_str();
-                str += " ]";
-            }
-        }
-        for (const unique_ptr<Filter>& pFilter : postFilters) {
-            for (const string& s : pFilter->toString()) {
-                str += "[ ";
-                str += s.c_str();
-                str += " ]";
-            }
+void Config::printFilters(const string& prefix, const vector<unique_ptr<Filter>>& filters, const vector<unique_ptr<Filter>>& postFilters) const {
+    for (const unique_ptr<Filter>& pFilter : filters) {
+        for (const string& s : pFilter->toString()) {
+            LOG_INFO("%s* %s", prefix.c_str(), s.c_str());
         }
     }
-    LOG_INFO(str.c_str());
+    for (const unique_ptr<Filter>& pFilter : postFilters) {
+        for (const string& s : pFilter->toString()) {
+            LOG_INFO("%s* %s", prefix.c_str(), s.c_str());
+        }
+    }
 }

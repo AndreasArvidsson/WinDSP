@@ -21,7 +21,7 @@ public:
 	void initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain = 0);
 	void initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain = 0);
 	
-	void initPEQ(const uint32_t sampleRate, const double frequency, const double q, const double gain);
+	void initPEQ(const uint32_t sampleRate, const double frequency, const double gain, const double q);
 	void initLinkwitzTransform(const uint32_t sampleRate, const double F0, const double Q0, const double Fp, const double Qp);
 	
 	const vector<vector<double>> getFrequencyResponse(const uint32_t sampleRate, const uint32_t nPoints, const double fMin, const double fMax) const;

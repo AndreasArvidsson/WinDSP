@@ -1,6 +1,7 @@
 #pragma once
 #include "FilterCompression.h"
 #include "Convert.h"
+#include "Str.h"
 
 FilterCompression::FilterCompression(const uint32_t sampleRate, const double threshold, const double ratio,
     const double attack, const double release, const double window) {
@@ -18,8 +19,25 @@ FilterCompression::FilterCompression(const uint32_t sampleRate, const double thr
         _useWindow = false;
         _windowCoef = 0;
     }
+    _toStringValue = getToStringValue(threshold, ratio, attack, release, window);
 }
 
 const vector<string> FilterCompression::toString() const {
-    return vector<string>{ "Compression" };
+    return vector<string>{ _toStringValue  };
+}
+
+const string FilterCompression::getToStringValue(
+    const double threshold,
+    const double ratio,
+    const double attack,
+    const double release,
+    const double window) {
+    return String::format(
+        "Compression: threshold %sdB, ratio %s, attack %sms, release %sms, window %sms",
+        String::formatFloat(threshold).c_str(),
+        String::formatFloat(ratio).c_str(),
+        String::formatFloat(attack).c_str(),
+        String::formatFloat(release).c_str(),
+        String::formatFloat(window).c_str()
+    );
 }

@@ -70,7 +70,7 @@ private:
     void save();
     const double getFiltersLevelSum(const vector<unique_ptr<Filter>>& filters, double startLevel = 1.0) const;
     const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
-    void printRouteConfig(const string& prefix, Channel channel, const vector<unique_ptr<Filter>>& filters, const vector<unique_ptr<Filter>>& postFilters, const bool hasConditions = false) const;
+    void printFilters(const string& prefix, const vector<unique_ptr<Filter>>& filters, const vector<unique_ptr<Filter>>& postFilters) const;
     FilterGain* getGainFilter(const vector<unique_ptr<Filter>>& filters);
 
     /* ********* ConfigParser.cpp ********* */

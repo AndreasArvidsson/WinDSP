@@ -33,7 +33,7 @@ public:
 	void addBandPass(const double frequency, const double bandwidth, const double gain = 0);
 	void addNotch(const double frequency, const double bandwidth, const double gain = 0);
 
-	void addPEQ(const double frequency, const double q, const double gain);
+	void addPEQ(const double frequency, const double gain, const double q);
 	void addLinkwitzTransform(const double f0, const double q0, const double fp, const double qp);
 	
 	const vector<vector<double>> getFrequencyResponse(const uint32_t nPoints, const double fMin, const double fMax) const;

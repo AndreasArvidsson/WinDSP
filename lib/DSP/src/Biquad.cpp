@@ -112,7 +112,7 @@ void Biquad::initHighShelf(const uint32_t sampleRate, const double frequency, co
 	normalize();
 }
 
-void Biquad::initPEQ(const uint32_t sampleRate, const double frequency, const double q, const double gain) {
+void Biquad::initPEQ(const uint32_t sampleRate, const double frequency, const double gain, const double q) {
 	const double w0 = getOmega(sampleRate, frequency);
 	const double alpha = getAlpha(w0, q);
 	const double A = pow(10, gain / 40);

@@ -54,11 +54,19 @@ public:
 
 private:
     double  _threshold, _ratio, _attackCoef, _releaseCoef, _windowCoef, _envelope, _squaredSum;
-    double _useWindow;
+    bool _useWindow;
+    string _toStringValue;
 
     inline void run(const double in, const double coef, double& state) const {
         state = in + coef * (state - in);
     }
+
+    const string getToStringValue(
+        const double threshold,
+        const double ratio,
+        const double attack,
+        const double release,
+        const double window);
 
 };
 

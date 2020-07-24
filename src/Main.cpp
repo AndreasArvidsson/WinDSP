@@ -73,9 +73,6 @@ void logTitle() {
     LOG_NL();
     LOG_INFO("----------------------------------------------");
     LOG_INFO("\t%s", getTitle().c_str());
-#ifdef DEBUG_LOG
-    LOG_INFO("\tLog file: %s", LOG_FILE);
-#endif
     LOG_INFO("----------------------------------------------");
     LOG_NL();
 }
@@ -204,6 +201,9 @@ void run() {
     }
     else {
         LOG_INFO("Render  : %s - WASAPI", renderDeviceName.c_str());
+    }
+    if (pConfig->inDebug()) {
+        LOG_INFO("Log file: %s", LOG_FILE);
     }
     if (pConfig->hasDescription()) {
         LOG_INFO("%s", pConfig->getDescription().c_str());

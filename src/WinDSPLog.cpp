@@ -8,8 +8,6 @@ using std::ofstream;
 using std::ios_base;
 using std::this_thread::get_id;
 
-#define LOG_FILE "WinDSP_log.txt"
-
 #define BUFFER_SIZE 512
 
 unique_ptr<deque<LogLine>> WinDSPLog::_pBuffer;

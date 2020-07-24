@@ -199,7 +199,7 @@ void addPEQ(vector<GraphData*> &graphs, const uint32_t fs, const double frequenc
     GraphData *graphData = new GraphData(name);
     for (double q : qValues) {
         FilterBiquad *pFilter = new FilterBiquad(fs);
-        pFilter->addPEQ(frequency, q, gain);
+        pFilter->addPEQ(frequency, gain, q);
         string n = "Q ";
         n += toString(q);
         graphData->add(n, pFilter);

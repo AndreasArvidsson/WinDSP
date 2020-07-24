@@ -67,7 +67,7 @@ void Config::parseDelay(vector<unique_ptr<Filter>>& filters, const shared_ptr<Js
     double value;
     double useUnitMeter = false;
     if (pFilterNode->isNumber()) {
-        value = pNode->doubleValue();
+        value = pFilterNode->doubleValue();
     }
     else if (pFilterNode->isObject()) {
         value = getDoubleValue(pFilterNode, "value", path);
@@ -180,9 +180,9 @@ void Config::parseShelf(const bool isLowShelf, FilterBiquad* pFilterBiquad, cons
 
 void Config::parsePEQ(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     const double freq = getDoubleValue(pFilterNode, "freq", path);
-    const double q = getDoubleValue(pFilterNode, "q", path);
     const double gain = getDoubleValue(pFilterNode, "gain", path);
-    pFilterBiquad->addPEQ(freq, q, gain);
+    const double q = getDoubleValue(pFilterNode, "q", path);
+    pFilterBiquad->addPEQ(freq, gain, q);
 }
 
 void Config::parseBandPass(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {

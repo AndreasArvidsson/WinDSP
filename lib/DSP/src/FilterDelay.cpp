@@ -33,7 +33,7 @@ const vector<string> FilterDelay::toString() const {
     return vector<string>{
         String::format(
             "Delay: %s%s",
-            String::formatFloat(_delay).c_str(),
+            String::toString(_delay).c_str(),
             _useUnitMeter ? "m" : "ms"
         )
     };

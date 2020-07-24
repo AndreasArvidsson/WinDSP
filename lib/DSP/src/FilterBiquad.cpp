@@ -29,11 +29,11 @@ void FilterBiquad::add(const double b0, const double b1, const double b2, const 
     _biquads.push_back(biquad);
     _toStringValue.push_back(String::format(
         "Biquad5: b0 %s, b1 %s, b2 %s, a1 %s, a2 %s",
-        String::formatFloat(b0).c_str(),
-        String::formatFloat(b1).c_str(),
-        String::formatFloat(b2).c_str(),
-        String::formatFloat(a1).c_str(),
-        String::formatFloat(a2).c_str()
+        String::toString(b0).c_str(),
+        String::toString(b1).c_str(),
+        String::toString(b2).c_str(),
+        String::toString(a1).c_str(),
+        String::toString(a2).c_str()
     ));
 }
 
@@ -43,12 +43,12 @@ void FilterBiquad::add(const double b0, const double b1, const double b2, const 
     _biquads.push_back(biquad);
     _toStringValue.push_back(String::format(
         "Biquad6: b0 %s, b1 %s, b2 %s, a0 %s, a1 %s, a2 %s",
-        String::formatFloat(b0).c_str(),
-        String::formatFloat(b1).c_str(),
-        String::formatFloat(b2).c_str(),
-        String::formatFloat(a0).c_str(),
-        String::formatFloat(a1).c_str(),
-        String::formatFloat(a2).c_str()
+        String::toString(b0).c_str(),
+        String::toString(b1).c_str(),
+        String::toString(b2).c_str(),
+        String::toString(a0).c_str(),
+        String::toString(a1).c_str(),
+        String::toString(a2).c_str()
     ));
 }
 
@@ -88,7 +88,7 @@ void FilterBiquad::addLowPass(const double frequency, const vector<double>& qVal
     }
     _toStringValue.push_back(String::format(
         "Lowpass: %sHz, %ddB/oct",
-        String::formatFloat(frequency).c_str(),
+        String::toString(frequency).c_str(),
         order * 6
     ));
 }
@@ -113,7 +113,7 @@ void FilterBiquad::addHighPass(const double frequency, const vector<double>& qVa
     }
     _toStringValue.push_back(String::format(
         "Highpass: %sHz, %ddB/oct", 
-        String::formatFloat(frequency).c_str(), 
+        String::toString(frequency).c_str(), 
         order * 6
     ));
 }
@@ -137,9 +137,9 @@ void FilterBiquad::addLowShelf(const double frequency, const double gain, const 
     _biquads.push_back(biquad);
     _toStringValue.push_back(String::format(
         "Lowshelf: freq %sHz, gain %sdB, Q %s",
-        String::formatFloat(frequency).c_str(),
-        String::formatFloat(gain).c_str(),
-        String::formatFloat(q).c_str()
+        String::toString(frequency).c_str(),
+        String::toString(gain).c_str(),
+        String::toString(q).c_str()
     ));
 }
 
@@ -149,9 +149,9 @@ void FilterBiquad::addHighShelf(const double frequency, const double gain, const
     _biquads.push_back(biquad);
     _toStringValue.push_back(String::format(
         "Highshelf: freq %sHz, gain %sdB, Q %s",
-        String::formatFloat(frequency).c_str(),
-        String::formatFloat(gain).c_str(),
-        String::formatFloat(q).c_str()
+        String::toString(frequency).c_str(),
+        String::toString(gain).c_str(),
+        String::toString(q).c_str()
     ));
 }
 
@@ -161,9 +161,9 @@ void FilterBiquad::addPEQ(const double frequency, const double gain, const doubl
     _biquads.push_back(biquad);
     _toStringValue.push_back(String::format(
         "PEQ: freq %sHz, gain %sdB, Q %s", 
-        String::formatFloat(frequency).c_str(),
-        String::formatFloat(gain).c_str(),
-        String::formatFloat(q).c_str()
+        String::toString(frequency).c_str(),
+        String::toString(gain).c_str(),
+        String::toString(q).c_str()
     ));
 }
 
@@ -173,9 +173,9 @@ void FilterBiquad::addBandPass(const double frequency, const double bandwidth, c
     _biquads.push_back(biquad);
     _toStringValue.push_back(String::format(
         "Bandpass: freq %sHz, gain %sdB, bandwidth %s",
-        String::formatFloat(frequency).c_str(),
-        String::formatFloat(gain).c_str(),
-        String::formatFloat(bandwidth).c_str()
+        String::toString(frequency).c_str(),
+        String::toString(gain).c_str(),
+        String::toString(bandwidth).c_str()
     ));
 }
 
@@ -185,9 +185,9 @@ void FilterBiquad::addNotch(const double frequency, const double bandwidth, cons
     _biquads.push_back(biquad);
     _toStringValue.push_back(String::format(
         "Notch: freq %sHz, gain %sdB, bandwidth %s",
-        String::formatFloat(frequency).c_str(),
-        String::formatFloat(gain).c_str(),
-        String::formatFloat(bandwidth).c_str()
+        String::toString(frequency).c_str(),
+        String::toString(gain).c_str(),
+        String::toString(bandwidth).c_str()
     ));
 }
 
@@ -197,10 +197,10 @@ void FilterBiquad::addLinkwitzTransform(const double f0, const double q0, const 
     _biquads.push_back(biquad);
     _toStringValue.push_back(String::format(
         "Linkwitz Transform: f0 %sHz, Q0 %s, fp %sHz, qp %s",
-        String::formatFloat(f0).c_str(),
-        String::formatFloat(q0).c_str(),
-        String::formatFloat(fp).c_str(),
-        String::formatFloat(qp).c_str()
+        String::toString(f0).c_str(),
+        String::toString(q0).c_str(),
+        String::toString(fp).c_str(),
+        String::toString(qp).c_str()
     ));
 }
 

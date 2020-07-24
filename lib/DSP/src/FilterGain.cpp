@@ -45,7 +45,7 @@ void FilterGain::init(const double gain, const bool invert) {
 
 const vector<string> FilterGain::toString() const {
     vector<string> res{
-       String::format("Gain: %sdB", String::formatFloat(_gain).c_str())
+       String::format("Gain: %sdB", String::toString(_gain).c_str())
     };
     if (_invert) {
         res.push_back("Inverted");

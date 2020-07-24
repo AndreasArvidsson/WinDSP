@@ -16,8 +16,8 @@ const vector<string> FilterCancellation::toString() const {
     return vector<string>{
         String::format(
             "Cancel: freq %sHz, gain %sdB",
-            String::formatFloat(_frequency).c_str(),
-            String::formatFloat(_gain).c_str()
+            String::toString(_frequency).c_str(),
+            String::toString(_gain).c_str()
         )
     };
 }

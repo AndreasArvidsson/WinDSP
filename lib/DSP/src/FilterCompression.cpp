@@ -34,10 +34,10 @@ const string FilterCompression::getToStringValue(
     const double window) {
     return String::format(
         "Compression: threshold %sdB, ratio %s, attack %sms, release %sms, window %sms",
-        String::formatFloat(threshold).c_str(),
-        String::formatFloat(ratio).c_str(),
-        String::formatFloat(attack).c_str(),
-        String::formatFloat(release).c_str(),
-        String::formatFloat(window).c_str()
+        String::toString(threshold).c_str(),
+        String::toString(ratio).c_str(),
+        String::toString(attack).c_str(),
+        String::toString(release).c_str(),
+        String::toString(window).c_str()
     );
 }

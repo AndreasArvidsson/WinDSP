@@ -5,7 +5,12 @@
 #include <fstream>
 #include "Convert.h"
 #include "FilterBiquad.h"
+#include "FilterCompression.h"
 #include "CrossoverType.h"
+#include "WaveHeader.h"
+#include "File.h"
+#include "Audioclient.h" //WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
+#include "Error.h"
 
 using std::ofstream;
 using std::to_string;
@@ -14,11 +19,13 @@ class SeriesData {
 public:
     string name;
     vector<vector<double>> data;
+    vector<double> dataFlat;
 };
 
 class GraphData {
 public:
     string name;
+    bool isLog = true;
     vector<SeriesData> series;
     GraphData(string n) {
         name = n;
@@ -27,6 +34,12 @@ public:
         SeriesData serie;
         serie.name = n;
         serie.data = pFilter->getFrequencyResponse(1000, 10, 20000);
+        series.push_back(serie);
+    }
+    void add(string n, vector<double> d) {
+        SeriesData serie;
+        serie.name = n;
+        serie.dataFlat = d;
         series.push_back(serie);
     }
 };
@@ -65,6 +78,11 @@ void addSeriesData(ofstream &stream, const SeriesData &serie, bool first) {
         first = false;
         stream << "[" << pair[0] << ", " << pair[1] << "]";
     }
+    for (const double value : serie.dataFlat) {
+        stream << (first ? "" : ",");
+        first = false;
+        stream << value;
+    }
     stream << "]\n";
     stream << "        }";
 }
@@ -75,6 +93,7 @@ void addGraphData(ofstream &stream, const GraphData *graph, bool first) {
     stream << "    name: \"";
     stream << graph->name.c_str();
     stream << "\",\n";
+    stream << "    isLog: " << (graph->isLog ? "true" : "false") << ",\n";
     stream << "    series: [\n";
     first = true;
     for (const SeriesData &serie : graph->series) {
@@ -248,6 +267,65 @@ void compareHP(vector<GraphData*> &graphs, const uint32_t fs) {
     graphs.push_back(graphData);
 }
 
+void addCompression(vector<GraphData*>& graphs) {
+    const File file("file_example_WAV_1MG.wav");
+
+    std::unique_ptr<char[]> pBuffer;
+    const size_t bufferSize = file.getData(&pBuffer);
+    if (!bufferSize) {
+        throw Error("Config - Can't read wav file. '%s'", file.getPath().c_str());
+    }
+    WaveHeader header;
+    if (bufferSize < sizeof(header)) {
+        throw Error("File is not a valid wav file. '%s'", file.getPath().c_str());
+    }
+    memcpy(&header, pBuffer.get(), sizeof(header));
+
+    const size_t numSamples = header.getNumSamples();
+    if (header.audioFormat != WAVE_FORMAT_PCM) {
+        throw Error("Wav file is in unknown audio format: %u", header.audioFormat);
+    }
+
+    const char* pData = pBuffer.get() + sizeof(header);
+    vector<double> samples;
+    switch (header.bitsPerSample) {
+    case 16:
+        samples = Convert::pcm16ToDouble(pData, numSamples);
+        break;
+    case 24:
+        samples = Convert::pcm24ToDouble(pData, numSamples);
+        break;
+    case 32:
+        samples = Convert::pcm32ToDouble(pData, numSamples);
+        break;
+    default:
+        throw Error("Wav file bit depth is unsupported: %u", header.bitsPerSample);
+    }
+
+    const double threshold = -15;
+    const double ratio = 0.1;
+    const double attack = 1;
+    const double release = 1;
+    const double window = 1;
+    FilterCompression compWindow(header.sampleRate, threshold, ratio, attack, release, window);
+    FilterCompression compSample(header.sampleRate, threshold, ratio, attack, release);
+    vector<double> org, resWindow, resSample;
+    //Only use first 5sec of first channel
+    const size_t size = min(samples.size(), 5 * header.sampleRate);
+    for (int i = 0; i < samples.size(); i += header.numChannels) {
+        org.push_back(samples[i]);
+        resWindow.push_back(compWindow.process(samples[i]));
+        resSample.push_back(compSample.process(samples[i]));
+    }
+
+    GraphData* graphData = new GraphData("Compression 5sec");
+    graphData->isLog = false;
+    graphData->add("Org", org);
+    graphData->add("No window", resSample);
+    graphData->add("Window", resWindow);
+    graphs.push_back(graphData);
+}
+
 int main() {
     const uint32_t fs = 96000;
 
@@ -271,6 +349,7 @@ int main() {
         });
     compareLP(graphs, fs);
     compareHP(graphs, fs);
+    addCompression(graphs);
     saveJsGraphData(graphs);
 
     FilterBiquad *pFilter = new FilterBiquad(fs);

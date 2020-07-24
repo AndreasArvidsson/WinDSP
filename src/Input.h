@@ -21,12 +21,11 @@ public:
 	void addRoute(Route& route);
     const Channel getChannel() const;
 	const bool isDefined() const;
-
 	void evalConditions();
 	void reset();
 	const bool resetIsPlaying();
 
-	inline void route(const double data, double * const pRenderBuffer) {
+	inline void route(const double data, double* const pRenderBuffer) {
 		if (data) {
 			_isPlaying = true;
 		}

@@ -6,7 +6,7 @@
 #include "CrossoverType.h"
 #include "Str.h"
 #include "Convert.h"
-#include "AudioDevice.h" //WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
+#include "Audioclient.h" //WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
 #include "Channel.h"
 
 using std::make_unique;
@@ -95,7 +95,7 @@ void Config::parseCompression(vector<unique_ptr<Filter>>& filters, const shared_
         const double ratio = getDoubleValue(pFilterNode, "ratio", path);
         const double attack = getDoubleValue(pFilterNode, "attack", path);
         const double release = getDoubleValue(pFilterNode, "release", path);
-        const double window = getDoubleValue(pFilterNode, "window", path);
+        const double window = tryGetDoubleValue(pFilterNode, "window", path);
         filters.push_back(make_unique<FilterCompression>(_sampleRate, threshold, ratio, attack, release, window));
     }
 }

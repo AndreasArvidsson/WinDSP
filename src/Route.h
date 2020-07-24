@@ -29,7 +29,6 @@ public:
     const size_t getChannelIndex() const;
     const bool hasConditions() const;
     const vector<unique_ptr<Filter>>& getFilters() const;
-
     void evalConditions();
     void reset() const;
 

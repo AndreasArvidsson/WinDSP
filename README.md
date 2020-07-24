@@ -360,10 +360,11 @@ or
 
 ## Compression
 * Dynamic range compression
-* Requires: threshold, ratio, attack, release, window
+* Requires: threshold, ratio, attack, release
 * Threshold: Given in dB
 * Ratio: [0.0, 1.0] 0.0=oo:1, 0.5=2:1, 1.0=1:1
 * Attack, release, window: Given in milliseconds
+* Window defaults to 0. No window at all and calculation is done per sample.
 ```json
 "compression": {
     "threshold": -30,

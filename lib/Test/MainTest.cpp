@@ -119,7 +119,7 @@ void addGraphData(ofstream &stream, const GraphData *graph, bool first) {
 
 void saveJsGraphData(vector<GraphData*> &graphs) {
     ofstream myfile;
-    myfile.open("plotData.js");
+    myfile.open("../../docs/plotData.js");
     myfile << "var plotData = [\n";
     bool first = true;
     for (const GraphData *graph : graphs) {

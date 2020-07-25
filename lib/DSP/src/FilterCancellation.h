@@ -12,7 +12,7 @@ public:
     const vector<string> toString() const override;
 
     inline const double process(const double data) override {
-        return _pFilterDelay->process(data) * _multiplier;
+        return data + _pFilterDelay->process(data) * _multiplier;
     }
 
     inline void reset() override {

@@ -25,9 +25,7 @@ public:
     void addFilters(vector<unique_ptr<Filter>>& filters);
     void addFilter(unique_ptr<Filter> pFilter);
     void addFilterFirst(unique_ptr<Filter> pFilter);
-    void addPostFilters(vector<unique_ptr<Filter>>& filters);
     const vector<unique_ptr<Filter>>& getFilters() const;
-    const vector<unique_ptr<Filter>>& getPostFilters() const;
     const Channel Output::getChannel() const;
     const bool isDefined() const;
     const bool isMuted() const;
@@ -41,13 +39,6 @@ public:
         for (const unique_ptr<Filter>& pFilter : _filters) {
             data = pFilter->process(data);
         }
-        //Post filters all use the result of the normal filter instead of the previous result. Ie post filters are NOT chained.
-        if (_usePostFilters) {
-            const double preData = data;
-            for (const unique_ptr<Filter>& pFilter : _postFilters) {
-                data += pFilter->process(preData);
-            }
-        }
         if (abs(data) > 1.0) {
             //Record clipping level so it can be shown in error message.
             _clipping = max(_clipping, abs(data));
@@ -58,9 +49,9 @@ public:
     }
 
 private:
-    vector<unique_ptr<Filter>> _filters, _postFilters;
+    vector<unique_ptr<Filter>> _filters;
     Channel _channel;
     double _clipping;
-    bool _mute, _usePostFilters;
+    bool _mute;
 
 };

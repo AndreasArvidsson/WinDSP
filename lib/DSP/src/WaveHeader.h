@@ -1,10 +1,10 @@
 #pragma once
 #include <stdint.h>
 
-#define NUM_SAMPLES 25000
-#define NUM_CHANNELS 1
-#define SAMPLE_RATE 44100
-#define BIT_DEPTH 16
+#define HEADER_NUM_SAMPLES 25000
+#define HEADER_NUM_CHANNELS 1
+#define HEADER_SAMPLE_RATE 44100
+#define HEADER_BIT_DEPTH 16
 
 class WaveHeader {
 public:
@@ -14,13 +14,13 @@ public:
 	char subChunk1ID[4] = { 'f', 'm', 't', ' ' };
 	uint32_t subChunk1Size = 16;
 	uint16_t  audioFormat = 1;
-	uint16_t  numChannels = NUM_CHANNELS;
-	uint32_t sampleRate = SAMPLE_RATE;
-	uint32_t byteRate = NUM_CHANNELS * SAMPLE_RATE * BIT_DEPTH / 8;
-	uint16_t  blockAlign = NUM_CHANNELS * BIT_DEPTH / 8;
-	uint16_t  bitsPerSample = BIT_DEPTH;
+	uint16_t  numChannels = HEADER_NUM_CHANNELS;
+	uint32_t sampleRate = HEADER_SAMPLE_RATE;
+	uint32_t byteRate = HEADER_NUM_CHANNELS * HEADER_SAMPLE_RATE * HEADER_BIT_DEPTH / 8;
+	uint16_t  blockAlign = HEADER_NUM_CHANNELS * HEADER_BIT_DEPTH / 8;
+	uint16_t  bitsPerSample = HEADER_BIT_DEPTH;
 	char subChunk2ID[4] = { 'd', 'a', 't', 'a' };
-	uint32_t subChunk2Size = NUM_SAMPLES * NUM_CHANNELS * BIT_DEPTH / 8;
+	uint32_t subChunk2Size = HEADER_NUM_SAMPLES * HEADER_NUM_CHANNELS * HEADER_BIT_DEPTH / 8;
 
 	WaveHeader() {
 		chunkSize = 32 + subChunk2Size;

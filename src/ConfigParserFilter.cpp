@@ -44,12 +44,6 @@ vector<unique_ptr<Filter>> Config::parseFilters(const shared_ptr<JsonNode>& pNod
     return filters;
 }
 
-vector<unique_ptr<Filter>> Config::parsePostFilters(const shared_ptr<JsonNode>& pNode, const string& path) const {
-    vector<unique_ptr<Filter>> filters;
-    parseCancellation(filters, pNode, path);
-    return filters;
-}
-
 void Config::parseGain(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, const string& path) const {
     const double value = tryGetDoubleValue(pNode, "gain", path);
     const bool invert = tryGetBoolValue(pNode, "invert", path);
@@ -88,9 +82,9 @@ void Config::parseDelay(vector<unique_ptr<Filter>>& filters, const shared_ptr<Js
     }
 }
 
-void Config::parseCompression(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, const string path) const {
+void Config::parseCompression(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, string path) const {
     if (pNode->has("compression")) {
-        const shared_ptr<JsonNode>& pFilterNode = pNode->get("compression");
+        const shared_ptr<JsonNode> pFilterNode = getObjectNode(pNode, "compression", path);
         const double threshold = getDoubleValue(pFilterNode, "threshold", path);
         const double ratio = getDoubleValue(pFilterNode, "ratio", path);
         const double attack = getDoubleValue(pFilterNode, "attack", path);
@@ -100,9 +94,9 @@ void Config::parseCompression(vector<unique_ptr<Filter>>& filters, const shared_
     }
 }
 
-void Config::parseCancellation(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, const string& path) const {
+void Config::parseCancellation(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, string path) const {
     if (pNode->has("cancellation")) {
-        const shared_ptr<JsonNode>& pFilterNode = pNode->get("cancellation");
+        const shared_ptr<JsonNode> pFilterNode = getObjectNode(pNode, "cancellation", path);
         const double freq = getDoubleValue(pFilterNode, "freq", path);
         if (pFilterNode->has("gain")) {
             const double gain = getDoubleValue(pFilterNode, "gain", path);
@@ -217,11 +211,11 @@ void Config::parseLinkwitzTransform(FilterBiquad* pFilterBiquad, const shared_pt
     pFilterBiquad->addLinkwitzTransform(f0, q0, fp, qp);
 }
 
-void Config::parseBiquad(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
-    string myPath = path;
-    const shared_ptr<JsonNode> pValues = getArrayNode(pFilterNode, "values", myPath);
+void Config::parseBiquad(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, string path) const {
+    const shared_ptr<JsonNode> pValues = getArrayNode(pFilterNode, "values", path);
     for (size_t i = 0; i < pValues->size(); ++i) {
-        const shared_ptr<JsonNode>& pValueNode = pValues->get(i);
+        string myPath = path;
+        const shared_ptr<JsonNode> pValueNode = getObjectNode(pValues, i, myPath);
         const double b0 = getDoubleValue(pValueNode, "b0", myPath);
         const double b1 = getDoubleValue(pValueNode, "b1", myPath);
         const double b2 = getDoubleValue(pValueNode, "b2", myPath);

@@ -124,7 +124,7 @@ void Config::printConfig() const {
                 Channels::toString(route.getChannel()).c_str(),
                 (route.hasConditions() ? " ( Condition )" : "")
             );
-            printFilters("", route.getFilters(), {});
+            printFilters("", route.getFilters());
             LOG_NL();
         }
     }
@@ -138,20 +138,15 @@ void Config::printConfig() const {
         }
         else {
             LOG_INFO(Channels::toString(output.getChannel()).c_str());
-            printFilters("", output.getFilters(), output.getPostFilters());
+            printFilters("", output.getFilters());
         }
         LOG_NL();
     }
     LOG_NL();
 }
 
-void Config::printFilters(const string& prefix, const vector<unique_ptr<Filter>>& filters, const vector<unique_ptr<Filter>>& postFilters) const {
+void Config::printFilters(const string& prefix, const vector<unique_ptr<Filter>>& filters) const {
     for (const unique_ptr<Filter>& pFilter : filters) {
-        for (const string& s : pFilter->toString()) {
-            LOG_INFO("%s* %s", prefix.c_str(), s.c_str());
-        }
-    }
-    for (const unique_ptr<Filter>& pFilter : postFilters) {
         for (const string& s : pFilter->toString()) {
             LOG_INFO("%s* %s", prefix.c_str(), s.c_str());
         }

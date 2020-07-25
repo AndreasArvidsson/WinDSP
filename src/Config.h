@@ -70,7 +70,7 @@ private:
     void save();
     const double getFiltersLevelSum(const vector<unique_ptr<Filter>>& filters, double startLevel = 1.0) const;
     const size_t getSelection(const size_t start, const size_t end, const size_t blacklist = -1) const;
-    void printFilters(const string& prefix, const vector<unique_ptr<Filter>>& filters, const vector<unique_ptr<Filter>>& postFilters) const;
+    void printFilters(const string& prefix, const vector<unique_ptr<Filter>>& filters) const;
     FilterGain* getGainFilter(const vector<unique_ptr<Filter>>& filters);
 
     /* ********* ConfigParser.cpp ********* */
@@ -116,7 +116,6 @@ private:
     /* ********* ConfigParserFilter.cpp ********* */
 
     vector<unique_ptr<Filter>> parseFilters(const shared_ptr<JsonNode>& pNode, const string& path, const int outputChannel = -1) const;
-    vector<unique_ptr<Filter>> parsePostFilters(const shared_ptr<JsonNode>& pNode, const string& path) const;
     void parseFilter(vector<unique_ptr<Filter>>& filters, FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const;
     void parseCrossover(const bool isLowPass, FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const;
     void parseShelf(const bool isLowShelf, FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const;
@@ -124,11 +123,11 @@ private:
     void parseBandPass(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const;
     void parseNotch(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const;
     void parseLinkwitzTransform(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const;
-    void parseBiquad(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, const string& path) const;
+    void parseBiquad(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>& pFilterNode, string path) const;
     void parseGain(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, const string& path) const;
     void parseDelay(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, string path) const;
     void parseCompression(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, string path) const;
-    void parseCancellation(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, const string& path) const;
+    void parseCancellation(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, string path) const;
     void parseFir(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pFilterNode, const string& path) const;
     void parseFirTxt(vector<unique_ptr<Filter>>& filters, const File& file, const string& path) const;
     void parseFirWav(vector<unique_ptr<Filter>>& filters, const File& file, const string& path) const;

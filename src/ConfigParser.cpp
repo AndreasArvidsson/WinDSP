@@ -97,9 +97,8 @@ void Config::parseOutput(const shared_ptr<JsonNode>& pOutputs, const size_t inde
         const bool mute = tryGetBoolValue(pOutputNode, "mute", path);
         Output output(channel, mute);
         vector<unique_ptr<Filter>> filters = parseFilters(pOutputNode, path, (int)channel);
+        parseCancellation(filters, pOutputNode, path);
         output.addFilters(filters);
-        vector<unique_ptr<Filter>> postFilters = parsePostFilters(pOutputNode, path);
-        output.addPostFilters(postFilters);
         _outputs[(size_t)channel] = move(output);
     }
 }

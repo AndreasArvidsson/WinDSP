@@ -22,12 +22,12 @@
                     xAxis: {
                         type: data.isLog ? "logarithmic" : undefined,
                         title: { 
-                            text: data.isLog ? "Hz" : undefined 
+                            text: data.titleX || undefined
                         }
                     },
                     yAxis: {
                         title: { 
-                            text: data.isLog ? "dB" : undefined  
+                            text: data.titleY || undefined
                         },
                         tickPixelInterval: 25,
                         floor: -50,

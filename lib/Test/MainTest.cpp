@@ -4,16 +4,18 @@
 #include <iostream>
 #include <fstream>
 #include "Convert.h"
-#include "FilterBiquad.h"
-#include "FilterCompression.h"
 #include "CrossoverType.h"
-#include "WaveHeader.h"
+#include "DSP.h"
 #include "File.h"
 #include "Audioclient.h" //WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
 #include "Error.h"
 
 using std::ofstream;
 using std::to_string;
+
+#define SAMPLE_RATE 96000
+#define MIN_FREQ 10
+#define MAX_FREQ 20000
 
 class SeriesData {
 public:
@@ -25,6 +27,8 @@ public:
 class GraphData {
 public:
     string name;
+    string titleX = "Hz";
+    string titleY = "dB";
     bool isLog = true;
     vector<SeriesData> series;
     GraphData(string n) {
@@ -33,7 +37,13 @@ public:
     void add(string n, FilterBiquad *pFilter) {
         SeriesData serie;
         serie.name = n;
-        serie.data = pFilter->getFrequencyResponse(1000, 10, 20000);
+        serie.data = pFilter->getFrequencyResponse(1000, MIN_FREQ, MAX_FREQ);
+        series.push_back(serie);
+    }
+    void add(string n, vector<vector<double>> d) {
+        SeriesData serie;
+        serie.name = n;
+        serie.data = d;
         series.push_back(serie);
     }
     void add(string n, vector<double> d) {
@@ -45,7 +55,7 @@ public:
 };
 
 void printMaxVal(FilterBiquad *pFilter) {
-    SineSweepGenerator sine(pFilter->getSampleRate(), 10, 20000, 5);
+    SineSweepGenerator sine(pFilter->getSampleRate(), MIN_FREQ, MAX_FREQ, 5);
     double maxVal = 0;
     double maxFreq = 0;
     for (int i = 0; i < sine.getNumSamples(); ++i) {
@@ -94,6 +104,8 @@ void addGraphData(ofstream &stream, const GraphData *graph, bool first) {
     stream << graph->name.c_str();
     stream << "\",\n";
     stream << "    isLog: " << (graph->isLog ? "true" : "false") << ",\n";
+    stream << "    titleX: \"" << graph->titleX << "\",\n";
+    stream << "    titleY: \"" << graph->titleY << "\",\n";
     stream << "    series: [\n";
     first = true;
     for (const SeriesData &serie : graph->series) {
@@ -118,7 +130,7 @@ void saveJsGraphData(vector<GraphData*> &graphs) {
     myfile.close();
 }
 
-void addCrossover(vector<GraphData*> &graphs, const uint32_t fs, const bool isLowPass, const double frequency, const CrossoverType type, vector<uint8_t> orders) {
+void addCrossover(vector<GraphData*> &graphs, const bool isLowPass, const double frequency, const CrossoverType type, vector<uint8_t> orders) {
     //"Highpass Bessel 100Hz",
     string name = (isLowPass ? "Lowpass " : "Highpass ");
     if (type == CrossoverType::BUTTERWORTH) {
@@ -133,7 +145,7 @@ void addCrossover(vector<GraphData*> &graphs, const uint32_t fs, const bool isLo
     name += toString(frequency) + "Hz";
     GraphData *graphData = new GraphData(name);
     for (uint8_t order : orders) {
-        FilterBiquad *pFilter = new FilterBiquad(fs);
+        FilterBiquad *pFilter = new FilterBiquad(SAMPLE_RATE);
         pFilter->addCrossover(isLowPass, frequency, type, order);
         string n = toString(order);
         n += " order";
@@ -142,11 +154,11 @@ void addCrossover(vector<GraphData*> &graphs, const uint32_t fs, const bool isLo
     graphs.push_back(graphData);
 }
 
-void addShelf(vector<GraphData*> &graphs, const uint32_t fs, const bool isLowShelf, const double frequency, const double gain, vector<double> qValues) {
+void addShelf(vector<GraphData*> &graphs, const bool isLowShelf, const double frequency, const double gain, vector<double> qValues) {
     string n = (isLowShelf ? "Lowshelf " : "Highshelf ") + toString(frequency) + "Hz, " + toString(gain) + "dB";
     GraphData *graphData = new GraphData(n);
     for (double q : qValues) {
-        FilterBiquad *pFilter = new FilterBiquad(fs);
+        FilterBiquad *pFilter = new FilterBiquad(SAMPLE_RATE);
         pFilter->addShelf(isLowShelf, frequency, gain, q);
         n = "Q ";
         n += toString(q);
@@ -155,11 +167,11 @@ void addShelf(vector<GraphData*> &graphs, const uint32_t fs, const bool isLowShe
     graphs.push_back(graphData);
 }
 
-void addBandPass(vector<GraphData*> &graphs, const uint32_t fs, const double frequency, const double gain, vector<double> bandwidths) {
+void addBandPass(vector<GraphData*> &graphs, const double frequency, const double gain, vector<double> bandwidths) {
     string n = "Bandpass " + toString(frequency) + "Hz, " + toString(gain) + "dB";
     GraphData *graphData = new GraphData(n);
     for (double bandwidth : bandwidths) {
-        FilterBiquad *pFilter = new FilterBiquad(fs);
+        FilterBiquad *pFilter = new FilterBiquad(SAMPLE_RATE);
         pFilter->addBandPass(frequency, bandwidth, gain);
         n = "BW ";
         n += toString(bandwidth);
@@ -168,11 +180,11 @@ void addBandPass(vector<GraphData*> &graphs, const uint32_t fs, const double fre
     graphs.push_back(graphData);
 }
 
-void addNotch(vector<GraphData*> &graphs, const uint32_t fs, const double frequency, const double gain, vector<double> bandwidths) {
+void addNotch(vector<GraphData*> &graphs, const double frequency, const double gain, vector<double> bandwidths) {
     string name = "Notch " + toString(frequency) + "Hz, " + toString(gain) + "dB";
     GraphData *graphData = new GraphData(name);
     for (double bandwidth : bandwidths) {
-        FilterBiquad *pFilter = new FilterBiquad(fs);
+        FilterBiquad *pFilter = new FilterBiquad(SAMPLE_RATE);
         pFilter->addNotch(frequency, bandwidth, gain);
         string n = "BW ";
         n += toString(bandwidth);
@@ -181,11 +193,11 @@ void addNotch(vector<GraphData*> &graphs, const uint32_t fs, const double freque
     graphs.push_back(graphData);
 }
 
-void addLT(vector<GraphData*> &graphs, const uint32_t fs, vector<double> qValues) {
+void addLT(vector<GraphData*> &graphs, vector<double> qValues) {
     string name = "Linkwitz-Transform F0=30Hz, Q0=0.707, Fp=10Hz";
     GraphData *graphData = new GraphData(name);
     for (double q : qValues) {
-        FilterBiquad *pFilter = new FilterBiquad(fs);
+        FilterBiquad *pFilter = new FilterBiquad(SAMPLE_RATE);
         pFilter->addLinkwitzTransform(30, 0.707, 10, q);
         string n = "Qp ";
         n += toString(q);
@@ -194,11 +206,11 @@ void addLT(vector<GraphData*> &graphs, const uint32_t fs, vector<double> qValues
     graphs.push_back(graphData);
 }
 
-void addPEQ(vector<GraphData*> &graphs, const uint32_t fs, const double frequency, const double gain, vector<double> qValues) {
+void addPEQ(vector<GraphData*> &graphs, const double frequency, const double gain, vector<double> qValues) {
     string name = "PEQ " + toString(frequency) + "Hz, " + toString(gain) + "dB";
     GraphData *graphData = new GraphData(name);
     for (double q : qValues) {
-        FilterBiquad *pFilter = new FilterBiquad(fs);
+        FilterBiquad *pFilter = new FilterBiquad(SAMPLE_RATE);
         pFilter->addPEQ(frequency, gain, q);
         string n = "Q ";
         n += toString(q);
@@ -207,12 +219,12 @@ void addPEQ(vector<GraphData*> &graphs, const uint32_t fs, const double frequenc
     graphs.push_back(graphData);
 }
 
-void addBiquad(vector<GraphData*> &graphs, const string name, const uint32_t fs, vector<vector<double>> biquad) {
+void addBiquad(vector<GraphData*> &graphs, const string name, vector<vector<double>> biquad) {
     GraphData *graphData = new GraphData(name);
-    FilterBiquad *pFilterSum = new FilterBiquad(fs);
+    FilterBiquad *pFilterSum = new FilterBiquad(SAMPLE_RATE);
     int stage = 1;
     for (const vector<double> &coeffs : biquad) {
-        FilterBiquad *pFilter = new FilterBiquad(fs);
+        FilterBiquad *pFilter = new FilterBiquad(SAMPLE_RATE);
         pFilter->add(coeffs[0], coeffs[1], coeffs[2], coeffs[3], coeffs[4]);
         pFilterSum->add(coeffs[0], coeffs[1], coeffs[2], coeffs[3], coeffs[4]);
         graphData->add("Biquad " + toString(stage++), pFilter);
@@ -221,46 +233,46 @@ void addBiquad(vector<GraphData*> &graphs, const string name, const uint32_t fs,
     graphs.push_back(graphData);
 }
 
-void compareLP(vector<GraphData*> &graphs, const uint32_t fs) {
+void compareLP(vector<GraphData*> &graphs) {
     double freq = 80;
     GraphData *graphData = new GraphData("Compare LP");
 
-    FilterBiquad *pFilter = new FilterBiquad(fs);
+    FilterBiquad *pFilter = new FilterBiquad(SAMPLE_RATE);
     pFilter->addLowPass(freq, CrossoverType::BUTTERWORTH, 5);
     graphData->add("BW", pFilter);
 
-    pFilter = new FilterBiquad(fs);
+    pFilter = new FilterBiquad(SAMPLE_RATE);
     pFilter->addLowPass(freq, CrossoverType::BUTTERWORTH, 5, 0.2);
     graphData->add("BW Q+0.2", pFilter);
 
-    pFilter = new FilterBiquad(fs);
+    pFilter = new FilterBiquad(SAMPLE_RATE);
     pFilter->addLowPass(freq, CrossoverType::BUTTERWORTH, 5, -0.2);
     graphData->add("BW Q-0.2", pFilter);
 
-    pFilter = new FilterBiquad(fs);
+    pFilter = new FilterBiquad(SAMPLE_RATE);
     pFilter->addLowPass(freq, { -1, 0.5, 0.8 });
     graphData->add("Custom", pFilter);
 
     graphs.push_back(graphData);
 }
 
-void compareHP(vector<GraphData*> &graphs, const uint32_t fs) {
+void compareHP(vector<GraphData*> &graphs) {
     double freq = 80;
     GraphData *graphData = new GraphData("Compare HP");
 
-    FilterBiquad *pFilter = new FilterBiquad(fs);
+    FilterBiquad *pFilter = new FilterBiquad(SAMPLE_RATE);
     pFilter->addHighPass(freq, CrossoverType::BUTTERWORTH, 3);
     graphData->add("BW", pFilter);
 
-    pFilter = new FilterBiquad(fs);
+    pFilter = new FilterBiquad(SAMPLE_RATE);
     pFilter->addHighPass(freq, CrossoverType::BUTTERWORTH, 3, 0.2);
     graphData->add("BW Q+0.2", pFilter);
 
-    pFilter = new FilterBiquad(fs);
+    pFilter = new FilterBiquad(SAMPLE_RATE);
     pFilter->addHighPass(freq, CrossoverType::BUTTERWORTH, 3, -0.2);
     graphData->add("BW Q-0.2", pFilter);
 
-    pFilter = new FilterBiquad(fs);
+    pFilter = new FilterBiquad(SAMPLE_RATE);
     pFilter->addHighPass(freq, { -1, 0.6 });
     graphData->add("Custom", pFilter);
 
@@ -318,41 +330,60 @@ void addCompression(vector<GraphData*>& graphs) {
         resSample.push_back(compSample.process(samples[i]));
     }
 
-    GraphData* graphData = new GraphData("Compression 5sec");
+    GraphData* graphData = new GraphData("Compression");
     graphData->isLog = false;
+    graphData->titleX = "Samples / Time";
+    graphData->titleY = "Level";
     graphData->add("Org", org);
     graphData->add("No window", resSample);
     graphData->add("Window", resWindow);
     graphs.push_back(graphData);
 }
 
-int main() {
-    const uint32_t fs = 96000;
+void addCancellation(vector<GraphData*>& graphs) {
+    GraphData* graphData = new GraphData("Cancellation");
+    graphData->isLog = false;
+    graphData->titleY = "Level";
+    FilterCancellation filter(SAMPLE_RATE, 50);
+    SineSweepGenerator sine(SAMPLE_RATE, 10, 100, 0.5);
+    vector<vector<double>> samplesOrg, samplesCan;
+    for (int i = 0; i < sine.getNumSamples(); ++i) {
+        const double freq = sine.getFrequency();
+        const double sample = sine.next();
+        samplesOrg.push_back({ freq , sample });
+        samplesCan.push_back({ freq, filter.process(sample) });
+    }
+    graphData->add("Org", samplesOrg);
+    graphData->add("Cancelled 50Hz", samplesCan);
+    graphs.push_back(graphData);
+}
 
+int main() {
     vector<GraphData*> graphs;
-    addCrossover(graphs, fs, true, 100, CrossoverType::BUTTERWORTH, { 1, 2, 3, 4, 5, 6, 7, 8 });
-    addCrossover(graphs, fs, false, 200, CrossoverType::BUTTERWORTH, { 1, 2, 3, 4, 5, 6, 7, 8 });
-    addCrossover(graphs, fs, true, 300, CrossoverType::LINKWITZ_RILEY, { 2, 4, 8 });
-    addCrossover(graphs, fs, false, 400, CrossoverType::LINKWITZ_RILEY, { 2, 4, 8 });
-    addCrossover(graphs, fs, true, 500, CrossoverType::BESSEL, { 2, 3, 4, 5, 6, 7, 8 });
-    addCrossover(graphs, fs, false, 600, CrossoverType::BESSEL, { 2, 3, 4, 5, 6, 7, 8 });
-    addShelf(graphs, fs, true, 100, 10, { 0.5, 0.707, 1, 2 });
-    addShelf(graphs, fs, false, 200, 3, { 0.5, 0.707, 1, 2 });
-    addBandPass(graphs, fs, 500, -3, { 0.25, 0.5, 1, 2, 4, 6, 8, 10 });
-    addNotch(graphs, fs, 500, 3, { 0.25, 0.5, 1, 2, 4, 6, 8, 10 });
-    addPEQ(graphs, fs, 100, -6, { 0.5, 1, 2, 5, 10 });
-    addPEQ(graphs, fs, 500, 3, { 0.5, 1, 2, 5, 10 });
-    addLT(graphs, fs, { 0.25, 0.5, 0.707 });
-    addBiquad(graphs, "Custom biquad 100Hz 4th order BW", fs, {
+    addCrossover(graphs, true, 100, CrossoverType::BUTTERWORTH, { 1, 2, 3, 4, 5, 6, 7, 8 });
+    addCrossover(graphs, false, 200, CrossoverType::BUTTERWORTH, { 1, 2, 3, 4, 5, 6, 7, 8 });
+    addCrossover(graphs, true, 300, CrossoverType::LINKWITZ_RILEY, { 2, 4, 8 });
+    addCrossover(graphs, false, 400, CrossoverType::LINKWITZ_RILEY, { 2, 4, 8 });
+    addCrossover(graphs, true, 500, CrossoverType::BESSEL, { 2, 3, 4, 5, 6, 7, 8 });
+    addCrossover(graphs, false, 600, CrossoverType::BESSEL, { 2, 3, 4, 5, 6, 7, 8 });
+    addShelf(graphs, true, 100, 10, { 0.5, 0.707, 1, 2 });
+    addShelf(graphs, false, 200, 3, { 0.5, 0.707, 1, 2 });
+    addBandPass(graphs, 500, -3, { 0.25, 0.5, 1, 2, 4, 6, 8, 10 });
+    addNotch(graphs, 500, 3, { 0.25, 0.5, 1, 2, 4, 6, 8, 10 });
+    addPEQ(graphs, 100, -6, { 0.5, 1, 2, 5, 10 });
+    addPEQ(graphs, 500, 3, { 0.5, 1, 2, 5, 10 });
+    addLT(graphs, { 0.25, 0.5, 0.707 });
+    addBiquad(graphs, "Custom biquad 100Hz 4th order BW", {
         { 0.993978831854144, -1.98795766370829,	0.993978831854144, -1.98793637410783, 0.987978953308752	},
         { 0.997490827915119, -1.99498165583024, 0.997490827915119, -1.99496029100786, 0.995003020652617 }
         });
-    compareLP(graphs, fs);
-    compareHP(graphs, fs);
+    compareLP(graphs);
+    compareHP(graphs);
     addCompression(graphs);
+    addCancellation(graphs);
     saveJsGraphData(graphs);
 
-    FilterBiquad *pFilter = new FilterBiquad(fs);
+    FilterBiquad *pFilter = new FilterBiquad(SAMPLE_RATE);
     pFilter->addHighPass(100, CrossoverType::BUTTERWORTH, 4);
     printMaxVal(pFilter);
     pFilter->printCoefficients(true);

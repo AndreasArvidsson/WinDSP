@@ -87,9 +87,10 @@ void FilterBiquad::addLowPass(const double frequency, const vector<double>& qVal
         _biquads.push_back(biquad);
     }
     _toStringValue.push_back(String::format(
-        "Lowpass: %sHz, %ddB/oct",
+        "Lowpass: %sHz, %ddB/oct, Q %s",
         String::toString(frequency).c_str(),
-        order * 6
+        order * 6,
+        String::join(qValues).c_str()
     ));
 }
 
@@ -112,9 +113,10 @@ void FilterBiquad::addHighPass(const double frequency, const vector<double>& qVa
         _biquads.push_back(biquad);
     }
     _toStringValue.push_back(String::format(
-        "Highpass: %sHz, %ddB/oct", 
-        String::toString(frequency).c_str(), 
-        order * 6
+        "Highpass: %sHz, %ddB/oct, Q %s",
+        String::toString(frequency).c_str(),
+        order * 6,
+        String::join(qValues).c_str()
     ));
 }
 
@@ -160,7 +162,7 @@ void FilterBiquad::addPEQ(const double frequency, const double gain, const doubl
     biquad.initPEQ(_sampleRate, frequency, gain, q);
     _biquads.push_back(biquad);
     _toStringValue.push_back(String::format(
-        "PEQ: freq %sHz, gain %sdB, Q %s", 
+        "PEQ: freq %sHz, gain %sdB, Q %s",
         String::toString(frequency).c_str(),
         String::toString(gain).c_str(),
         String::toString(q).c_str()

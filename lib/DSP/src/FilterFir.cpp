@@ -12,6 +12,6 @@ FilterFir::FilterFir(const vector<double>& taps) {
 
 const vector<string> FilterFir::toString() const {
     return vector<string>{
-        String::format("FIR: %zd", _size)
+        String::format("FIR: %zdtaps", _size)
     };
 }

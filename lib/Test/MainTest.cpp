@@ -350,8 +350,10 @@ void addCancellation(vector<GraphData*>& graphs) {
     for (int i = 0; i < sine.getNumSamples(); ++i) {
         const double freq = sine.getFrequency();
         const double sample = sine.next();
+        //Multiply with 0.5(-6dB) to align peaks to 1.
+        const double sampleCan = filter.process(sample * 0.5);
         samplesOrg.push_back({ freq , sample });
-        samplesCan.push_back({ freq, filter.process(sample) * 0.5 });
+        samplesCan.push_back({ freq, sampleCan });
     }
     graphData->add("Org", samplesOrg);
     graphData->add("Cancelled 50Hz", samplesCan);

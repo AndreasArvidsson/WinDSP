@@ -43,11 +43,11 @@ void WinDSPLog::log(const LogSeverity severity, const string& fileName, const un
     vsnprintf(text, BUFFER_SIZE, str, ap);
     va_end(ap);
     if (_mainThreadId == get_id()) {
-        logLine(severity, Date::getLocalDateTimeString(), fileName, lineNumber, text);
+        logLine(severity, Date::toLocalDateTimeString(), fileName, lineNumber, text);
     }
     else {
         _lock.lock();
-        _pBuffer->push_back(LogLine(severity, Date::getLocalDateTimeString(), fileName, lineNumber, text));
+        _pBuffer->push_back(LogLine(severity, Date::toLocalDateTimeString(), fileName, lineNumber, text));
         _lock.unlock();
     }
 }

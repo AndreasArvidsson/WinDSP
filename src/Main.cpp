@@ -188,7 +188,7 @@ void run() {
      */
 
     LOG_INFO("----------------------------------------------");
-    LOG_INFO("Starting DSP service @ %s", Date::getLocalDateTimeString().c_str());
+    LOG_INFO("Starting DSP service @ %s", Date::toLocalDateTimeString().c_str());
     LOG_INFO("Capture : %s - WASAPI", captureDeviceName.c_str());
     if (pConfig->useAsioRenderDevice()) {
         LOG_INFO("Render  : %s - ASIO", renderDeviceName.c_str());

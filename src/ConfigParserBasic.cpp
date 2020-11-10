@@ -27,11 +27,12 @@ void Config::parseBasic() {
     const unordered_map<Channel, SpeakerType> channelsMap = parseChannels(pBasicNode, stereoBass, subs, subLs, subRs, smalls, path);
     const bool useSubwoofers = getUseSubwoofers(subs, subLs, subRs);
     const double lfeGain = getLfeGain(pBasicNode, useSubwoofers, smalls.size(), path);
+    const double centerGain = tryGetDoubleValue(pBasicNode, "centerGain", path);
 
     //Parse crossover config
     parseBasicCrossovers(pBasicNode, channelsMap, path);
     //Route input to output channels
-    routeChannels(channelsMap, stereoBass, subs, subLs, subRs, lfeGain);
+    routeChannels(channelsMap, stereoBass, subs, subLs, subRs, lfeGain, centerGain);
     //Add conditional routing to surrounds
     parseExpandSurround(pBasicNode, channelsMap, path);
 }
@@ -83,7 +84,7 @@ void Config::parseExpandSurround(const shared_ptr<JsonNode>& pBasicNode, const u
     }
 }
 
-void Config::routeChannels(const unordered_map<Channel, SpeakerType>& channelsMap, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain) {
+void Config::routeChannels(const unordered_map<Channel, SpeakerType>& channelsMap, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain, const double centerGain) {
     for (size_t i = 0; i < _numChannelsIn; ++i) {
         const Channel channel = (Channel)i;
         Input input(channel);
@@ -100,7 +101,7 @@ void Config::routeChannels(const unordered_map<Channel, SpeakerType>& channelsMa
             break;
             //Downmix
         case SpeakerType::OFF:
-            downmix(channelsMap, input, stereoBass, subs, subLs, subRs, lfeGain);
+            downmix(channelsMap, input, stereoBass, subs, subLs, subRs, lfeGain, centerGain);
             break;
             //Sub or downmix
         case SpeakerType::SUB:
@@ -108,7 +109,7 @@ void Config::routeChannels(const unordered_map<Channel, SpeakerType>& channelsMa
                 addSwRoute(input, stereoBass, subs, subLs, subRs, lfeGain);
             }
             else {
-                downmix(channelsMap, input, stereoBass, subs, subLs, subRs, lfeGain);
+                downmix(channelsMap, input, stereoBass, subs, subLs, subRs, lfeGain, centerGain);
             }
             break;
         default:
@@ -118,7 +119,7 @@ void Config::routeChannels(const unordered_map<Channel, SpeakerType>& channelsMa
     }
 }
 
-void Config::downmix(const unordered_map<Channel, SpeakerType>& channelsMap, Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain) const {
+void Config::downmix(const unordered_map<Channel, SpeakerType>& channelsMap, Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain, const double centerGain) const {
     SpeakerType type = SpeakerType::OFF;
     switch (input.getChannel()) {
     case Channel::SL:
@@ -133,11 +134,13 @@ void Config::downmix(const unordered_map<Channel, SpeakerType>& channelsMap, Inp
     case Channel::SBR:
         type = addRoute(channelsMap, input, { Channel::SR , Channel::R });
         break;
-    case Channel::C:
-        addRoute(input, Channel::L, PHANTOM_CENTER_GAIN);
-        addRoute(input, Channel::R, PHANTOM_CENTER_GAIN);
+    case Channel::C: {
+        const double gain = PHANTOM_CENTER_GAIN + centerGain;
+        addRoute(input, Channel::L, gain);
+        addRoute(input, Channel::R, gain);
         type = channelsMap.at(Channel::L);
         break;
+    }
     case Channel::SW:
         type = SpeakerType::SMALL;
         break;
@@ -146,13 +149,22 @@ void Config::downmix(const unordered_map<Channel, SpeakerType>& channelsMap, Inp
     }
     //Downmixed a small speaker. Add to subs as well.
     if (type == SpeakerType::SMALL) {
-        addBassRoute(input, stereoBass, subs, subLs, subRs, lfeGain);
+        addBassRoute(input, stereoBass, subs, subLs, subRs, lfeGain, centerGain);
     }
 }
 
-void Config::addBassRoute(Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain) const {
-    const Channel channel = input.getChannel();
-    const double gain = (channel == Channel::SW ? lfeGain : 0);
+void Config::addBassRoute(Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain, const double centerGain) const {
+    double gain;
+    switch (input.getChannel()) {
+    case Channel::SW:
+        gain = lfeGain;
+        break;
+    case Channel::C:
+        gain = centerGain;
+        break;
+    default:
+        gain = 0;
+    }
     if (getUseSubwoofers(subs, subLs, subRs)) {
         addSwRoute(input, stereoBass, subs, subLs, subRs, gain);
     }
@@ -370,11 +382,9 @@ const vector<Channel> Config::getChannelsByType(const unordered_map<Channel, Spe
 
 const double Config::getLfeGain(const shared_ptr<JsonNode>& pBasicNode, const bool useSubwoofers, const bool hasSmalls, const string& path) const {
     const double lfeGain = tryGetDoubleValue(pBasicNode, "lfeGain", path);
-    if (useSubwoofers) {
-        //Playing subwoofer and no small speakers. IE LFE is not going to get mixed with other channels.
-        if (!hasSmalls) {
-            return 0;
-        }
+    //Playing subwoofer and no small speakers. IE LFE is not going to get mixed with other channels.
+    if (useSubwoofers && !hasSmalls) {
+        return 0;
     }
     return lfeGain + LFE_GAIN;
 }

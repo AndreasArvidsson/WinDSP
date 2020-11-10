@@ -92,14 +92,14 @@ private:
     void parseChannel(unordered_map<Channel, SpeakerType>& result, const shared_ptr<JsonNode>& pNode, const string& field, const vector<Channel>& channels, const vector<SpeakerType>& allowed, const string& path) const;
     const vector<Channel> getChannelsByType(const unordered_map<Channel, SpeakerType>& channelsMap, const SpeakerType targetType) const;
     const double getLfeGain(const shared_ptr<JsonNode>& pBasicNode, const bool useSubwoofers, const bool hasSmalls, const string& path) const;
-    void routeChannels(const unordered_map<Channel, SpeakerType>& channelsMap, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain);
-    void addBassRoute(Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain) const;
+    void routeChannels(const unordered_map<Channel, SpeakerType>& channelsMap, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain, const double centerGain);
+    void addBassRoute(Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain, const double centerGain = 0) const;
     void addSwRoute(Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double gain) const;
     void addFrontBassRoute(Input& input, const bool stereoBass, const double gain) const;
     void addRoutes(Input& input, const vector<Channel> channels, const double gain) const;
     void addRoute(Input& input, const Channel channel, const double gain = 0, const bool addLP = false) const;
     const SpeakerType addRoute(const unordered_map<Channel, SpeakerType>& channelsMap, Input& input, const vector<Channel>& channels) const;
-    void downmix(const unordered_map<Channel, SpeakerType>& channelsMap, Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain) const;
+    void downmix(const unordered_map<Channel, SpeakerType>& channelsMap, Input& input, const bool stereoBass, const vector<Channel> subs, const vector<Channel> subLs, const vector<Channel> subRs, const double lfeGain, const double centerGain) const;
     const bool getUseSubwoofers(const vector<Channel>& subs, const vector<Channel>& subLs, const vector<Channel>& subRs) const;
     void parseExpandSurround(const shared_ptr<JsonNode>& pBasicNode, const unordered_map<Channel, SpeakerType>& channelsMap, const string& path);
     void addIfRoute(Input& input, const Channel channel) const;

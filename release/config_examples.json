@@ -71,6 +71,7 @@
         "stereoBass": true,
         "expandSurround": true,
         "lfeGain": -3,
+        "centerGain": 3,
         "lowPass": {
             "type": "BUTTERWORTH",
             "order": 5,

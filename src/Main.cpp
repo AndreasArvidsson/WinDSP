@@ -24,7 +24,7 @@
 using std::exception;
 using std::make_shared;
 
-#define VERSION "0.22.0b"
+#define VERSION "1.0.0"
 
 #ifdef DEBUG
 #include "MemoryManager.h"

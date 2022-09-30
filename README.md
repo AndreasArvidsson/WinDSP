@@ -168,6 +168,7 @@ By popular demand there now is a web based configuration editor. Gone are the da
         "stereoBass": true,
         "expandSurround": true,
         "lfeGain": -3,
+        "centerGain": 3,
         "lowPass": {
             "type": "BUTTERWORTH",
             "order": 5,
@@ -275,6 +276,8 @@ By popular demand there now is a web based configuration editor. Gone are the da
 * lfeGain: Gain offset for mixing the LFE signal with other channels.
    * Default value: 0
    * Works with both subwoofers and front speakers.
+* centerGain: Gain offset for mixing the center signal with other channels.
+    * Default value: 0
 * lowPass: Filter configuration for low pass filter. Is applied to Sub channels.
    * Default value: Butterworth 80Hz 5order(30dB/oct)
 * highPass: Filter configuration for high pass filter. Is applied to Small channels.

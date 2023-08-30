@@ -3,6 +3,9 @@ Windows based DSP(Digital Signal Processor)
 
 [Visualize different filters on plot filters page](https://andreasarvidsson.github.io/WinDSP)
 
+> **Note**
+> If you find this program helpful, [consider sponsoring](https://github.com/sponsors/AndreasArvidsson)!
+
 # Table of Contents
 [Features](#Features)
 

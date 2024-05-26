@@ -322,8 +322,6 @@ void addCompression(vector<GraphData*>& graphs) {
     FilterCompression compWindow(header.sampleRate, threshold, ratio, attack, release, window);
     FilterCompression compSample(header.sampleRate, threshold, ratio, attack, release);
     vector<double> org, resWindow, resSample;
-    //Only use first 5sec of first channel
-    const size_t size = min(samples.size(), 5 * header.sampleRate);
     for (int i = 0; i < samples.size(); i += header.numChannels) {
         org.push_back(samples[i]);
         resWindow.push_back(compWindow.process(samples[i]));

@@ -3,7 +3,7 @@
 #include "TrayIcon.h"
 #include "Config.h"
 
-//0=visible, 1=minimized, 2=hidden
+// 0=visible, 1=minimized, 2=hidden
 int Visibility::_status = -1;
 
 void Visibility::show(const bool inForeground) {
@@ -41,7 +41,7 @@ void Visibility::update(const Config* pConfig) {
         minimize();
     }
     else {
-        //Dont show in foreground. Irritating when window goes to foreground for config changes.
+        // Dont show in foreground. Irritating when window goes to foreground for config changes.
         show(false);
     }
 }

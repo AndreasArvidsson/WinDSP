@@ -10,6 +10,6 @@ public:
     static void update(const Config* pConfig);
 
 private:
-    //0=visible, 1=minimized, 2=hidden
+    // 0=visible, 1=minimized, 2=hidden
     static int _status; 
 };

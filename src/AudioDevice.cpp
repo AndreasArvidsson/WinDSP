@@ -1,6 +1,6 @@
 #include "AudioDevice.h"
 #include "Mmdeviceapi.h"
-#include "Functiondiscoverykeys_devpkey.h" //PKEY_Device_FriendlyName
+#include "Functiondiscoverykeys_devpkey.h" // PKEY_Device_FriendlyName
 #include "WinDSPLog.h"
 #include "Str.h"
 
@@ -39,10 +39,10 @@ vector<string> AudioDevice::getDeviceNames() {
 string AudioDevice::getDeviceName(IMMDevice* pDevice) {
     IPropertyStore* pProps = NULL;
     assert(pDevice->OpenPropertyStore(STGM_READ, &pProps));
-    //Initialize container for property value.
+    // Initialize container for property value.
     PROPVARIANT varName;
     PropVariantInit(&varName);
-    //Get the endpoint's friendly-name property.
+    // Get the endpoint's friendly-name property.
     assert(pProps->GetValue(PKEY_Device_FriendlyName, &varName));
     wstring tmp(varName.pwszVal);
     string result = String::toString(tmp);
@@ -108,9 +108,9 @@ AudioDevice::AudioDevice(IMMDevice* pDevice) {
 }
 
 AudioDevice::~AudioDevice() {
-    //Stop service;
+    // Stop service
     _pAudioClient->Stop();
-    //Free resources
+    // Free resources
     CoTaskMemFree(_pFormat);
     SAFE_RELEASE(_pDevice);
     SAFE_RELEASE(_pAudioClient);
@@ -145,7 +145,7 @@ void AudioDevice::initRenderService() {
 }
 
 void AudioDevice::startService() {
-    //Start aduio service on device.
+    // Start aduio service on device.
     assert(_pAudioClient->Start());
 }
 
@@ -155,7 +155,7 @@ void AudioDevice::prepareService(const bool capture) {
         assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pCaptureClient)));
     }
     else {
-        //Create event handle
+        // Create event handle
         _eventHandle = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
         if (_eventHandle == NULL) {
             throw Error("WASAPI: Unable to create samples ready event %d", GetLastError());
@@ -166,10 +166,10 @@ void AudioDevice::prepareService(const bool capture) {
         assert(_pAudioClient->GetService(IID_PPV_ARGS(&_pRenderClient)));
     }
 
-    //Get the size of the allocated buffer.
+    // Get the size of the allocated buffer.
     assert(_pAudioClient->GetBufferSize(&_bufferSize));
 
-    WAVEFORMATEX* p; //Need this. Cant be null.
+    WAVEFORMATEX* p; // Need this. Cant be null.
     _pAudioClient->GetCurrentSharedModeEnginePeriod(&p, &_engineBufferSize);
 }
 
@@ -241,7 +241,7 @@ void AudioDevice::flushRenderBuffer() const {
     }
 }
 
-//Convert HRESULT to text explanation.
+// Convert HRESULT to text explanation.
 const string AudioDevice::hresult(const HRESULT hr) {
     switch (hr) {
     case AUDCLNT_E_NOT_INITIALIZED:

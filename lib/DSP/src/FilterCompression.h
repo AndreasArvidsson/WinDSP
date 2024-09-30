@@ -27,23 +27,23 @@ public:
 
     inline const double process(const double sample) override {
         double over;
-        //Use a sliding rms window to calculate how much the sample is over the threshold.
+        // Use a sliding rms window to calculate how much the sample is over the threshold.
         if (_useWindow) {
             run(sample * sample, _windowCoef, _squaredSum);
             over = sqrt(_squaredSum) / _threshold;
         }
-        //Use just the single sample.
+        // Use just the single sample.
         else {
             over = sample * sample / _threshold;
         }
         if (over < 1) {
             over = 1;
         }
-        //Attack
+        // Attack
         if (over > _envelope) {
             run(over, _attackCoef, _envelope);
         }
-        //Release
+        // Release
         else {
             run(over, _releaseCoef, _envelope);
         }

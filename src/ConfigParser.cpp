@@ -16,17 +16,17 @@ using std::move;
 using std::to_string;
 
 #define NOMINMAX
-#include <iostream> //cin
+#include <iostream> // cin
 
 void Config::parseDevices() {
     string path;
     const shared_ptr<JsonNode> pDevicesNode = tryGetObjectNode(_pJsonNode, "devices", path);
-    //Devices not set in config. Query user
+    // Devices not set in config. Query user
     if (!pDevicesNode->has("capture") || !pDevicesNode->has("render")) {
         setDevices();
         parseDevices();
     }
-    //Devices already set in config.
+    // Devices already set in config.
     else {
         path = "devices";
         _captureDeviceName = getTextValue(pDevicesNode, "capture", path);
@@ -38,22 +38,22 @@ void Config::parseDevices() {
 }
 
 void Config::parseMisc() {
-    //Parse visibility options
+    // Parse visibility options
     _hide = tryGetBoolValue(_pJsonNode, "hide", "");
     _minimize = tryGetBoolValue(_pJsonNode, "minimize", "");
-    //Parse startup
+    // Parse startup
     _startWithOS = tryGetBoolValue(_pJsonNode, "startWithOS", "");
-    //Parse debug
+    // Parse debug
     _debug = tryGetBoolValue(_pJsonNode, "debug", "");
-    //Log to file in debug mode.
+    // Log to file in debug mode.
     WinDSPLog::setLogToFile(_debug);
 }
 
 void Config::parseRouting() {
-    //Create list of in to out routings
+    // Create list of in to out routings
     _inputs = vector<Input>(_numChannelsIn);
 
-    //Use basic or advanced routing
+    // Use basic or advanced routing
     const bool hasBasic = _pJsonNode->has("basic");
     const bool hasAdvanced = _pJsonNode->has("advanced");
     if (hasBasic && hasAdvanced) {
@@ -69,19 +69,19 @@ void Config::parseRouting() {
 
 void Config::parseOutputs() {
     _outputs = vector<Output>(_numChannelsOut);
-    //Iterate outputs and add filters
+    // Iterate outputs and add filters
     string path = "";
     const shared_ptr<JsonNode> pOutputs = tryGetArrayNode(_pJsonNode, "outputs", path);
     for (size_t i = 0; i < pOutputs->size(); ++i) {
         parseOutput(pOutputs, i, path);
     }
-    //Add default output to missing(not defined by user in conf) output channels.
+    // Add default output to missing(not defined by user in conf) output channels.
     for (size_t i = 0; i < _outputs.size(); ++i) {
         if (!_outputs[i].isDefined()) {
             const Channel channel = (Channel)i;
             Output output(channel);
             vector<unique_ptr<Filter>> filters;
-            //Check if there is basic routing crossovers to apply.
+            // Check if there is basic routing crossovers to apply.
             applyCrossoversMap(filters, channel);
             output.addFilters(filters);
             _outputs[i] = move(output);
@@ -149,40 +149,40 @@ const Channel Config::getOutputChannel(const string& channelName, const string& 
 
 void Config::validateLevels(const string& path) {
     vector<double> levels(_outputs.size());
-    //Apply input/route levels
+    // Apply input/route levels
     for (const Input& input : _inputs) {
         for (const Route& route : input.getRoutes()) {
-            //Conditional routing is not always applied at the same time as other route. Eg if silent.
+            // Conditional routing is not always applied at the same time as other route. Eg if silent.
             if (!route.hasConditions()) {
                 levels[route.getChannelIndex()] += getFiltersLevelSum(route.getFilters());
             }
         }
     }
-    //Apply output gain
+    // Apply output gain
     for (size_t i = 0; i < _outputs.size(); ++i) {
         levels[i] = getFiltersLevelSum(_outputs[i].getFilters(), levels[i]);
     }
-    //Eval output channel levels
+    // Eval output channel levels
     bool first = true;
     for (size_t i = 0; i < _outputs.size(); ++i) {
-        //Level is above 0dBFS. CLIPPING CAN OCCURE!!!
+        // Level is above 0dBFS. CLIPPING CAN OCCURE!!!
         if (levels[i] > 1) {
             const double gain = Convert::levelToDb(levels[i]);
 
-            //Add enough gain to avoid clipping.
+            // Add enough gain to avoid clipping.
             if (_addAutoGain) {
                 Output& output = _outputs[i];
                 FilterGain* pFilterGain = getGainFilter(output.getFilters());
-                //Add 0.1 to be sure to cover range
+                // Add 0.1 to be sure to cover range
                 const double newGain = -(gain + 0.1);
                 if (pFilterGain) {
-                    //Existing filter with new gain. Must be invert only. Set new gain.
+                    // Existing filter with new gain. Must be invert only. Set new gain.
                     if (!pFilterGain->getGain()) {
                         pFilterGain->setGain(newGain);
                         continue;
                     }
                 }
-                //Gain filter missing. Add new one.
+                // Gain filter missing. Add new one.
                 else {
                     output.addFilterFirst(make_unique<FilterGain>(newGain));
                     continue;
@@ -216,7 +216,7 @@ void Config::setDevices() {
         }
         LOG_NL();
         LOG_INFO("Press corresponding number to select");
-        //Make selection
+        // Make selection
         selectedIndex = getSelection(1, wasapiDevices.size());
         _captureDeviceName = wasapiDevices[selectedIndex - 1];
 
@@ -225,7 +225,7 @@ void Config::setDevices() {
         LOG_NL();
         size_t index = 1;
         for (size_t i = 0; i < wasapiDevices.size(); ++i, ++index) {
-            //Cant reuse capture device.
+            // Cant reuse capture device.
             if (index != selectedIndex) {
                 LOG_INFO("%zu - %s - WASAPI", index, wasapiDevices[i].c_str());
             }
@@ -235,11 +235,11 @@ void Config::setDevices() {
         }
         LOG_NL();
         LOG_INFO("Press corresponding number to select");
-        //Make selection
+        // Make selection
         selectedIndex = getSelection(1, wasapiDevices.size() + asioDevices.size(), selectedIndex);
         renderAsio = selectedIndex - 1 >= wasapiDevices.size();
 
-        //Query if selection is ok.
+        // Query if selection is ok.
         LOG_NL();
         LOG_INFO("Selected devices:");
         LOG_NL();
@@ -258,7 +258,7 @@ void Config::setDevices() {
         LOG_NL();
     } while (!isOk);
 
-    //Update json
+    // Update json
 
     if (!_pJsonNode->path("devices")->isObject()) {
         _pJsonNode->put("devices", make_shared<JsonNode>(JsonNodeType::OBJECT));

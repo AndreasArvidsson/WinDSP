@@ -6,14 +6,14 @@
 #include "CrossoverType.h"
 #include "Str.h"
 #include "Convert.h"
-#include "Audioclient.h" //WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
+#include "Audioclient.h" // WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
 #include "Channel.h"
 
 using std::make_unique;
 
 vector<unique_ptr<Filter>> Config::parseFilters(const shared_ptr<JsonNode>& pNode, const string& path, const int outputChannel) const {
     vector<unique_ptr<Filter>> filters;
-    //Parse single instance simple filters.
+    // Parse single instance simple filters.
     parseGain(filters, pNode, path);
     parseDelay(filters, pNode, path);
 
@@ -21,24 +21,24 @@ vector<unique_ptr<Filter>> Config::parseFilters(const shared_ptr<JsonNode>& pNod
     string filtersPath = path;
     const shared_ptr<JsonNode> pFiltersNode = tryGetArrayNode(pNode, "filters", filtersPath);
 
-    //Apply crossovers from basic config to outputs.
+    // Apply crossovers from basic config to outputs.
     if (outputChannel > -1) {
         applyCrossoversMap(pFilterBiquad.get(), (Channel)outputChannel, pFiltersNode, filtersPath);
     }
 
-    //Parse filters list
+    // Parse filters list
     for (size_t i = 0; i < pFiltersNode->size(); ++i) {
         string filterPath = filtersPath;
         const shared_ptr<JsonNode> pFilter = getObjectNode(pFiltersNode, i, filterPath);
         parseFilter(filters, pFilterBiquad.get(), pFilter, filterPath);
     }
 
-    //Use  biquad filter.
+    // Use  biquad filter.
     if (!pFilterBiquad->isEmpty()) {
         filters.push_back(move(pFilterBiquad));
     }
 
-    //Compression needs to be last so that it has the final samples to work on.
+    // Compression needs to be last so that it has the final samples to work on.
     parseCompression(filters, pNode, path);
 
     return filters;
@@ -47,7 +47,7 @@ vector<unique_ptr<Filter>> Config::parseFilters(const shared_ptr<JsonNode>& pNod
 void Config::parseGain(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pNode, const string& path) const {
     const double value = tryGetDoubleValue(pNode, "gain", path);
     const bool invert = tryGetBoolValue(pNode, "invert", path);
-    //No use in adding zero gain.
+    // No use in adding zero gain.
     if (value != 0.0 || invert) {
         filters.push_back(make_unique<FilterGain>(value, invert));
     }
@@ -70,7 +70,7 @@ void Config::parseDelay(vector<unique_ptr<Filter>>& filters, const shared_ptr<Js
     else {
         throw Error("Config(%s) - Invalid delay format. Expected number or object", path.c_str());
     }
-    //No use in adding zero delay.
+    // No use in adding zero delay.
     if (value != 0) {
         const uint32_t sampleDelay = FilterDelay::getSampleDelay(_sampleRate, value, useUnitMeter);
         if (sampleDelay > 0) {
@@ -233,7 +233,7 @@ void Config::parseBiquad(FilterBiquad* pFilterBiquad, const shared_ptr<JsonNode>
 
 void Config::parseFir(vector<unique_ptr<Filter>>& filters, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
     string myPath = path;
-    //Read each line in fir parameter file
+    // Read each line in fir parameter file
     const string filePath = getTextValue(pFilterNode, "file", myPath);
     const File file(filePath);
     const string extension = file.getExtension();
@@ -265,7 +265,7 @@ void Config::parseFirTxt(vector<unique_ptr<Filter>>& filters, const File& file, 
 
 void Config::parseFirWav(vector<unique_ptr<Filter>>& filters, const File& file, const string& path) const {
     unique_ptr<char[]> pBuffer;
-    //Get data
+    // Get data
     const size_t bufferSize = file.getData(&pBuffer);
     if (!bufferSize) {
         throw Error("Config(%s) - Can't read FIR file. '%s'", path.c_str(), file.getPath().c_str());
@@ -282,7 +282,7 @@ void Config::parseFirWav(vector<unique_ptr<Filter>>& filters, const File& file, 
     if (header.sampleRate != _sampleRate) {
         throw Error("Config(%s) - FIR file sample rate doesn't match render device. Render(%d), FIR(%d)", path.c_str(), _sampleRate, header.sampleRate);
     }
-    //Generate taps
+    // Generate taps
     const size_t numSamples = header.getNumSamples();
     vector<double> taps;
     if (header.audioFormat == WAVE_FORMAT_PCM) {
@@ -319,7 +319,7 @@ void Config::parseFirWav(vector<unique_ptr<Filter>>& filters, const File& file, 
 }
 
 void Config::applyCrossoversMap(FilterBiquad* pFilterBiquad, const Channel channel, const shared_ptr<JsonNode>& pFilterNode, const string& path) const {
-    //Check if this channel should have an LP and that there isn't an user defined LP in the filters list.
+    // Check if this channel should have an LP and that there isn't an user defined LP in the filters list.
     if (_addLpTo.find(channel) != _addLpTo.end() && !hasCrossoverFilter(pFilterNode, true, path)) {
         parseCrossover(true, pFilterBiquad, _pLpFilter, "basic");
     }

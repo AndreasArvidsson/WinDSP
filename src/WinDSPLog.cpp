@@ -27,7 +27,7 @@ void WinDSPLog::destroy() {
 
 void WinDSPLog::setLogToFile(const bool logToFile) {
     _logToFile = logToFile;
-    //Start with empty row.
+    // Start with empty row.
     if (logToFile) {
         ofstream outfile;
         outfile.open(LOG_FILE, ios_base::app);
@@ -36,7 +36,7 @@ void WinDSPLog::setLogToFile(const bool logToFile) {
 }
 
 void WinDSPLog::log(const LogSeverity severity, const string& fileName, const unsigned int lineNumber, const char* const str, ...) {
-    //Apply argument to user string.
+    // Apply argument to user string.
     va_list ap;
     char text[BUFFER_SIZE];
     va_start(ap, str);

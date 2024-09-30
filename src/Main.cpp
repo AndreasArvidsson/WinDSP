@@ -48,12 +48,12 @@ void updateStartWithOS() {
     const HKEY hKey = HKEY_CURRENT_USER;
     const string path = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
     const string name = "WinDSP";
-    //Should start with OS. Add to registry.
+    // Should start with OS. Add to registry.
     if (pConfig->startWithOS()) {
         const string exePath = OS::getExePath();
         OS::regSetValue(hKey, path, name, exePath);
     }
-    //Added to registry previusly. Remove.
+    // Added to registry previusly. Remove.
     else if (OS::regValueExists(hKey, path, name)) {
         OS::regRemoveValue(hKey, path, name);
     }
@@ -108,7 +108,7 @@ void clearData() {
     WinDSPLog::destroy();
 
 #ifdef DEBUG_MEMORY
-    //Check for memory leaks
+    // Check for memory leaks
     if (MemoryManager::getInstance()->hasLeak()) {
         Visibility::show(true);
         MemoryManager::getInstance()->assertNoLeak();
@@ -117,20 +117,20 @@ void clearData() {
 }
 
 void run() {
-    //Init log with this thread.
+    // Init log with this thread.
     WinDSPLog::init();
 
-    //Load config file
+    // Load config file
     const string configPath = OS::getExeDirPath() + getConfigFileName();
     pConfig = make_shared<Config>(configPath);
 
-    //Log title to console.
+    // Log title to console.
     logTitle();
 
-    //Update start with OS.
+    // Update start with OS.
     updateStartWithOS();
 
-    //Get capture and render devices
+    // Get capture and render devices
     const string captureDeviceName = pConfig->getCaptureDeviceName();
     const string renderDeviceName = pConfig->getRenderDeviceName();
 
@@ -143,14 +143,14 @@ void run() {
     pCaptureDevice = AudioDevice::initDevice(captureDeviceName);
     pCaptureDevice->initCaptureService();
     const WAVEFORMATEX* const pCaptureFormat = pCaptureDevice->getFormat();
-    //Sample buffers must contains a 32bit float. All code depends on it.
+    // Sample buffers must contains a 32bit float. All code depends on it.
     if (pCaptureFormat->wBitsPerSample != 32) {
         throw Error("Bit depth doesnt match float(32), Found(%d)", pCaptureFormat->wBitsPerSample);
     }
 
     uint32_t renderNumChannels;
 
-    //ASIO render device.
+    // ASIO render device.
     if (pConfig->useAsioRenderDevice()) {
         renderNumChannels = pConfig->getAsioNumChannels() > 0
             ? pConfig->getAsioNumChannels()
@@ -159,13 +159,13 @@ void run() {
             renderDeviceName, pCaptureFormat->nSamplesPerSec,
             pConfig->getAsioBufferSize(), renderNumChannels, pConfig->inDebug());
     }
-    //WASAPI render device.
+    // WASAPI render device.
     else {
         pRenderDevice = AudioDevice::initDevice(renderDeviceName);
         pRenderDevice->initRenderService();
         const WAVEFORMATEX* const pRenderFormat = pRenderDevice->getFormat();
         renderNumChannels = pRenderFormat->nChannels;
-        //The application have no resampler. Sample rate and bit depth must be a match.
+        // The application have no resampler. Sample rate and bit depth must be a match.
         if (pCaptureFormat->nSamplesPerSec != pRenderFormat->nSamplesPerSec) {
             throw Error("Sample rate missmatch: Capture(%d), Render(%d)",
                 pCaptureFormat->nSamplesPerSec, pRenderFormat->nSamplesPerSec);
@@ -180,7 +180,7 @@ void run() {
         }
     }
 
-    //Read config and get I/O instances with filters 
+    // Read config and get I/O instances with filters 
     pConfig->init(pCaptureFormat->nSamplesPerSec, pCaptureFormat->nChannels, renderNumChannels);
 
     /*
@@ -214,10 +214,10 @@ void run() {
         pConfig->printConfig();
     }
 
-    //Show or hide window. Do this in late stage; irritating when winow is hidden/shown for every failed hardware init.
+    // Show or hide window. Do this in late stage; irritating when winow is hidden/shown for every failed hardware init.
     Visibility::update(pConfig.get());
 
-    //Start capturing data
+    // Start capturing data
     CaptureLoop captureLoop(pConfig, pCaptureDevice, pRenderDevice);
     captureLoop.run();
 }
@@ -225,13 +225,13 @@ void run() {
 void main() {
     setTitle();
 
-    //Very important for filter performance.
+    // Very important for filter performance.
     OS::setPriorityHigh();
 
     size_t waiting = 0;
     for (;;) {
         try {
-            //Run application
+            // Run application
             run();
         }
         catch (const ConfigChangedException& e) {
@@ -241,27 +241,27 @@ void main() {
                 LOG_NL();
             }
         }
-        //Keep trying for the service to come back
+        // Keep trying for the service to come back
         catch (const exception& e) {
             Visibility::show(true);
             WinDSPLog::flush();
             LOG_ERROR("ERROR: %s", e.what());
 
-            //Wait before trying again.
+            // Wait before trying again.
             waiting = 20;
         }
 
-        //Release old resources.
+        // Release old resources.
         clearData();
 
-        //Wait for device to possible come back after reconfigure.
+        // Wait for device to possible come back after reconfigure.
         while (waiting > 0) {
             --waiting;
 
-            //Sleep not to busy wait all resources.
+            // Sleep not to busy wait all resources.
             Date::sleepMillis(100);
 
-            //Check keyboard input. Needed if user want to change config during error state.
+            // Check keyboard input. Needed if user want to change config during error state.
             checkInput(Keyboard::getDigit());
         }
     }

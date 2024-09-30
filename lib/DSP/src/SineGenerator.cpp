@@ -1,7 +1,7 @@
 #include "SineGenerator.h"
 #include "Convert.h"
 #define _USE_MATH_DEFINES
-#include "math.h" //M_PI
+#include "math.h" // M_PI
 
 SineGenerator::SineGenerator(const double sampleRate, const double frequency, const double gain) {
     _phase = 0;

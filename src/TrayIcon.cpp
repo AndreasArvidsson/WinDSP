@@ -29,7 +29,7 @@ void TrayIcon::init(const WNDPROC wndProc, const int iconResourceId, const strin
     _iconData.uID = 1;
     _iconData.uVersion = NOTIFYICON_VERSION;
     _iconData.uCallbackMessage = TRAY_ICON_MSG;
-    _iconData.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE; //Icon, tooltip and WndProc message
+    _iconData.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE; // Icon, tooltip and WndProc message
     _iconData.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(iconResourceId), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE);
     strcpy(_iconData.szTip, tooltip.c_str());
 }

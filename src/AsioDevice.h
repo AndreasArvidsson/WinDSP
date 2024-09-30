@@ -18,7 +18,7 @@ using std::string;
 using std::vector;
 
 namespace AsioDevice {
-    //Public
+    // Public
     void initRenderService(const string &driverName, const long sampleRate, const long bufferSize = 0, const long numChannels = 0, const bool inDebug = false);
     void destroy();
     void startService();
@@ -35,7 +35,7 @@ namespace AsioDevice {
     void addSample(const double sample);
     void printInfo();
 
-    //Private
+    // Private
     void _bufferSwitch(const long asioBufferIndex, const ASIOBool);
     long _asioMessage(const long selector, const long value, void * const message, double * const opt);
     unique_ptr<double[]> _getWriteBuffer();

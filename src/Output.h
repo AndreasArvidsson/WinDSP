@@ -8,7 +8,7 @@
 
 #pragma once
 #define NOMINMAX
-#include <algorithm> //max
+#include <algorithm> // max
 #include <memory>
 #include "Filter.h"
 #include "Channel.h"
@@ -40,9 +40,9 @@ public:
             data = pFilter->process(data);
         }
         if (abs(data) > 1.0) {
-            //Record clipping level so it can be shown in error message.
+            // Record clipping level so it can be shown in error message.
             _clipping = max(_clipping, abs(data));
-            //Clamp/limit to max value to avoid damaging equipment.
+            // Clamp/limit to max value to avoid damaging equipment.
             return data > 0.0 ? 1.0 : -1.0;
         }
         return data;

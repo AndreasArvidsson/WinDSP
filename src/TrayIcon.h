@@ -1,6 +1,6 @@
 #pragma once
 #define NOMINMAX
-#include <windows.h> //NOTIFYICONDATA, WNDPROC, HWND, GetConsoleWindow
+#include <windows.h> // NOTIFYICONDATA, WNDPROC, HWND, GetConsoleWindow
 #include <string>
 
 using std::string;

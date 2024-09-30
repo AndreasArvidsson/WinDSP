@@ -7,7 +7,7 @@
 #include "CrossoverType.h"
 #include "DSP.h"
 #include "File.h"
-#include "Audioclient.h" //WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
+#include "Audioclient.h" // WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT
 #include "Error.h"
 
 using std::ofstream;
@@ -131,7 +131,7 @@ void saveJsGraphData(vector<GraphData*> &graphs) {
 }
 
 void addCrossover(vector<GraphData*> &graphs, const bool isLowPass, const double frequency, const CrossoverType type, vector<uint8_t> orders) {
-    //"Highpass Bessel 100Hz",
+    // "Highpass Bessel 100Hz"
     string name = (isLowPass ? "Lowpass " : "Highpass ");
     if (type == CrossoverType::BUTTERWORTH) {
         name += "Butterworth ";
@@ -348,7 +348,7 @@ void addCancellation(vector<GraphData*>& graphs) {
     for (int i = 0; i < sine.getNumSamples(); ++i) {
         const double freq = sine.getFrequency();
         const double sample = sine.next();
-        //Multiply with 0.5(-6dB) to align peaks to 1.
+        // Multiply with 0.5(-6dB) to align peaks to 1
         const double sampleCan = filter.process(sample * 0.5);
         samplesOrg.push_back({ freq , sample });
         samplesCan.push_back({ freq, sampleCan });

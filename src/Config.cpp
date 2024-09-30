@@ -54,7 +54,7 @@ const bool Config::minimize() const {
 
 const double Config::getFiltersLevelSum(const vector<unique_ptr<Filter>>& filters, double startLevel) const {
     for (const unique_ptr<Filter>& pFilter : filters) {
-        //If filter is gain: Apply gain
+        // If filter is gain: Apply gain
         if (typeid (*pFilter.get()) == typeid (FilterGain)) {
             const FilterGain* pFilterGain = (FilterGain*)pFilter.get();
             startLevel *= pFilterGain->getMultiplierNoInvert();

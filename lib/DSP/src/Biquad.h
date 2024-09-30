@@ -27,7 +27,7 @@ public:
     const vector<vector<double>> getFrequencyResponse(const uint32_t sampleRate, const uint32_t nPoints, const double fMin, const double fMax) const;
     void printCoefficients(const bool miniDSPFormat = false) const;
 
-    //Transposed direct form II 
+    // Transposed direct form II
     inline const double process(const double data) {
         const double out = data * _b0 + _z1;
         _z1 = data * _b1 - out * _a1 + _z2;

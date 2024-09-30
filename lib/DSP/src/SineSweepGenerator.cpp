@@ -1,6 +1,6 @@
 #include "SineSweepGenerator.h"
 #define _USE_MATH_DEFINES
-#include "math.h" //M_PI
+#include "math.h" // M_PI
 #include "Convert.h"
 
 SineSweepGenerator::SineSweepGenerator(const size_t sampleRate, const double frequencyStart, const double frequencyEnd, const double duration, const double gain) {

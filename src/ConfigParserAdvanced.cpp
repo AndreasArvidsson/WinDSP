@@ -8,19 +8,19 @@ using std::move;
 
 void Config::parseAdvanced() {
     string path = "";
-    //Iterate inputs and set routes
+    // Iterate inputs and set routes
     const shared_ptr<JsonNode> pInputs = tryGetObjectNode(_pJsonNode, "advanced", path);
     for (const string &channelName : pInputs->getOrder()) {
         parseInput(pInputs, channelName, path);
     }
-    //Add default in/out route to missing
+    // Add default in/out route to missing
     for (size_t i = 0; i < _numChannelsIn; ++i) {
         if (!_inputs[i].isDefined()) {
-            //Output exists. Route to output
+            // Output exists. Route to output
             if (i < _numChannelsOut) {
                 _inputs[i] = Input((Channel)i, (Channel)i);
             }
-            //Output doesn't exists. Add default non-route input.
+            // Output doesn't exists. Add default non-route input.
             else {
                 _inputs[i] = Input((Channel)i);
             }
@@ -47,7 +47,7 @@ void Config::parseInput(const shared_ptr<JsonNode>& pInputs, const string &chann
 
 void Config::parseRoute(Input& input, const shared_ptr<JsonNode>& pRoutes, const size_t index, string path) {
     const shared_ptr<JsonNode> pRouteNode = getObjectNode(pRoutes, index, path);
-    //If route have no out channel it's the same thing as no route at all.
+    // If route have no out channel it's the same thing as no route at all.
     if (pRouteNode->has("out")) {
         const string outPath = path + "/out";
         const string channelName = getTextValue(pRouteNode, "out", path);

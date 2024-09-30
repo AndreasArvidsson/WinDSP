@@ -13,7 +13,7 @@
 #include "Input.h"
 #include "Output.h"
 
-//#define PERFORMANCE_LOG
+// #define PERFORMANCE_LOG
 
 #ifdef PERFORMANCE_LOG
 #include "Stopwatch.h"
@@ -33,12 +33,12 @@ CaptureLoop::CaptureLoop(const shared_ptr<Config> pConfig, unique_ptr<AudioDevic
     _pRenderDevice = move(pRenderDevice);
     _run = false;
 
-    //Initialize conditions
+    // Initialize conditions
     Condition::init(_pInputs->size());
 }
 
 CaptureLoop::~CaptureLoop() {
-    //Stop and wait for capture thread to finish.
+    // Stop and wait for capture thread to finish.
     _run = false;
     _captureThread.join();
     Condition::destroy();
@@ -47,66 +47,66 @@ CaptureLoop::~CaptureLoop() {
 void CaptureLoop::run() {
     _run = true;
 
-    //Start wasapi capture device.
+    // Start wasapi capture device.
     _pCaptureDevice->startService();
 
     if (_pConfig->useAsioRenderDevice()) {
-        //Asio rendering is started in a new thread by the driver.
+        // Asio rendering is started in a new thread by the driver.
         AsioDevice::startService();
-        //Start capturing in a new thread.
+        // Start capturing in a new thread.
         _captureThread = thread(&CaptureLoop::_captureLoopAsio, this);
     }
     else {
-        //Start wasapi render device.
+        // Start wasapi render device.
         _pRenderDevice->startService();
-        //Start capturing in a new thread.
+        // Start capturing in a new thread.
         _captureThread = thread(&CaptureLoop::_captureLoopWasapi, this);
     }
 
     size_t count = 0;
     for (;;) {
-        //Dont print in other than main thread due top performance/latency issues.
+        // Dont print in other than main thread due top performance/latency issues.
         WinDSPLog::flush();
 
-        //Asio renderer operates in its on thread context and cant directly throw exceptions.
+        // Asio renderer operates in its on thread context and cant directly throw exceptions.
         AsioDevice::throwError();
         AudioDevice::throwError();
 
-        //Check if config file has changed.
+        // Check if config file has changed.
         _checkConfig();
 
         if (TrayIcon::isShown()) {
-            //Check if tray icon is clicked.
+            // Check if tray icon is clicked.
             TrayIcon::handleQueue();
         }
         else {
-            //If hide is enabled and the window is minimize hide it and show tray icon instead.
+            // If hide is enabled and the window is minimize hide it and show tray icon instead.
             if (_pConfig->hide() && OS::isWindowMinimized()) {
                 Visibility::hide();
             }
         }
 
-        //Dont do as often. Every 5second or so.
+        // Dont do as often. Every 5second or so.
         if (count == 50) {
             count = 0;
 
-            //Check if clipping has occured since last.
+            // Check if clipping has occured since last.
             _checkClippingChannels();
 
-            //Update conditional routing requirements since last.
+            // Update conditional routing requirements since last.
             _updateConditionalRouting();
         }
         ++count;
 
-        //Short sleep just to not busy wait all resources.
+        // Short sleep just to not busy wait all resources.
         Date::sleepMillis(100);
     }
 }
 
 void CaptureLoop::_captureLoopAsio() {
-    //Used to temporarily store sample(for all out channels) while they are being processed.
+    // Used to temporarily store sample(for all out channels) while they are being processed.
     double renderBlockBuffer[32];
-    //The size of all sample frames for all channels with the same sample index/timestamp
+    // The size of all sample frames for all channels with the same sample index/timestamp
     const size_t renderBlockSize = sizeof(double) * _pOutputs->size();
     UINT32 samplesAvailable;
     DWORD flags;
@@ -115,20 +115,20 @@ void CaptureLoop::_captureLoopAsio() {
     bool silent = true;
     bool first = true;
 
-    //Wait until ASIO service has started.
+    // Wait until ASIO service has started.
     while (!AsioDevice::isRunning());
 
     while (_run) {
-        //Check for samples in capture buffer.
+        // Check for samples in capture buffer.
         assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
 
         while (samplesAvailable) {
-            //Get capture buffer pointer and number of available frames.
+            // Get capture buffer pointer and number of available frames.
             assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &samplesAvailable, &flags));
 
             if (flags) {
                 if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
-                    //Was playing audio before. Stop rendering and reset filter states.
+                    // Was playing audio before. Stop rendering and reset filter states.
                     if (!silent) {
                         silent = true;
                         _resetFilters();
@@ -146,11 +146,11 @@ void CaptureLoop::_captureLoopAsio() {
                 }
             }
 
-            //Was silent before.
+            // Was silent before.
             if (silent) {
                 silent = false;
-                //First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
-                //Need to flush buffer of bad data or we can get glitches.
+                // First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
+                // Need to flush buffer of bad data or we can get glitches.
                 if (first) {
                     first = false;
                     assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
@@ -158,27 +158,22 @@ void CaptureLoop::_captureLoopAsio() {
                     break;
                 }
 
-                //Render silence to asio to create the buffers at once. If not the first audio will be crackling.
-                for (UINT32 sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
-                    for (UINT32 i = 0; i < _pOutputs->size(); ++i) {
-                        AsioDevice::addSample(0);
-                    }
-                }
+                // Render silence to asio to create the buffers at once. If not the first audio will be crackling.
             }
 
             swStart();
 
-            //Iterate all capture frames
+            // Iterate all capture frames
             for (UINT32 sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
-                //Set buffer default value to 0 so we can add/mix values to it later
+                // Set buffer default value to 0 so we can add/mix values to it later
                 memset(renderBlockBuffer, 0, renderBlockSize);
 
-                //Iterate inputs and route samples to outputs
+                // Iterate inputs and route samples to outputs
                 for (Input& input : *_pInputs) {
                     input.route(*pCaptureBuffer++, renderBlockBuffer);
                 }
 
-                //Iterate outputs and apply filters
+                // Iterate outputs and apply filters
                 pRenderBlockBuffer = renderBlockBuffer - 1;
                 for (Output& output : *_pOutputs) {
                     AsioDevice::addSample(output.process(*++pRenderBlockBuffer));
@@ -187,22 +182,22 @@ void CaptureLoop::_captureLoopAsio() {
 
             swEnd();
 
-            //Release capture buffer.
+            // Release capture buffer.
             assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
 
-            //Check for more samples in capture buffer.
+            // Check for more samples in capture buffer.
             assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
         }
 
-        //No available samples. Short sleep just to not busy wait all resources.
+        // No available samples. Short sleep just to not busy wait all resources.
         Date::sleepMilli();
     }
 }
 
 void CaptureLoop::_captureLoopWasapi() {
-    //Used to temporarily store sample(for all out channels) while they are being processed.
+    // Used to temporarily store sample(for all out channels) while they are being processed.
     double renderBlockBuffer[8];
-    //The size of all sample frames for all channels with the same sample index/timestamp
+    // The size of all sample frames for all channels with the same sample index/timestamp
     const size_t renderBlockSize = sizeof(double) * _pOutputs->size();
     UINT32 samplesAvailable;
     DWORD flags;
@@ -212,16 +207,16 @@ void CaptureLoop::_captureLoopWasapi() {
     bool first = true;
 
     while (_run) {
-        //Check for samples in capture buffer.
+        // Check for samples in capture buffer.
         assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
 
         while (samplesAvailable && _run) {
-            //Get capture buffer pointer and number of available frames.
+            // Get capture buffer pointer and number of available frames.
             assert(_pCaptureDevice->getCaptureBuffer(&pCaptureBuffer, &samplesAvailable, &flags));
 
             if (flags) {
                 if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
-                    //Was playing audio before. Reset filter states.
+                    // Was playing audio before. Reset filter states.
                     if (!silent) {
                         silent = true;
                         _resetFilters();
@@ -239,13 +234,13 @@ void CaptureLoop::_captureLoopWasapi() {
                 }
             }
 
-            //Was silent before.
+            // Was silent before.
             if (silent) {
                 silent = false;
-                //Need to flush render buffer or a glitch kind of sound can occour after silence.
+                // Need to flush render buffer or a glitch kind of sound can occour after silence.
                 _pRenderDevice->flushRenderBuffer();
-                //First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
-                //Need to flush buffer of bad data or we can get glitches.
+                // First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
+                // Need to flush buffer of bad data or we can get glitches.
                 if (first) {
                     first = false;
                     assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
@@ -254,26 +249,26 @@ void CaptureLoop::_captureLoopWasapi() {
                 }
             }
 
-            //Must read entire capture buffer at once. Wait until render buffer has enough space available.
+            // Must read entire capture buffer at once. Wait until render buffer has enough space available.
             while (samplesAvailable > _pRenderDevice->getBufferFrameCountAvailable() && _run);
 
-            //Get render buffer
+            // Get render buffer
             assert(_pRenderDevice->getRenderBuffer(&pRenderBuffer, samplesAvailable));
 
             if (pRenderBuffer) {
                 swStart();
 
-                //Iterate all capture frames
+                // Iterate all capture frames
                 for (UINT32 sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
-                    //Set buffer default value to 0 so we can add/mix values to it later
+                    // Set buffer default value to 0 so we can add/mix values to it later
                     memset(renderBlockBuffer, 0, renderBlockSize);
 
-                    //Iterate inputs and route samples to outputs
+                    // Iterate inputs and route samples to outputs
                     for (Input& input : *_pInputs) {
                         input.route(*pCaptureBuffer++, renderBlockBuffer);
                     }
 
-                    //Iterate outputs and apply filters
+                    // Iterate outputs and apply filters
                     pRenderBlockBuffer = renderBlockBuffer - 1;
                     for (Output& output : *_pOutputs) {
                         *pRenderBuffer++ = (float)output.process(*++pRenderBlockBuffer);
@@ -283,23 +278,23 @@ void CaptureLoop::_captureLoopWasapi() {
                 swEnd();
             }
 
-            //Release render buffer.
+            // Release render buffer.
             assert(_pRenderDevice->releaseRenderBuffer(samplesAvailable));
 
-            //Release capture buffer.
+            // Release capture buffer.
             assert(_pCaptureDevice->releaseCaptureBuffer(samplesAvailable));
 
-            //Check for more samples in capture buffer.
+            // Check for more samples in capture buffer.
             assert(_pCaptureDevice->getNextPacketSize(&samplesAvailable));
         }
 
-        //No available samples. Short sleep just to not busy wait all resources.
+        // No available samples. Short sleep just to not busy wait all resources.
         Date::sleepMilli();
     }
 }
 
 void CaptureLoop::_resetFilters() {
-    //Reset i/o filter states.
+    // Reset i/o filter states.
     for (Input& input : *_pInputs) {
         input.reset();
     }
@@ -309,12 +304,12 @@ void CaptureLoop::_resetFilters() {
 }
 
 void CaptureLoop::_checkConfig() {
-    //Check if new config file has been selected
+    // Check if new config file has been selected
     const char input = Keyboard::getDigit();
     if (input) {
         throw ConfigChangedException(input);
     }
-    //Check if config file on disk has changed
+    // Check if config file on disk has changed
     if (_pConfig->hasChanged()) {
         throw ConfigChangedException();
     }
@@ -331,18 +326,18 @@ void CaptureLoop::_checkClippingChannels() {
 
 void CaptureLoop::_updateConditionalRouting() {
     if (_pConfig->useConditionalRouting()) {
-        //Get current is playing status per channel.
+        // Get current is playing status per channel.
         for (size_t i = 0; i < _pInputs->size(); ++i) {
             Condition::setIsChannelUsed(i, (*_pInputs)[i].resetIsPlaying());
         }
-        //Update conditional routing.
+        // Update conditional routing.
         for (Input& input : *_pInputs) {
             input.evalConditions();
         }
     }
 }
 
-//For debug purposes only.
+// For debug purposes only.
 void CaptureLoop::_printUsedChannels() {
     for (size_t i = 0; i < _pInputs->size(); ++i) {
         const Channel channel = (*_pInputs)[i].getChannel();

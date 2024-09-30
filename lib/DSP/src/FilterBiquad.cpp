@@ -74,12 +74,12 @@ void FilterBiquad::addLowPass(const double frequency, const vector<double>& qVal
     int order = 0;
     for (double q : qValues) {
         Biquad biquad;
-        //First order biquad
+        // First order biquad
         if (q < 0) {
             biquad.initLowPass(_sampleRate, frequency);
             order += 1;
         }
-        //Second order biquad
+        // Second order biquad
         else {
             biquad.initLowPass(_sampleRate, frequency, q);
             order += 2;
@@ -211,11 +211,11 @@ const vector<vector<double>> FilterBiquad::getFrequencyResponse(const uint32_t n
     for (const Biquad& biquad : _biquads) {
         const vector<vector<double>> data = biquad.getFrequencyResponse(_sampleRate, nPoints, fMin, fMax);
         for (uint32_t i = 0; i < nPoints; ++i) {
-            //First use of this index/Hz. Use entire Hz/dB pair.
+            // First use of this index/Hz. Use entire Hz/dB pair.
             if (result[i].size() == 0) {
                 result[i] = data[i];
             }
-            //Index/Hz already exists. Just add level/dB.
+            // Index/Hz already exists. Just add level/dB.
             else {
                 result[i][1] += data[i][1];
             }

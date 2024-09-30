@@ -1,12 +1,12 @@
 #include "FilterDelay.h"
 #include "Constants.h"
-#include <cmath> //lround
+#include <cmath> // lround
 #include "Str.h"
 
 using std::make_unique;
 
 const uint32_t FilterDelay::getSampleDelay(const uint32_t sampleRate, double delay, const bool useUnitMeter) {
-    //Value is in meter. Convert to milliseconds
+    // Value is in meter. Convert to milliseconds
     if (useUnitMeter) {
         delay = 1000.0 * delay / SPEED_OF_SOUND;
     }

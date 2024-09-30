@@ -1,5 +1,5 @@
 #include "FilterGain.h"
-#include <cmath> //pow
+#include <cmath> // pow
 #include "Str.h"
 
 using std::pow;

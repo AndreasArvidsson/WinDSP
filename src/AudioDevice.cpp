@@ -320,10 +320,9 @@ const string AudioDevice::hresult(const HRESULT hr) {
         return "AUDCLNT_S_THREAD_ALREADY_REGISTERED";
     case AUDCLNT_S_POSITION_STALLED:
         return "AUDCLNT_S_POSITION_STALLED";
+    case E_NOT_SET:
+        return "The audio endpoint device was not found.";
     default:
-        if (hr == E_NOT_SET) {
-            return "The audio endpoint device was not found.";
-        }
         return "Unknown error";
     }
 }

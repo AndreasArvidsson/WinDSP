@@ -23,160 +23,160 @@ void Biquad::init(const double b0, const double b1, const double b2, const doubl
     _a0 = a0;
     _a1 = a1;
     _a2 = a2;
-	normalize();
+    normalize();
 }
 
 void Biquad::init(const double b0, const double b1, const double b2, const double a1, const double a2) {
-	init(b0, b1, b2, 1.0, a1, a2);
+    init(b0, b1, b2, 1.0, a1, a2);
 }
 
 void Biquad::initLowPass(const uint32_t sampleRate, const double frequency, const double q) {
-	const double w0 = getOmega(sampleRate, frequency);
-	const double alpha = getAlpha(w0, q);
-	const double cs = cos(w0);
+    const double w0 = getOmega(sampleRate, frequency);
+    const double alpha = getAlpha(w0, q);
+    const double cs = cos(w0);
     _b0 = (1 - cs) / 2;
     _b1 = 1 - cs;
     _b2 = _b0;
     _a0 = 1 + alpha;
     _a1 = -2 * cs;
     _a2 = 1 - alpha;
-	normalize();
+    normalize();
 }
 
 void Biquad::initLowPass(const uint32_t sampleRate, const double frequency) {
-	const double w0 = getOmega(sampleRate, frequency);
-	const double sn = sin(w0);
-	const double cs = cos(w0);
+    const double w0 = getOmega(sampleRate, frequency);
+    const double sn = sin(w0);
+    const double cs = cos(w0);
     _b0 = sn;
     _b1 = _b0;
     _b2 = 0;
     _a0 = cs + _b0 + 1;
     _a1 = _b0 - cs - 1;
     _a2 = 0;
-	normalize();
+    normalize();
 }
 
 void Biquad::initHighPass(const uint32_t sampleRate, const double frequency, const double q) {
-	const double w0 = getOmega(sampleRate, frequency);
-	const double alpha = getAlpha(w0, q);
-	const double cs = cos(w0);
+    const double w0 = getOmega(sampleRate, frequency);
+    const double alpha = getAlpha(w0, q);
+    const double cs = cos(w0);
     _b0 = (1 + cs) / 2;
     _b1 = -(1 + cs);
     _b2 = (1 + cs) / 2;
     _a0 = 1 + alpha;
     _a1 = -2 * cs;
     _a2 = 1 - alpha;
-	normalize();
+    normalize();
 }
 
 void Biquad::initHighPass(const uint32_t sampleRate, const double frequency) {
-	const double w0 = getOmega(sampleRate, frequency);
-	const double sn = sin(w0);
-	const double cs = cos(w0);
+    const double w0 = getOmega(sampleRate, frequency);
+    const double sn = sin(w0);
+    const double cs = cos(w0);
     _b0 = cs + 1;
     _b1 = -(cs + 1);
     _b2 = 0;
     _a0 = cs + sn + 1;
     _a1 = sn - cs - 1;
     _a2 = 0;
-	normalize();
+    normalize();
 }
 
 void Biquad::initLowShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q) {
-	const double w0 = getOmega(sampleRate, frequency);
-	const double A = pow(10, gain / 40);
-	const double alpha = getAlpha(w0, q);
-	const double sqa = sqrt(A) * alpha;
-	const double cs = cos(w0);
+    const double w0 = getOmega(sampleRate, frequency);
+    const double A = pow(10, gain / 40);
+    const double alpha = getAlpha(w0, q);
+    const double sqa = sqrt(A) * alpha;
+    const double cs = cos(w0);
     _b0 = A*((A + 1) - (A - 1) * cs + 2 * sqa);
     _b1 = 2 * A*((A - 1) - (A + 1) * cs);
     _b2 = A*((A + 1) - (A - 1) * cs - 2 * sqa);
     _a0 = (A + 1) + (A - 1) * cs + 2 * sqa;
     _a1 = -2 * ((A - 1) + (A + 1) * cs);
     _a2 = (A + 1) + (A - 1) * cs - 2 * sqa;
-	normalize();
+    normalize();
 }
 
 void Biquad::initHighShelf(const uint32_t sampleRate, const double frequency, const double gain, const double q) {
-	const double w0 = getOmega(sampleRate, frequency);
-	const double A = pow(10, gain / 40);
-	const double alpha = getAlpha(w0, q);
-	const double sqa = sqrt(A) * alpha;
-	const double cs = cos(w0);
+    const double w0 = getOmega(sampleRate, frequency);
+    const double A = pow(10, gain / 40);
+    const double alpha = getAlpha(w0, q);
+    const double sqa = sqrt(A) * alpha;
+    const double cs = cos(w0);
     _b0 = A*((A + 1) + (A - 1) * cs + 2 * sqa);
     _b1 = -2 * A*((A - 1) + (A + 1) * cs);
     _b2 = A*((A + 1) + (A - 1) * cs - 2 * sqa);
     _a0 = (A + 1) - (A - 1) * cs + 2 * sqa;
     _a1 = 2 * ((A - 1) - (A + 1) * cs);
     _a2 = (A + 1) - (A - 1) * cs - 2 * sqa;
-	normalize();
+    normalize();
 }
 
 void Biquad::initPEQ(const uint32_t sampleRate, const double frequency, const double gain, const double q) {
-	const double w0 = getOmega(sampleRate, frequency);
-	const double alpha = getAlpha(w0, q);
-	const double A = pow(10, gain / 40);
-	const double cs = cos(w0);
+    const double w0 = getOmega(sampleRate, frequency);
+    const double alpha = getAlpha(w0, q);
+    const double A = pow(10, gain / 40);
+    const double cs = cos(w0);
     _b0 = 1 + alpha * A;
     _b1 = -2 * cs;
     _b2 = 1 - alpha * A;
     _a0 = 1 + alpha / A;
     _a1 = -2 * cs;
     _a2 = 1 - alpha / A;
-	normalize();
+    normalize();
 }
 
 void Biquad::initBandPass(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain) {
-	const double w0 = getOmega(sampleRate, frequency);
-	const double alpha = sin(w0) * sinh(M_LN2 / 2 * bandwidth * w0 / sin(w0));
-	const double A = pow(10, gain / 20);
+    const double w0 = getOmega(sampleRate, frequency);
+    const double alpha = sin(w0) * sinh(M_LN2 / 2 * bandwidth * w0 / sin(w0));
+    const double A = pow(10, gain / 20);
     _b0 = A * alpha;
     _b1 = 0;
     _b2 = -A * alpha;
     _a0 = 1 + alpha;
     _a1 = -2 * cos(w0);
     _a2 = 1 - alpha;
-	normalize();
+    normalize();
 }
 
 void Biquad::initNotch(const uint32_t sampleRate, const double frequency, const double bandwidth, const double gain) {
-	const double w0 = getOmega(sampleRate, frequency);
-	const double alpha = sin(w0) * sinh(M_LN2 / 2 * bandwidth * w0 / sin(w0));
-	const double cs = cos(w0);
-	const double A = pow(10, gain / 20);
+    const double w0 = getOmega(sampleRate, frequency);
+    const double alpha = sin(w0) * sinh(M_LN2 / 2 * bandwidth * w0 / sin(w0));
+    const double cs = cos(w0);
+    const double A = pow(10, gain / 20);
     _b0 = A;
     _b1 = -2 * cs * A;
     _b2 = A;
     _a0 = 1 + alpha;
     _a1 = -2 * cs;
     _a2 = 1 - alpha;
-	normalize();
+    normalize();
 }
 
 void Biquad::initLinkwitzTransform(const uint32_t sampleRate, const double F0, const double Q0, const double Fp, const double Qp) {
-	const double Fc = (F0 + Fp) / 2;
-	const double d0i = pow(2 * M_PI * F0, 2);
-	const double d1i = (2 * M_PI * F0) / Q0;
-	const double c0i = pow(2 * M_PI * Fp, 2);
-	const double c1i = (2 * M_PI * Fp) / Qp;
-	const double gn = (2 * M_PI * Fc) / tan(M_PI * Fc / sampleRate);
-	const double gn2 = pow(gn, 2);
-	const double cci = c0i + gn * c1i + gn2;
+    const double Fc = (F0 + Fp) / 2;
+    const double d0i = pow(2 * M_PI * F0, 2);
+    const double d1i = (2 * M_PI * F0) / Q0;
+    const double c0i = pow(2 * M_PI * Fp, 2);
+    const double c1i = (2 * M_PI * Fp) / Qp;
+    const double gn = (2 * M_PI * Fc) / tan(M_PI * Fc / sampleRate);
+    const double gn2 = pow(gn, 2);
+    const double cci = c0i + gn * c1i + gn2;
     _b0 = (d0i + gn * d1i + gn2) / cci;
     _b1 = 2 * (d0i - gn2) / cci;
     _b2 = (d0i - gn * d1i + gn2) / cci;
     _a0 = 1;
     _a1 = 2 * (c0i - gn2) / cci;
     _a2 = (c0i - gn * c1i + gn2) / cci;
-	reset();
+    reset();
 }
 
 double Biquad::getOmega(const uint32_t sampleRate, const double frequency) const {
-	return 2 * M_PI * frequency / sampleRate;
+    return 2 * M_PI * frequency / sampleRate;
 }
 
 double Biquad::getAlpha(const double w0, const double q) const {
-	return sin(w0) / (2 * q);
+    return sin(w0) / (2 * q);
 }
 
 void Biquad::normalize() {
@@ -186,20 +186,20 @@ void Biquad::normalize() {
     _a1 /= _a0;
     _a2 /= _a0;
     _a0 = 1;
-	reset();
+    reset();
 }
 
 const vector<vector<double>> Biquad::getFrequencyResponse(const uint32_t sampleRate, const uint32_t nPoints, const double fMin, const double fMax) const {
-	const double logFreqStep = log2(fMax / fMin) / (double)(nPoints - 1);
-	vector<vector<double>> result;
-	for (uint32_t i = 0; i < nPoints; ++i) {
-		const double f = fMin * exp2(i * logFreqStep);
-		const double w = 2 * M_PI * f / sampleRate;
-		const double phi = 4 * pow(sin(w / 2), 2);
-		const double db = 10 * log10(pow(_b0 + _b1 + _b2, 2) + (_b0 * _b2 * phi - (_b1 * (_b0 + _b2) + 4 * _b0 * _b2)) * phi) - 10 * log10(pow(1 + _a1 + _a2, 2) + (1 * _a2 * phi - (_a1 * (1 + _a2) + 4 * 1 * _a2)) * phi);
-		result.push_back({ f, db });
-	}
-	return result;
+    const double logFreqStep = log2(fMax / fMin) / (double)(nPoints - 1);
+    vector<vector<double>> result;
+    for (uint32_t i = 0; i < nPoints; ++i) {
+        const double f = fMin * exp2(i * logFreqStep);
+        const double w = 2 * M_PI * f / sampleRate;
+        const double phi = 4 * pow(sin(w / 2), 2);
+        const double db = 10 * log10(pow(_b0 + _b1 + _b2, 2) + (_b0 * _b2 * phi - (_b1 * (_b0 + _b2) + 4 * _b0 * _b2)) * phi) - 10 * log10(pow(1 + _a1 + _a2, 2) + (1 * _a2 * phi - (_a1 * (1 + _a2) + 4 * 1 * _a2)) * phi);
+        result.push_back({ f, db });
+    }
+    return result;
 }
 
 void Biquad::printCoefficients(const bool miniDSPFormat) const {

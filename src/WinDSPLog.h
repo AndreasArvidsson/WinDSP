@@ -34,10 +34,10 @@ public:
 #undef LOG_NL
 
 #define LOG_DEBUG(str, ...) WinDSPLog::log(LogSeverity::S_DEBUG, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
-#define LOG_INFO(str, ...)	WinDSPLog::log(LogSeverity::S_INFO, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
+#define LOG_INFO(str, ...)  WinDSPLog::log(LogSeverity::S_INFO, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
 #define LOG_WARN(str, ...)  WinDSPLog::log(LogSeverity::S_WARN, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
 #define LOG_ERROR(str, ...) WinDSPLog::log(LogSeverity::S_ERROR, __FILENAME__, __LINE__, str,  ##__VA_ARGS__)
-#define LOG_NL()			WinDSPLog::log(LogSeverity::S_INFO, __FILENAME__, __LINE__, "")
+#define LOG_NL()            WinDSPLog::log(LogSeverity::S_INFO, __FILENAME__, __LINE__, "")
 
 class WinDSPLog {
 public:

@@ -7,10 +7,10 @@ using std::vector;
 
 class Filter {
 public:
-	virtual ~Filter() {}
+    virtual ~Filter() {}
 
-	virtual inline const double process(double value) = 0;
-	virtual inline void reset() = 0;
+    virtual inline const double process(double value) = 0;
+    virtual inline void reset() = 0;
     virtual const vector<string> toString() const = 0;
 
 };

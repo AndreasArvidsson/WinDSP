@@ -13,36 +13,36 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AsioSDK", "..\AsioSDK\AsioSDK.vcxproj", "{0AB9A655-BA2C-42CB-909F-B61AE395E2E8}"
 EndProject
 Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
-		Release|x64 = Release|x64
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{49C706AB-09B0-451E-A6D6-403A28A54CE5}.Debug|x64.ActiveCfg = Debug|x64
-		{49C706AB-09B0-451E-A6D6-403A28A54CE5}.Debug|x64.Build.0 = Debug|x64
-		{49C706AB-09B0-451E-A6D6-403A28A54CE5}.Release|x64.ActiveCfg = Release|x64
-		{49C706AB-09B0-451E-A6D6-403A28A54CE5}.Release|x64.Build.0 = Release|x64
-		{44BAE523-7CAB-4697-B446-98E75F3D5C2F}.Debug|x64.ActiveCfg = Debug|x64
-		{44BAE523-7CAB-4697-B446-98E75F3D5C2F}.Debug|x64.Build.0 = Debug|x64
-		{44BAE523-7CAB-4697-B446-98E75F3D5C2F}.Release|x64.ActiveCfg = Release|x64
-		{44BAE523-7CAB-4697-B446-98E75F3D5C2F}.Release|x64.Build.0 = Release|x64
-		{5F894556-9A4B-4255-B8B7-5C1AE0F9CF26}.Debug|x64.ActiveCfg = Debug|x64
-		{5F894556-9A4B-4255-B8B7-5C1AE0F9CF26}.Debug|x64.Build.0 = Debug|x64
-		{5F894556-9A4B-4255-B8B7-5C1AE0F9CF26}.Release|x64.ActiveCfg = Release|x64
-		{5F894556-9A4B-4255-B8B7-5C1AE0F9CF26}.Release|x64.Build.0 = Release|x64
-		{6F3A1261-5747-42A0-847C-B260A16DA998}.Debug|x64.ActiveCfg = Debug|x64
-		{6F3A1261-5747-42A0-847C-B260A16DA998}.Debug|x64.Build.0 = Debug|x64
-		{6F3A1261-5747-42A0-847C-B260A16DA998}.Release|x64.ActiveCfg = Release|x64
-		{6F3A1261-5747-42A0-847C-B260A16DA998}.Release|x64.Build.0 = Release|x64
-		{0AB9A655-BA2C-42CB-909F-B61AE395E2E8}.Debug|x64.ActiveCfg = Debug|x64
-		{0AB9A655-BA2C-42CB-909F-B61AE395E2E8}.Debug|x64.Build.0 = Debug|x64
-		{0AB9A655-BA2C-42CB-909F-B61AE395E2E8}.Release|x64.ActiveCfg = Release|x64
-		{0AB9A655-BA2C-42CB-909F-B61AE395E2E8}.Release|x64.Build.0 = Release|x64
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E9F18E88-C932-4F1E-A95A-71DEEB0955CB}
-	EndGlobalSection
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|x64 = Debug|x64
+        Release|x64 = Release|x64
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {49C706AB-09B0-451E-A6D6-403A28A54CE5}.Debug|x64.ActiveCfg = Debug|x64
+        {49C706AB-09B0-451E-A6D6-403A28A54CE5}.Debug|x64.Build.0 = Debug|x64
+        {49C706AB-09B0-451E-A6D6-403A28A54CE5}.Release|x64.ActiveCfg = Release|x64
+        {49C706AB-09B0-451E-A6D6-403A28A54CE5}.Release|x64.Build.0 = Release|x64
+        {44BAE523-7CAB-4697-B446-98E75F3D5C2F}.Debug|x64.ActiveCfg = Debug|x64
+        {44BAE523-7CAB-4697-B446-98E75F3D5C2F}.Debug|x64.Build.0 = Debug|x64
+        {44BAE523-7CAB-4697-B446-98E75F3D5C2F}.Release|x64.ActiveCfg = Release|x64
+        {44BAE523-7CAB-4697-B446-98E75F3D5C2F}.Release|x64.Build.0 = Release|x64
+        {5F894556-9A4B-4255-B8B7-5C1AE0F9CF26}.Debug|x64.ActiveCfg = Debug|x64
+        {5F894556-9A4B-4255-B8B7-5C1AE0F9CF26}.Debug|x64.Build.0 = Debug|x64
+        {5F894556-9A4B-4255-B8B7-5C1AE0F9CF26}.Release|x64.ActiveCfg = Release|x64
+        {5F894556-9A4B-4255-B8B7-5C1AE0F9CF26}.Release|x64.Build.0 = Release|x64
+        {6F3A1261-5747-42A0-847C-B260A16DA998}.Debug|x64.ActiveCfg = Debug|x64
+        {6F3A1261-5747-42A0-847C-B260A16DA998}.Debug|x64.Build.0 = Debug|x64
+        {6F3A1261-5747-42A0-847C-B260A16DA998}.Release|x64.ActiveCfg = Release|x64
+        {6F3A1261-5747-42A0-847C-B260A16DA998}.Release|x64.Build.0 = Release|x64
+        {0AB9A655-BA2C-42CB-909F-B61AE395E2E8}.Debug|x64.ActiveCfg = Debug|x64
+        {0AB9A655-BA2C-42CB-909F-B61AE395E2E8}.Debug|x64.Build.0 = Debug|x64
+        {0AB9A655-BA2C-42CB-909F-B61AE395E2E8}.Release|x64.ActiveCfg = Release|x64
+        {0AB9A655-BA2C-42CB-909F-B61AE395E2E8}.Release|x64.Build.0 = Release|x64
+    EndGlobalSection
+    GlobalSection(SolutionProperties) = preSolution
+        HideSolutionNode = FALSE
+    EndGlobalSection
+    GlobalSection(ExtensibilityGlobals) = postSolution
+        SolutionGuid = {E9F18E88-C932-4F1E-A95A-71DEEB0955CB}
+    EndGlobalSection
 EndGlobal

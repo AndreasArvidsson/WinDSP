@@ -149,6 +149,7 @@ void CaptureLoop::_captureLoopAsio() {
             // Was silent before.
             if (silent) {
                 silent = false;
+
                 // First frames in capture buffer are bad for some strange reason. Part of the Wasapi standard.
                 // Need to flush buffer of bad data or we can get glitches.
                 if (first) {
@@ -159,6 +160,11 @@ void CaptureLoop::_captureLoopAsio() {
                 }
 
                 // Render silence to asio to create the buffers at once. If not the first audio will be crackling.
+                for (UINT32 sampleIndex = 0; sampleIndex < samplesAvailable; ++sampleIndex) {
+                    for (UINT32 i = 0; i < _pOutputs->size(); ++i) {
+                        AsioDevice::addSample(0);
+                    }
+                }
             }
 
             swStart();
